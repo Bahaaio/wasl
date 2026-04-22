@@ -1,4 +1,4 @@
-package com.github.bahaaio.wasl.post;
+package com.github.bahaaio.wasl.post.model;
 
 import com.github.bahaaio.wasl.community.model.Community;
 import com.github.bahaaio.wasl.user.model.User;

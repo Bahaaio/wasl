@@ -1,4 +1,4 @@
-package com.github.bahaaio.wasl.auth;
+package com.github.bahaaio.wasl.auth.model;
 
 import com.github.bahaaio.wasl.user.model.User;
 

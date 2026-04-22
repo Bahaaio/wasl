@@ -1,6 +1,6 @@
 package com.github.bahaaio.wasl.comment.model;
 
-import com.github.bahaaio.wasl.post.Post;
+import com.github.bahaaio.wasl.post.model.Post;
 import com.github.bahaaio.wasl.user.model.User;
 
 import org.hibernate.annotations.CreationTimestamp;
