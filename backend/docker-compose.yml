@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16.2
+    container_name: wasl-db
+    restart: no
+    environment:
+      POSTGRES_DB: wasl_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U user -d wasl_db" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  db_data:
