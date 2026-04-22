@@ -45,6 +45,8 @@ public class Post {
     @Builder.Default
     private Long commentCount = 0L;
 
+    private boolean deleted;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant createdAt;

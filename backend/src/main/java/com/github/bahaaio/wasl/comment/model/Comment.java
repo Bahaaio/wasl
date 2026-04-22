@@ -46,6 +46,8 @@ public class Comment {
     @Builder.Default
     private Long score = 0L;
 
+    private boolean deleted;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
