@@ -43,6 +43,9 @@ public class Media {
     @JoinColumn(name = "comment_id")
     private Comment comment;
 
+    @Column(nullable = false)
+    private String path;
+
     /**
      * Order of media within its parent.
      * Used for posts (0-based index). Always 0 for comments.
