@@ -56,6 +56,10 @@ public class Media {
     @Column(nullable = false)
     private MediaType type;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private MediaState state;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
