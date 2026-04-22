@@ -29,7 +29,7 @@ public class RefreshToken {
     @Column(nullable = false, unique = true, length = 512)
     private String tokenHash;
 
-    private boolean isRevoked;
+    private boolean revoked;
     private Instant expiresAt;
 
     @CreationTimestamp
