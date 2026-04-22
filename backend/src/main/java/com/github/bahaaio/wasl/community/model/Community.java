@@ -20,6 +20,10 @@ public class Community {
     @Column(nullable = false)
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    private CommunityCategory category;
+
     @Column(nullable = false)
     private String name;
 

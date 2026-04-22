@@ -31,6 +31,10 @@ public class Comment {
     @JoinColumn(name = "post_id")
     private Post post;
 
+    /**
+     * parent comment
+     * NULL if comment is a root comment
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     private Comment parent;
