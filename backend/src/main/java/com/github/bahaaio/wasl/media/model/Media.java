@@ -57,5 +57,6 @@ public class Media {
     private MediaType type;
 
     @CreationTimestamp
+    @Column(nullable = false, updatable = false)
     private Instant createdAt;
 }

@@ -47,5 +47,6 @@ public class Comment {
     private Long score = 0L;
 
     @CreationTimestamp
+    @Column(nullable = false, updatable = false)
     private Instant createdAt;
 }

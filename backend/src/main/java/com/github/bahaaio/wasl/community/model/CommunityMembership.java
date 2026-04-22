@@ -33,5 +33,6 @@ public class CommunityMembership {
     private CommunityRole role;
 
     @CreationTimestamp
+    @Column(nullable = false, updatable = false)
     private Instant createdAt;
 }

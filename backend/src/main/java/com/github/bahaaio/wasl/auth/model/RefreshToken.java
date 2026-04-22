@@ -33,5 +33,6 @@ public class RefreshToken {
     private Instant expiresAt;
 
     @CreationTimestamp
+    @Column(nullable = false, updatable = false)
     private Instant createdAt;
 }
