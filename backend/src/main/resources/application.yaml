@@ -1,3 +1,17 @@
 spring:
   application:
     name: wasl
+  datasource:
+    username: user
+    password: password
+    url: jdbc:postgresql://localhost:5432/wasl_db
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+  docker:
+    compose:
+      enabled: true
