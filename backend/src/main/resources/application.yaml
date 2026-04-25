@@ -15,3 +15,7 @@ spring:
   docker:
     compose:
       enabled: true
+
+jwt:
+  secret: "super_secret_key"
+  expiration: 900000 # 15 minutes
