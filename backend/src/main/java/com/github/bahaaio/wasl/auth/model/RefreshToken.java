@@ -35,4 +35,8 @@ public class RefreshToken {
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
+
+    public boolean isExpired() {
+        return expiresAt.isBefore(Instant.now());
+    }
 }
