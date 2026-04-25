@@ -25,7 +25,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
-class RefreshTokenServiceImplTest {
+class RefreshTokenServiceTest {
     @Mock
     SecureRandom secureRandom;
 
@@ -36,7 +36,7 @@ class RefreshTokenServiceImplTest {
     TokenHasher hasher;
 
     @InjectMocks
-    RefreshTokenServiceImpl service;
+    RefreshTokenService service;
 
     User testUser;
     RefreshToken testToken;
