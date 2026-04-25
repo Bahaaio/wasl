@@ -18,7 +18,7 @@ spring:
 
 security:
   jwt:
-    secret: "super_secret_key"
+    secret: "/7LHCo1fbM7W2tuxaFndwPddh9krWcGqPxCS92TYI/CYNoWwRHClMz4yuxCc3AJAb9HlS8wRmJSYNSD37OSYzw=="
     expiration_ms: 900000 # 15 minutes
   refresh:
     size: 64
