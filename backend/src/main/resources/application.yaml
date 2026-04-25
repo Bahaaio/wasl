@@ -16,6 +16,7 @@ spring:
     compose:
       enabled: true
 
-jwt:
-  secret: "super_secret_key"
-  expiration: 900000 # 15 minutes
+security:
+  jwt:
+    secret: "super_secret_key"
+    expiration_ms: 900000 # 15 minutes

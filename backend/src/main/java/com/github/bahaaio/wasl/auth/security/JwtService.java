@@ -16,10 +16,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 public class JwtService {
-    @Value("${jwt.secret}")
+    @Value("${security.jwt.secret}")
     private String secretKey;
 
-    @Value("${jwt.expiration}")
+    @Value("${security.jwt.expiration_ms}")
     private long expiration;
 
     public String generateToken(String username) {
