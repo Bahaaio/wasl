@@ -9,9 +9,12 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
+import jakarta.transaction.Transactional;
+
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long> {
     Optional<RefreshToken> findByTokenHash(String tokenHash);
 
+    @Transactional
     @Modifying
     @Query("UPDATE RefreshToken r SET r.revoked = true WHERE r.user.username = :username")
     void revokeAllTokensByUsername(@Param("username") String username);
