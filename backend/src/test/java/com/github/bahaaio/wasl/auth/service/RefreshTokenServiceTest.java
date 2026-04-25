@@ -100,8 +100,25 @@ class RefreshTokenServiceTest {
     }
 
     @Test
+    void shouldValidateAndReturnUser() {
+        String token = "test";
+        String tokenHash = "hashed";
+        testToken.setTokenHash(tokenHash);
+
+        given(hasher.hash(token)).willReturn(tokenHash);
+        given(repo.findByTokenHash(tokenHash)).willReturn(Optional.of(testToken));
+
+        var user = service.validateAndGetUser("test");
+
+        verify(hasher).hash(token);
+        verify(repo).findByTokenHash(tokenHash);
+        assertEquals(testUser, user);
+    }
+
+    @Test
     void shouldRevokeAllTokens() {
-        service.revokeAllTokens(testUser);
-        verify(repo).revokeAllTokensById(1L);
+        testUser.setUsername("bahaa");
+        service.revokeAllTokens(testUser.getUsername());
+        verify(repo).revokeAllTokensByUsername(testUser.getUsername());
     }
 }

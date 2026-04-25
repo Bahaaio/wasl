@@ -29,6 +29,7 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(auth ->
                 auth
+                    .requestMatchers("/api/v1/auth/logout").authenticated()
                     .requestMatchers("/api/v1/auth/**").permitAll()
                     .anyRequest().authenticated()
             )
@@ -51,7 +52,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecureRandom secureRandom(){
+    public SecureRandom secureRandom() {
         return new SecureRandom();
     }
 }

@@ -50,6 +50,10 @@ public class RefreshTokenService {
         return encodedToken;
     }
 
+    public User validateAndGetUser(String token) {
+        return getRefreshToken(token).getUser();
+    }
+
     @Transactional
     public String rotateToken(String token) {
         var refreshToken = getRefreshToken(token);
@@ -62,8 +66,8 @@ public class RefreshTokenService {
         revoke(refreshToken);
     }
 
-    public void revokeAllTokens(User user) {
-        refreshTokenRepository.revokeAllTokensById(user.getId());
+    public void revokeAllTokens(String username) {
+        refreshTokenRepository.revokeAllTokensByUsername(username);
     }
 
     private RefreshToken getRefreshToken(String token) {

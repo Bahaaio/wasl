@@ -20,7 +20,7 @@ public class User {
     @Column(nullable = false)
     private Long id;
 
-    @OneToOne(mappedBy = "user")
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private UserProfile profile;
 
     @Column(nullable = false, unique = true)
