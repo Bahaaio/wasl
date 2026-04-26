@@ -1,6 +1,7 @@
 package com.github.bahaaio.wasl.auth.security;
 
-import org.springframework.beans.factory.annotation.Value;
+import com.github.bahaaio.wasl.config.JwtTokenProperties;
+
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -11,22 +12,20 @@ import javax.crypto.SecretKey;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+@RequiredArgsConstructor
 @Slf4j
 @Component
 public class JwtService {
-    @Value("${security.jwt.secret}")
-    private String secretKey;
-
-    @Value("${security.jwt.expiration_ms}")
-    private long expiration;
+    private final JwtTokenProperties jwtProperties;
 
     public String generateToken(String username) {
         return Jwts.builder()
             .subject(username)
             .issuedAt(new Date())
-            .expiration(new Date(System.currentTimeMillis() + expiration))
+            .expiration(new Date(System.currentTimeMillis() + jwtProperties.getExpirationMs()))
             .signWith(getKey())
             .compact();
     }
@@ -46,6 +45,6 @@ public class JwtService {
     }
 
     private Key getKey() {
-        return Keys.hmacShaKeyFor(secretKey.getBytes());
+        return Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
     }
 }

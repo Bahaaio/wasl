@@ -4,9 +4,9 @@ import com.github.bahaaio.wasl.auth.exception.InvalidTokenException;
 import com.github.bahaaio.wasl.auth.exception.TokenExpiredException;
 import com.github.bahaaio.wasl.auth.model.RefreshToken;
 import com.github.bahaaio.wasl.auth.repository.RefreshTokenRepository;
+import com.github.bahaaio.wasl.config.RefreshTokenProperties;
 import com.github.bahaaio.wasl.user.model.User;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
@@ -25,15 +25,10 @@ public class RefreshTokenService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final SecureRandom secureRandom;
     private final TokenHasher hasher;
-
-    @Value("${security.refresh.size}")
-    private int tokenSize;
-
-    @Value("${security.refresh.expiration_days}")
-    private int expirationDays;
+    private final RefreshTokenProperties refreshProperties;
 
     public String createToken(User user) {
-        byte[] tokenBytes = new byte[tokenSize];
+        byte[] tokenBytes = new byte[refreshProperties.getSize()];
         secureRandom.nextBytes(tokenBytes);
 
         String encodedToken = encoder.encodeToString(tokenBytes);
@@ -42,7 +37,7 @@ public class RefreshTokenService {
         RefreshToken token = RefreshToken.builder()
             .user(user)
             .tokenHash(tokenHash)
-            .expiresAt(Instant.now().plus(Duration.ofDays(expirationDays)))
+            .expiresAt(Instant.now().plus(Duration.ofDays(refreshProperties.getExpirationDays())))
             .revoked(false)
             .build();
 
