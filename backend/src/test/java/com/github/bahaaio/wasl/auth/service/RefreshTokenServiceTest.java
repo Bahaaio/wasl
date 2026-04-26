@@ -9,12 +9,12 @@ import static org.mockito.Mockito.verify;
 import com.github.bahaaio.wasl.auth.exception.InvalidTokenException;
 import com.github.bahaaio.wasl.auth.model.RefreshToken;
 import com.github.bahaaio.wasl.auth.repository.RefreshTokenRepository;
+import com.github.bahaaio.wasl.config.RefreshTokenProperties;
 import com.github.bahaaio.wasl.user.model.User;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -35,7 +35,6 @@ class RefreshTokenServiceTest {
     @Mock
     TokenHasher hasher;
 
-    @InjectMocks
     RefreshTokenService service;
 
     User testUser;
@@ -52,6 +51,8 @@ class RefreshTokenServiceTest {
             .revoked(false)
             .expiresAt(Instant.now().plus(Duration.ofDays(7)))
             .build();
+
+        service = new RefreshTokenService(repo, secureRandom, hasher, new RefreshTokenProperties());
     }
 
     @Test

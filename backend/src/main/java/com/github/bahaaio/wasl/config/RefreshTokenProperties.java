@@ -9,6 +9,6 @@ import lombok.Setter;
 @Setter
 @ConfigurationProperties("security.refresh")
 public class RefreshTokenProperties {
-    private int size;
-    private int expirationDays;
+    private int size = 64;
+    private int expirationDays = 7;
 }
