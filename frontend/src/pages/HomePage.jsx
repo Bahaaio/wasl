@@ -208,21 +208,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* CTA SECTION */}
-        <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 to-purple-500/20 blur-3xl -z-10 rounded-[100px]"></div>
-          <div className="bg-slate-900/80 border border-slate-800 backdrop-blur-xl p-12 md:p-20 rounded-[3rem] shadow-2xl relative overflow-hidden">
-            <div className="relative z-10">
-              <h2 className="text-4xl md:text-5xl font-bold mb-6">Ready to dive down the rabbit hole?</h2>
-              <p className="text-slate-400 text-lg mb-10 max-w-xl mx-auto">
-                Join millions of users sharing ideas, debating facts, and posting cat pictures. Account creation takes exactly 4 seconds.
-              </p>
-              <button className="px-10 py-5 bg-white text-slate-950 rounded-full font-bold text-lg transition-all hover:scale-105 shadow-[0_0_30px_-5px_rgba(255,255,255,0.4)]">
-                Create Free Account
-              </button>
-            </div>
-          </div>
-        </section>
+      
       </main>
 
       <Footer />
