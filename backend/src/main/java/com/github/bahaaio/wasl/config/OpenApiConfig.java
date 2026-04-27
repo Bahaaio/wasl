@@ -1,8 +1,12 @@
 package com.github.bahaaio.wasl.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import io.swagger.v3.core.jackson.ModelResolver;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.security.SecurityScheme;
@@ -20,5 +24,13 @@ public class OpenApiConfig {
                         .bearerFormat("JWT")
                 )
             );
+    }
+
+    @Bean
+    public ModelResolver modelResolver() {
+        return new ModelResolver(
+            new ObjectMapper()
+                .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+        );
     }
 }
