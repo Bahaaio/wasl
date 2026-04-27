@@ -24,20 +24,22 @@ const COMMUNITIES = [];
 const Navbar = () => (
   <nav className="fixed top-0 w-full z-50 bg-slate-950/80 backdrop-blur-md border-b border-slate-800">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="flex justify-between items-center h-16">
+      <div className="flex items-center h-16">
         {/* Logo */}
-        <div className="flex items-center gap-2 cursor-pointer">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-orange-500 to-red-500 flex items-center justify-center">
-            <MessageSquare className="w-5 h-5 text-white" />
+        <div className="flex flex-1 items-center">
+          <div className="flex items-center gap-2 cursor-pointer">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-orange-500 to-red-500 flex items-center justify-center">
+              <MessageSquare className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400 tracking-tight">
+              WASL
+            </span>
           </div>
-          <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400 tracking-tight">
-            WASL
-          </span>
         </div>
 
         {/* Search - Desktop */}
-        <div className="hidden md:flex flex-1 max-w-xl mx-8">
-          <div className="relative w-full">
+        <div className="hidden md:flex flex-3 justify-center px-8">
+          <div className="relative w-full max-w-xl">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="text"
@@ -48,11 +50,10 @@ const Navbar = () => (
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-4">
-          <button className="hidden sm:block text-sm font-medium text-slate-300 hover:text-white transition-colors ">
+        <div className="flex flex-1 items-center justify-end gap-4">
+          <button className="hidden sm:block text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 px-4 py-2 rounded-full transition-all shadow-[0_0_25px_-10px_rgba(249,115,22,0.8)]">
             Log In
           </button>
-          
           <button className="md:hidden text-slate-300">
             <Menu className="w-6 h-6" />
           </button>
