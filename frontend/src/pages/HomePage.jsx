@@ -88,11 +88,7 @@ export default function HomePage() {
       <main className="relative z-10 pt-32 pb-20">
         {/* HERO SECTION */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-32">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800/50 border border-slate-700/50 backdrop-blur-md mb-8 animate-fade-in-up">
-            <span className="flex h-2 w-2 rounded-full bg-orange-500 animate-pulse"></span>
-            <span className="text-xs font-medium text-slate-300">v2.0 is now live in open beta</span>
-          </div>
-
+ 
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tighter mb-8 leading-[1.1]">
             The front page of <br className="hidden md:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-red-500 to-purple-500">

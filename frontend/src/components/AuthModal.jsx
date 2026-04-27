@@ -52,7 +52,6 @@ export default function AuthModal({ isOpen, onClose }) {
         <div className="relative bg-slate-900 border border-slate-800 backdrop-blur-xl rounded-3xl p-8 shadow-2xl">
           <div className="flex items-start justify-between gap-4 mb-6">
             <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-orange-400/80 mb-2">Welcome to WASL</p>
               <h2 className="text-2xl font-bold text-white">Log in or create your account</h2>
             </div>
             <button

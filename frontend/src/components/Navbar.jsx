@@ -21,7 +21,7 @@ export default function Navbar() {
               </div>
             </div>
 
-            <div className="hidden md:flex flex-1 justify-center px-8">
+            <div className="hidden md:flex flex-2 justify-center px-18">
               <div className="relative w-full max-w-xl">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
