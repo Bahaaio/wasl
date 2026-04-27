@@ -1,6 +1,8 @@
 spring:
   application:
     name: wasl
+  jackson:
+    property-naming-strategy: SNAKE_CASE
   datasource:
     username: user
     password: password
