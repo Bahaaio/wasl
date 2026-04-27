@@ -31,7 +31,6 @@ services:
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password
       SPRING_DOCKER_COMPOSE_ENABLED: "false"
-      SECURITY_JWT_SECRET: "super_secret_key"
     ports:
       - "8080:8080"
 

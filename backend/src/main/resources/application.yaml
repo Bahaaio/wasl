@@ -26,3 +26,4 @@ security:
   refresh:
     size: 64
     expiration_days: 7
+
