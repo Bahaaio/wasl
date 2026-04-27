@@ -17,6 +17,7 @@ spring:
   docker:
     compose:
       enabled: true
+      file: docker-compose.db.yml
 
 security:
   jwt:

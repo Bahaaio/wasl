@@ -2,7 +2,7 @@ services:
   db:
     image: postgres:16.2
     container_name: wasl-db
-    restart: no
+    restart: unless-stopped
     environment:
       POSTGRES_DB: wasl_db
       POSTGRES_USER: user
@@ -12,10 +12,28 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U user -d wasl_db" ]
+      test: ["CMD-SHELL", "pg_isready -U user -d wasl_db"]
       interval: 5s
       timeout: 3s
       retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wasl-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/wasl_db
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_DOCKER_COMPOSE_ENABLED: "false"
+      SECURITY_JWT_SECRET: "super_secret_key"
+    ports:
+      - "8080:8080"
 
 volumes:
   db_data:
