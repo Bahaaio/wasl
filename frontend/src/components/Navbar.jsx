@@ -4,7 +4,7 @@ import AuthModal from "./AuthModal.jsx";
 
 export default function Navbar() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [authInitialTab, setAuthInitialTab] = useState('login');
+  const [authInitialTab, setAuthInitialTab] = useState("login");
 
   return (
     <>
@@ -36,7 +36,10 @@ export default function Navbar() {
             <div className="flex flex-1 items-center justify-end gap-4">
               <button
                 type="button"
-                onClick={() => { setAuthInitialTab('register'); setIsAuthOpen(true); }}
+                onClick={() => {
+                  setAuthInitialTab("register");
+                  setIsAuthOpen(true);
+                }}
                 className="hidden sm:inline-flex items-center justify-center text-sm font-semibold text-slate-200 px-3 py-2 rounded-full border border-slate-700 hover:bg-slate-800 transition-all"
               >
                 Sign Up
@@ -44,7 +47,10 @@ export default function Navbar() {
 
               <button
                 type="button"
-                onClick={() => { setAuthInitialTab('login'); setIsAuthOpen(true); }}
+                onClick={() => {
+                  setAuthInitialTab("login");
+                  setIsAuthOpen(true);
+                }}
                 className="hidden sm:block text-sm font-semibold text-white bg-linear-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 px-4 py-2 rounded-full transition-all shadow-[0_0_25px_-10px_rgba(249,115,22,0.8)]"
               >
                 Log In
@@ -57,7 +63,12 @@ export default function Navbar() {
         </div>
       </nav>
 
-      <AuthModal key={`${isAuthOpen}-${authInitialTab}`} isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} initialTab={authInitialTab} />
+      <AuthModal
+        key={`${isAuthOpen}-${authInitialTab}`}
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        initialTab={authInitialTab}
+      />
     </>
   );
 }

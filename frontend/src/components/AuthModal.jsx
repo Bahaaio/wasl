@@ -1,7 +1,7 @@
 ﻿import { useState } from "react";
 import { Mail, Lock, User, Eye, EyeOff, X, ArrowLeft } from "lucide-react";
 
-export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
+export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
   const [tab, setTab] = useState(initialTab);
   const [showPassword, setShowPassword] = useState(false);
   const [isForgotOpen, setIsForgotOpen] = useState(false);
@@ -151,7 +151,9 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
 
               <div className="flex justify-end mb-1">
                 <button
-                  type="button"                  onClick={() => setIsForgotOpen(true)}                  className="text-sm text-orange-400 hover:text-orange-300 font-medium transition-colors"
+                  type="button"
+                  onClick={() => setIsForgotOpen(true)}
+                  className="text-sm text-orange-400 hover:text-orange-300 font-medium transition-colors"
                 >
                   Forgot Password?
                 </button>
@@ -273,7 +275,9 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
 
               <div className="flex justify-end mb-1">
                 <button
-                  type="button"                  onClick={() => setIsForgotOpen(true)}                  className="text-sm text-orange-400 hover:text-orange-300 font-medium transition-colors"
+                  type="button"
+                  onClick={() => setIsForgotOpen(true)}
+                  className="text-sm text-orange-400 hover:text-orange-300 font-medium transition-colors"
                 >
                   Forgot Password?
                 </button>
@@ -334,7 +338,9 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
                 </button>
               </div>
 
-              <h2 className="text-2xl font-bold text-white mb-6">Reset Password</h2>
+              <h2 className="text-2xl font-bold text-white mb-6">
+                Reset Password
+              </h2>
 
               <form onSubmit={handleForgotSubmit} className="space-y-4">
                 <div>

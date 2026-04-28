@@ -314,7 +314,6 @@ export default function PostsPage() {
           </div>
         </main>
       </div>
-
     </div>
   );
 }
