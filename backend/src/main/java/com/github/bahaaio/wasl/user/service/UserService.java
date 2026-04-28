@@ -2,10 +2,11 @@ package com.github.bahaaio.wasl.user.service;
 
 import com.github.bahaaio.wasl.auth.service.RefreshTokenService;
 import com.github.bahaaio.wasl.user.dto.UserDto;
-import com.github.bahaaio.wasl.user.dto.UserUpdateRequest;
+import com.github.bahaaio.wasl.user.dto.UserPatchRequest;
 import com.github.bahaaio.wasl.user.mapper.UserMapper;
 import com.github.bahaaio.wasl.user.repository.UserRepository;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,13 @@ public class UserService {
     private final UserMapper userMapper;
     private final RefreshTokenService refreshTokenService;
 
+    /**
+     * Retrieves a user by username.
+     *
+     * @param username unique username
+     * @return the updated user
+     * @throws UsernameNotFoundException if the user does not exist
+     */
     public UserDto getUserByUsername(String username) {
         var user = userRepository.findByUsername(username)
             .orElseThrow(() -> new UsernameNotFoundException("Username not found: " + username));
@@ -26,16 +34,31 @@ public class UserService {
         return userMapper.toDto(user);
     }
 
-    public UserDto updateUserByUsername(String username, UserUpdateRequest request) {
+    /**
+     * Updates a user by username
+     *
+     * @param username unique username
+     * @param request  request fields to update
+     * @return the updated user
+     * @throws UsernameNotFoundException if the user does not exist
+     */
+    public UserDto updateUserByUsername(String username, UserPatchRequest request) {
         var user = userRepository.findByUsername(username)
             .orElseThrow(() -> new UsernameNotFoundException("Username not found: " + username));
 
-        user.setAbout(request.about());
-        userRepository.save(user);
+        if (StringUtils.isNotBlank(request.about())) {
+            user.setAbout(request.about());
+            userRepository.save(user);
+        }
 
         return userMapper.toDto(user);
     }
 
+    /**
+     * Deletes a user account and revokes all active sessions
+     *
+     * @param username unique username
+     */
     @Transactional
     public void deleteUserByUsername(String username) {
         refreshTokenService.deleteAllTokens(username);

@@ -1,7 +1,7 @@
 package com.github.bahaaio.wasl.user.controller;
 
 import com.github.bahaaio.wasl.user.dto.UserDto;
-import com.github.bahaaio.wasl.user.dto.UserUpdateRequest;
+import com.github.bahaaio.wasl.user.dto.UserPatchRequest;
 import com.github.bahaaio.wasl.user.service.UserService;
 
 import org.springframework.http.ResponseEntity;
@@ -33,7 +33,7 @@ public class UserController {
 
     @SecurityRequirement(name = "bearerAuth")
     @PatchMapping("/me")
-    public ResponseEntity<UserDto> updateCurrentUser(@Validated @RequestBody UserUpdateRequest request,
+    public ResponseEntity<UserDto> updateCurrentUser(@Validated @RequestBody UserPatchRequest request,
                                                      Authentication authentication) {
         var dto = userService.updateUserByUsername(authentication.getName(), request);
         return ResponseEntity.ok(dto);
