@@ -20,9 +20,6 @@ public class User {
     @Column(nullable = false)
     private Long id;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private UserProfile profile;
-
     @Column(nullable = false, unique = true)
     private String email;
 
@@ -31,6 +28,10 @@ public class User {
 
     @Column(nullable = false)
     private String hashedPassword;
+
+    private String about;
+    private String avatarUrl;
+    private String bannerUrl;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

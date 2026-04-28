@@ -7,7 +7,6 @@ import com.github.bahaaio.wasl.auth.exception.InvalidCredentialsException;
 import com.github.bahaaio.wasl.auth.model.AuthResult;
 import com.github.bahaaio.wasl.auth.security.JwtService;
 import com.github.bahaaio.wasl.user.model.User;
-import com.github.bahaaio.wasl.user.model.UserProfile;
 import com.github.bahaaio.wasl.user.repository.UserRepository;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -47,11 +46,6 @@ public class AuthService {
             .hashedPassword(hashedPassword)
             .build();
 
-        UserProfile profile = UserProfile.builder()
-            .user(user)
-            .build();
-
-        user.setProfile(profile);
         userRepository.save(user);
 
         return generateTokens(user);
