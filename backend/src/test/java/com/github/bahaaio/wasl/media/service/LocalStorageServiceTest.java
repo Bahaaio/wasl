@@ -8,13 +8,11 @@ import com.github.bahaaio.wasl.media.exception.StorageException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.io.IOException;
 import java.util.UUID;
 
-@SpringBootTest
 class LocalStorageServiceTest {
     LocalStorageService storageService;
 
