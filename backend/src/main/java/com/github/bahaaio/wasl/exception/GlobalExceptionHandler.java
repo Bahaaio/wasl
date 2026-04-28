@@ -17,11 +17,7 @@ public class GlobalExceptionHandler {
             .toList();
 
         return ResponseEntity.badRequest().body(
-            ApiError.<List<ValidationErrorDetail>>builder()
-                .code("VALIDATION_ERROR")
-                .message("Validation failed")
-                .details(errors)
-                .build()
+            ApiError.of("VALIDATION_ERROR", "Validation failed", errors)
         );
     }
 }
