@@ -1,8 +1,11 @@
-﻿import { useState } from "react";
+﻿import { useState, useEffect } from "react";
 import { Mail, Lock, User, Eye, EyeOff, X } from "lucide-react";
 
-export default function AuthModal({ isOpen, onClose }) {
-  const [tab, setTab] = useState("login");
+export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
+  const [tab, setTab] = useState(initialTab);
+  useEffect(() => {
+    if (isOpen) setTab(initialTab);
+  }, [isOpen, initialTab]);
   const [showPassword, setShowPassword] = useState(false);
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [registerForm, setRegisterForm] = useState({
