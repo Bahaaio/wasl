@@ -345,7 +345,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
               <form onSubmit={handleForgotSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Username or Email
+                    Username 
                   </label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -365,7 +365,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
                   type="submit"
                   className="w-full mt-6 py-2.5 bg-linear-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 text-white font-bold rounded-full transition-all shadow-lg hover:shadow-xl"
                 >
-                  Send Reset Link
+                  Send Reset Code
                 </button>
               </form>
             </div>
