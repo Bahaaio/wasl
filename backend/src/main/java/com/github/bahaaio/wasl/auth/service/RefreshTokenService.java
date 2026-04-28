@@ -65,6 +65,10 @@ public class RefreshTokenService {
         refreshTokenRepository.revokeAllTokensByUsername(username);
     }
 
+    public void deleteAllTokens(String username) {
+        refreshTokenRepository.deleteAllByUsername(username);
+    }
+
     private RefreshToken getRefreshToken(String token) {
         String tokenHash = hasher.hash(token);
 
