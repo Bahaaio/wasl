@@ -91,7 +91,7 @@ const COMMUNITIES = [
     members: "1.8M members",
     accent: "from-indigo-500 to-cyan-500",
   },
-  
+
   {
     name: "r/frontend",
     members: "840K members",
