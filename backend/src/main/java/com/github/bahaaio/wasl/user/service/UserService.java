@@ -3,11 +3,11 @@ package com.github.bahaaio.wasl.user.service;
 import com.github.bahaaio.wasl.auth.service.RefreshTokenService;
 import com.github.bahaaio.wasl.user.dto.UserDto;
 import com.github.bahaaio.wasl.user.dto.UserPatchRequest;
+import com.github.bahaaio.wasl.user.exception.UsernameNotFoundException;
 import com.github.bahaaio.wasl.user.mapper.UserMapper;
 import com.github.bahaaio.wasl.user.repository.UserRepository;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
@@ -29,7 +29,7 @@ public class UserService {
      */
     public UserDto getUserByUsername(String username) {
         var user = userRepository.findByUsername(username)
-            .orElseThrow(() -> new UsernameNotFoundException("Username not found: " + username));
+            .orElseThrow(() -> new UsernameNotFoundException(username));
 
         return userMapper.toDto(user);
     }
@@ -44,7 +44,7 @@ public class UserService {
      */
     public UserDto updateUserByUsername(String username, UserPatchRequest request) {
         var user = userRepository.findByUsername(username)
-            .orElseThrow(() -> new UsernameNotFoundException("Username not found: " + username));
+            .orElseThrow(() -> new UsernameNotFoundException(username));
 
         if (StringUtils.isNotBlank(request.about())) {
             user.setAbout(request.about());
