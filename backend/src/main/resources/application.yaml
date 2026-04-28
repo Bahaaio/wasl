@@ -1,8 +1,10 @@
 spring:
   application:
     name: wasl
+
   jackson:
     property-naming-strategy: SNAKE_CASE
+
   datasource:
     username: user
     password: password
@@ -14,6 +16,12 @@ spring:
       hibernate:
         show_sql: true
         format_sql: true
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
   docker:
     compose:
       enabled: true
@@ -27,3 +35,5 @@ security:
     size: 64
     expiration_days: 7
 
+storage:
+  location: "upload"
