@@ -20,7 +20,7 @@ public class AuthExceptionHandler {
 
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<ApiError<Void>> handleInvalidCredentials() {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
             ApiError.of("INVALID_CREDENTIALS", "Invalid username or password")
         );
     }

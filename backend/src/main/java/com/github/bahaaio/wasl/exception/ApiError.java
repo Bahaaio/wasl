@@ -6,7 +6,7 @@ public record ApiError<T>(
     T details
 ) {
     public static <T> ApiError<T> of(String code, String message, T details) {
-        return new ApiError<T>(code, message, details);
+        return new ApiError<>(code, message, details);
     }
 
     public static ApiError<Void> of(String code, String message) {
