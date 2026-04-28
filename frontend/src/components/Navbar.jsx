@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { MessageSquare, Search, Menu } from "lucide-react";
 import { Link } from "react-router-dom";
 import AuthModal from "./AuthModal.jsx";
@@ -6,10 +6,28 @@ import AuthModal from "./AuthModal.jsx";
 export default function Navbar() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authInitialTab, setAuthInitialTab] = useState("login");
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 8);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <>
-      <nav className="fixed top-0 w-full z-50 bg-slate-950/80 backdrop-blur-md border-b border-slate-800">
+      <nav
+        className={`fixed top-0 w-full z-50 transition-colors duration-300 ${
+          isScrolled
+            ? "bg-slate-950/80 backdrop-blur-md border-b border-slate-800"
+            : "bg-transparent border-b border-transparent"
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
             <div className="flex flex-1 items-center">
