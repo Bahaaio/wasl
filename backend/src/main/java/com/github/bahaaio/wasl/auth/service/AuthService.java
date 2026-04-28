@@ -6,6 +6,7 @@ import com.github.bahaaio.wasl.auth.exception.ConflictException;
 import com.github.bahaaio.wasl.auth.exception.InvalidCredentialsException;
 import com.github.bahaaio.wasl.auth.model.AuthResult;
 import com.github.bahaaio.wasl.auth.security.JwtService;
+import com.github.bahaaio.wasl.user.mapper.UserMapper;
 import com.github.bahaaio.wasl.user.model.User;
 import com.github.bahaaio.wasl.user.repository.UserRepository;
 
@@ -18,15 +19,16 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class AuthService {
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
 
     /**
-     * Registers a new user and creates an associated profile.
+     * Registers a new user and returns authentication result.
      *
      * @param request registration data
-     * @return issued access token and refresh token
+     * @return authentication result containing tokens and user DTO
      * @throws ConflictException if the username or email already exists
      */
     public AuthResult register(RegisterRequest request) {
@@ -48,14 +50,14 @@ public class AuthService {
 
         userRepository.save(user);
 
-        return generateTokens(user);
+        return createAuthResult(user);
     }
 
     /**
-     * Authenticates a user using their username and password.
+     * Authenticates a user using username and password.
      *
      * @param request login credentials
-     * @return issued access token and refresh token
+     * @return authentication result containing tokens and user DTO
      * @throws InvalidCredentialsException if authentication fails
      */
     public AuthResult login(LoginRequest request) {
@@ -66,36 +68,48 @@ public class AuthService {
             throw new InvalidCredentialsException();
         }
 
-        return generateTokens(user);
+        return createAuthResult(user);
     }
 
     /**
-     * Rotates a refresh token and issues a new access token.
+     * Rotates refresh token and issues new authentication result.
      *
      * @param token refresh token
-     * @return new access token and refresh token pair
+     * @return authentication result containing new tokens and user DTO
      */
     public AuthResult refresh(String token) {
         var user = refreshTokenService.validateAndGetUser(token);
+        var userDto = userMapper.toDto(user);
 
         String jwt = jwtService.generateToken(user.getUsername());
         String refreshToken = refreshTokenService.rotateToken(token);
-        return new AuthResult(jwt, refreshToken);
+
+        return new AuthResult(jwt, refreshToken, userDto);
     }
 
     /**
-     * Revokes the current session associated with the provided refresh token.
-     * This logs out a single device/session rather than all user sessions.
+     * Revokes the session associated with the given refresh token.
+     * This logs out only the current device/session.
      *
-     * @param refreshToken the refresh token identifying the session to revoke
+     * @param refreshToken refresh token to revoke
      */
     public void logout(String refreshToken) {
         refreshTokenService.revokeByToken(refreshToken);
     }
 
-    private AuthResult generateTokens(User user) {
+    /**
+     * Creates <code>AuthResult</code> containing access token,
+     * refresh token, and user DTO.
+     *
+     * @param user authenticated user
+     * @return authentication result
+     */
+    private AuthResult createAuthResult(User user) {
+        var userDto = userMapper.toDto(user);
+
         String jwt = jwtService.generateToken(user.getUsername());
         String refreshToken = refreshTokenService.createToken(user);
-        return new AuthResult(jwt, refreshToken);
+
+        return new AuthResult(jwt, refreshToken, userDto);
     }
 }
