@@ -1,5 +1,6 @@
 ﻿import { useState } from "react";
 import { MessageSquare, Search, Menu } from "lucide-react";
+import { Link } from "react-router-dom";
 import AuthModal from "./AuthModal.jsx";
 
 export default function Navbar() {
@@ -12,14 +13,14 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
             <div className="flex flex-1 items-center">
-              <div className="flex items-center gap-2 cursor-pointer">
+              <Link to="/" className="flex items-center gap-2 cursor-pointer">
                 <div className="w-9 h-9 rounded-full bg-linear-to-tr from-orange-500 to-red-500 flex items-center justify-center">
                   <MessageSquare className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-3xl font-bold bg-clip-text text-transparent bg-linear-to-r from-white to-slate-400 tracking-tight">
                   WASL
                 </span>
-              </div>
+              </Link>
             </div>
 
             <div className="hidden md:flex flex-2 justify-center px-18">
