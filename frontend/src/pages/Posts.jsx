@@ -149,7 +149,7 @@ export default function PostsPage() {
           <button
             type="button"
             onClick={() => setIsSidebarOpen((current) => !current)}
-            className="absolute right-0 top-6 z-10 inline-flex h-10 w-10 translate-x-1/2 items-center justify-center rounded-full border border-slate-500 bg-slate-950 text-slate-100 shadow-lg shadow-black/30 transition-colors hover:bg-slate-900"
+            className="absolute right-0 top-6 z-50 inline-flex h-10 w-10 translate-x-1/2 items-center justify-center rounded-full border border-slate-500 bg-slate-950 text-slate-100 shadow-lg shadow-black/30 transition-colors hover:bg-slate-900"
             aria-label={isSidebarOpen ? 'Close sidebar' : 'Open sidebar'}
             aria-expanded={isSidebarOpen}
             aria-controls="posts-sidebar"
