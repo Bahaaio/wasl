@@ -16,6 +16,7 @@ import com.github.bahaaio.wasl.auth.security.AuthCookieService;
 import com.github.bahaaio.wasl.auth.security.JwtFilter;
 import com.github.bahaaio.wasl.auth.security.JwtService;
 import com.github.bahaaio.wasl.auth.service.AuthService;
+import com.github.bahaaio.wasl.user.dto.UserDto;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,7 +56,9 @@ class AuthControllerTest {
 
     @BeforeEach
     void setUp() {
-        var authResult = new AuthResult("jwt", "refresh");
+        var userDto = UserDto.builder().username("bahaa").build();
+        var authResult = new AuthResult("jwt", "refresh", userDto);
+
         given(authService.register(any())).willReturn(authResult);
         given(authService.login(any())).willReturn(authResult);
         given(authService.refresh(any())).willReturn(authResult);
@@ -76,7 +79,8 @@ class AuthControllerTest {
                 .content(objectMapper.writeValueAsString(registerRequest)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.access_token", is("jwt")))
-            .andExpect(cookie().value("refresh_token", "refresh"));
+            .andExpect(cookie().value("refresh_token", "refresh"))
+            .andExpect(jsonPath("$.user.username").exists());
 
         verify(authService).register(registerRequest);
     }
@@ -111,7 +115,8 @@ class AuthControllerTest {
                 .content(objectMapper.writeValueAsString(loginRequest)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.access_token", is("jwt")))
-            .andExpect(cookie().value("refresh_token", "refresh"));
+            .andExpect(cookie().value("refresh_token", "refresh"))
+            .andExpect(jsonPath("$.user.username").exists());
 
         verify(authService).login(loginRequest);
     }
@@ -154,7 +159,8 @@ class AuthControllerTest {
                 .cookie(new Cookie("refresh_token", "123")))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.access_token").exists())
-            .andExpect(cookie().value("refresh_token", not("123")));
+            .andExpect(cookie().value("refresh_token", not("123")))
+            .andExpect(jsonPath("$.user.username").exists());
 
         verify(authService).refresh("123");
     }
