@@ -29,9 +29,17 @@ public class User {
     @Column(nullable = false)
     private String hashedPassword;
 
-    private String about;
-    private String avatarUrl;
-    private String bannerUrl;
+    @Builder.Default
+    @Column(nullable = false)
+    private String about = "";
+
+    @Builder.Default
+    @Column(nullable = false)
+    private String avatarUrl = "";
+
+    @Builder.Default
+    @Column(nullable = false)
+    private String bannerUrl = "";
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
