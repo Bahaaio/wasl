@@ -42,8 +42,8 @@ public class AuthController {
         return buildResponse(authResult);
     }
 
-    @PostMapping("/logout")
     @SecurityRequirement(name = "bearerAuth")
+    @PostMapping("/logout")
     public ResponseEntity<Void> logout(@CookieValue(AuthCookieService.REFRESH_TOKEN_COOKIE_NAME) String refreshToken) {
         authService.logout(refreshToken);
         var clearRefreshCookie = authCookieService.deleteRefreshTokenCookie();

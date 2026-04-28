@@ -31,8 +31,12 @@ public class SecurityConfig {
                 auth
                     .requestMatchers("/api/v1/auth/logout").authenticated()
                     .requestMatchers("/api/v1/auth/**").permitAll()
+
+                    .requestMatchers("/api/v1/users/me").authenticated()
+                    .requestMatchers("/api/v1/users/**").permitAll()
+
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                    .anyRequest().authenticated()
+                    .anyRequest().permitAll()
             )
 
             .cors(Customizer.withDefaults())
