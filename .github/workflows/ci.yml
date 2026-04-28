@@ -8,6 +8,10 @@ on:
     paths:
       - "backend/**"
 
+permissions:
+  contents: read
+  checks: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
