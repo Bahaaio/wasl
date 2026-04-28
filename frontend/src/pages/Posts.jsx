@@ -16,7 +16,6 @@ import {
   Award,
 } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
-import Footer from "../components/Footer.jsx";
 
 const POSTS = [
   {
@@ -316,7 +315,6 @@ export default function PostsPage() {
         </main>
       </div>
 
-      <Footer />
     </div>
   );
 }
