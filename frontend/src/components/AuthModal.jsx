@@ -50,14 +50,11 @@ export default function AuthModal({ isOpen, onClose }) {
       <div className="relative w-full max-w-md">
         <div className="absolute -inset-1 rounded-3xl bg-linear-to-r from-orange-500/40 to-red-600/40 blur-xl" />
         <div className="relative bg-slate-900 border border-slate-800 backdrop-blur-xl rounded-3xl p-8 shadow-2xl">
-          <div className="flex items-start justify-between gap-4 mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-white">Log in or create your account</h2>
-            </div>
+          <div className="flex items-start justify-end mb-6">
             <button
               type="button"
               onClick={onClose}
-              className="text-slate-400 hover:text-white transition-colors"
+              className="p-2.5 rounded-full bg-slate-800/50 hover:bg-gradient-to-br hover:from-orange-500/30 hover:to-red-600/30 text-slate-400 hover:text-orange-400 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/20 border border-slate-700/50 hover:border-orange-500/50"
               aria-label="Close auth modal"
             >
               <X className="w-5 h-5" />
@@ -132,7 +129,7 @@ export default function AuthModal({ isOpen, onClose }) {
 
               <button
                 type="submit"
-                className="w-full mt-6 py-2.5 bg-linear-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 text-white font-bold rounded-lg transition-all shadow-lg hover:shadow-xl"
+                className="w-full mt-6 py-2.5 bg-linear-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 text-white font-bold rounded-full transition-all shadow-lg hover:shadow-xl"
               >
                 Log In
               </button>
@@ -230,7 +227,7 @@ export default function AuthModal({ isOpen, onClose }) {
 
               <button
                 type="submit"
-                className="w-full mt-6 py-2.5 bg-linear-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 text-white font-bold rounded-lg transition-all shadow-lg hover:shadow-xl"
+                className="w-full mt-6 py-2.5 bg-linear-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 text-white font-bold rounded-full transition-all shadow-lg hover:shadow-xl"
               >
                 Create Account
               </button>
