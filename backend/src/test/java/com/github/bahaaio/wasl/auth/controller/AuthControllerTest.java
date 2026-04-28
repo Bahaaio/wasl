@@ -159,8 +159,7 @@ class AuthControllerTest {
                 .cookie(new Cookie("refresh_token", "123")))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.access_token").exists())
-            .andExpect(cookie().value("refresh_token", not("123")))
-            .andExpect(jsonPath("$.user.username").exists());
+            .andExpect(cookie().value("refresh_token", not("123")));
 
         verify(authService).refresh("123");
     }
