@@ -60,6 +60,7 @@ const POSTS = [
 
 export default function PostsPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth >= 768);
+  const [resourcesOpen, setResourcesOpen] = useState(true);
   const [posts, setPosts] = useState(POSTS);
 
   useEffect(() => {
@@ -141,7 +142,7 @@ export default function PostsPage() {
 
         <aside
           id="posts-sidebar"
-          className={`fixed left-0 top-16 z-30 h-[calc(100vh-4rem)] w-80 max-w-[85vw] shrink-0 border-r border-slate-800 bg-slate-950 overflow-y-auto transition-transform duration-300 ease-out md:sticky md:top-0 md:h-[calc(100vh-4rem)] xl:w-96 ${
+          className={`fixed left-0 top-16 z-30 h-[calc(100vh-4rem)] w-80 max-w-[85vw] shrink-0 border-r border-slate-800 bg-slate-950 overflow-y-overlay transition-transform duration-300 ease-out md:sticky md:top-0 md:h-[calc(100vh-4rem)] xl:w-96 ${
             isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
           aria-hidden={!isSidebarOpen}
@@ -149,7 +150,7 @@ export default function PostsPage() {
           <button
             type="button"
             onClick={() => setIsSidebarOpen((current) => !current)}
-            className="absolute right-0 top-6 z-50 inline-flex h-10 w-10 translate-x-1/2 items-center justify-center rounded-full border border-slate-500 bg-slate-950 text-slate-100 shadow-lg shadow-black/30 transition-colors hover:bg-slate-900"
+            className="fixed right-0 top-20 z-50 inline-flex h-10 w-10 translate-x-1/2 items-center justify-center rounded-full border border-slate-500 bg-slate-950 text-slate-100 shadow-lg shadow-black/30 transition-colors hover:bg-slate-900 md:absolute md:right-0 md:top-6"
             aria-label={isSidebarOpen ? 'Close sidebar' : 'Open sidebar'}
             aria-expanded={isSidebarOpen}
             aria-controls="posts-sidebar"
@@ -170,20 +171,26 @@ export default function PostsPage() {
               </div>
 
               <div className="border-t border-slate-800 pt-6">
-                <div className="flex items-center justify-between mb-4 px-2">
+                <button
+                  type="button"
+                  onClick={() => setResourcesOpen(!resourcesOpen)}
+                  className="w-full flex items-center justify-between mb-4 px-2 hover:opacity-80 transition-opacity"
+                >
                   <p className="text-xs uppercase tracking-[0.25em] text-slate-500">Resources</p>
-                  <ChevronDown className="w-4 h-4 text-slate-500" />
-                </div>
-                <div className="space-y-1">
-                  <SidebarItem icon={<CircleHelp className="w-5 h-5" />} label="About WASL" />
-                  <SidebarItem icon={<Share2 className="w-5 h-5" />} label="Advertise" />
-                  <SidebarItem icon={<BookOpen className="w-5 h-5" />} label="Developer Platform" />
-                  <SidebarItem icon={<Flame className="w-5 h-5" />} label="WASL Pro" badge="BETA" />
-                  <SidebarItem icon={<CircleHelp className="w-5 h-5" />} label="Help" />
-                  <SidebarItem icon={<BookOpen className="w-5 h-5" />} label="Blog" />
-                  <SidebarItem icon={<Users className="w-5 h-5" />} label="Careers" />
-                  <SidebarItem icon={<Share2 className="w-5 h-5" />} label="Press" />
-                </div>
+                  <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${resourcesOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {resourcesOpen && (
+                  <div className="space-y-1">
+                    <SidebarItem icon={<CircleHelp className="w-5 h-5" />} label="About WASL" />
+                    <SidebarItem icon={<Share2 className="w-5 h-5" />} label="Advertise" />
+                    <SidebarItem icon={<BookOpen className="w-5 h-5" />} label="Developer Platform" />
+                    <SidebarItem icon={<Flame className="w-5 h-5" />} label="WASL Pro" badge="BETA" />
+                    <SidebarItem icon={<CircleHelp className="w-5 h-5" />} label="Help" />
+                    <SidebarItem icon={<BookOpen className="w-5 h-5" />} label="Blog" />
+                    <SidebarItem icon={<Users className="w-5 h-5" />} label="Careers" />
+                    <SidebarItem icon={<Share2 className="w-5 h-5" />} label="Press" />
+                  </div>
+                )}
               </div>
 
               <div className="border-t border-slate-800 pt-6">
@@ -195,7 +202,7 @@ export default function PostsPage() {
 
         <main className="flex-1 px-4 sm:px-6 lg:px-8 py-8">
 
-          <div className="max-w-4xl space-y-4">
+          <div className="max-w-3xl space-y-4">
             {posts.map((post) => (
               <article
                 key={post.id}
