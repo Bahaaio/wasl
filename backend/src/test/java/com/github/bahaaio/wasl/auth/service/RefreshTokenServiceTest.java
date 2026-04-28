@@ -6,10 +6,10 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
+import com.github.bahaaio.wasl.auth.config.RefreshTokenProperties;
 import com.github.bahaaio.wasl.auth.exception.InvalidTokenException;
 import com.github.bahaaio.wasl.auth.model.RefreshToken;
 import com.github.bahaaio.wasl.auth.repository.RefreshTokenRepository;
-import com.github.bahaaio.wasl.config.RefreshTokenProperties;
 import com.github.bahaaio.wasl.user.model.User;
 
 import org.junit.jupiter.api.BeforeEach;

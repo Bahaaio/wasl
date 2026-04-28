@@ -1,6 +1,6 @@
 package com.github.bahaaio.wasl.auth.security;
 
-import com.github.bahaaio.wasl.config.RefreshTokenProperties;
+import com.github.bahaaio.wasl.auth.config.RefreshTokenProperties;
 
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;

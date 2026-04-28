@@ -1,10 +1,10 @@
 package com.github.bahaaio.wasl.auth.service;
 
+import com.github.bahaaio.wasl.auth.config.RefreshTokenProperties;
 import com.github.bahaaio.wasl.auth.exception.InvalidTokenException;
 import com.github.bahaaio.wasl.auth.exception.TokenExpiredException;
 import com.github.bahaaio.wasl.auth.model.RefreshToken;
 import com.github.bahaaio.wasl.auth.repository.RefreshTokenRepository;
-import com.github.bahaaio.wasl.config.RefreshTokenProperties;
 import com.github.bahaaio.wasl.user.model.User;
 
 import org.springframework.stereotype.Service;

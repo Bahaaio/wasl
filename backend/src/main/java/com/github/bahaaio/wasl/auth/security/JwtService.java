@@ -1,6 +1,6 @@
 package com.github.bahaaio.wasl.auth.security;
 
-import com.github.bahaaio.wasl.config.JwtTokenProperties;
+import com.github.bahaaio.wasl.auth.config.JwtTokenProperties;
 
 import org.springframework.stereotype.Component;
 
