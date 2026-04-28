@@ -1,11 +1,12 @@
 package com.github.bahaaio.wasl.auth.exception;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import java.time.Instant;
 
-@ResponseStatus(HttpStatus.UNAUTHORIZED)
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@Getter
+@RequiredArgsConstructor
 public class TokenExpiredException extends RuntimeException {
-    public TokenExpiredException(String message) {
-        super(message);
-    }
+    private final Instant expiredAt;
 }

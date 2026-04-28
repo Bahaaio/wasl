@@ -80,7 +80,7 @@ public class RefreshTokenService {
         }
 
         if (refreshToken.isExpired()) {
-            throw new TokenExpiredException("Refresh token expired");
+            throw new TokenExpiredException(refreshToken.getExpiresAt());
         }
 
         return refreshToken;
