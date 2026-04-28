@@ -135,6 +135,15 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
                 </div>
               </div>
 
+              <div className="flex justify-end mb-1">
+                <button
+                  type="button"
+                  className="text-sm text-orange-400 hover:text-orange-300 font-medium transition-colors"
+                >
+                  Forgot Password?
+                </button>
+              </div>
+
               <button
                 type="submit"
                 className="w-full mt-6 py-2.5 bg-linear-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 text-white font-bold rounded-full transition-all shadow-lg hover:shadow-xl"
@@ -247,6 +256,15 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
                     )}
                   </button>
                 </div>
+              </div>
+
+              <div className="flex justify-end mb-1">
+                <button
+                  type="button"
+                  className="text-sm text-orange-400 hover:text-orange-300 font-medium transition-colors"
+                >
+                  Forgot Password?
+                </button>
               </div>
 
               <button
