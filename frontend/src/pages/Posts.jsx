@@ -56,6 +56,13 @@ const POSTS = [
   },
 ];
 
+const COMMUNITIES = [
+  { name: "r/javascript", members: "2.4M members", accent: "from-orange-500 to-red-500" },
+  { name: "r/reactjs", members: "1.8M members", accent: "from-indigo-500 to-cyan-500" },
+  { name: "r/webdev", members: "1.2M members", accent: "from-emerald-500 to-teal-500" },
+  { name: "r/frontend", members: "840K members", accent: "from-pink-500 to-rose-500" },
+];
+
 export default function PostsPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(
     () => window.innerWidth >= 768
@@ -313,6 +320,44 @@ export default function PostsPage() {
             ))}
           </div>
         </main>
+
+        <aside className="hidden xl:block w-80 shrink-0 pt-24 pb-8 pr-6">
+          <div className="sticky top-24 space-y-4">
+            <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg shadow-black/20">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-white">Communities</h3>
+                <Users className="w-5 h-5 text-slate-400" />
+              </div>
+
+              <div className="space-y-3">
+                {COMMUNITIES.map(community => (
+                  <button
+                    key={community.name}
+                    type="button"
+                    className="w-full flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-3 text-left transition-colors hover:bg-slate-800/80 hover:border-slate-700"
+                  >
+                    <div className={`h-10 w-10 rounded-full bg-linear-to-br ${community.accent} flex items-center justify-center text-white font-bold`}>
+                      {community.name.slice(2, 3).toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-slate-100 truncate">{community.name}</p>
+                      <p className="text-xs text-slate-400">{community.members}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg shadow-black/20">
+              <h3 className="text-lg font-semibold text-white mb-3">Trending now</h3>
+              <div className="space-y-3 text-sm text-slate-300">
+                <p className="rounded-xl bg-slate-950/60 px-3 py-3 border border-slate-800">#ReactOptimization</p>
+                <p className="rounded-xl bg-slate-950/60 px-3 py-3 border border-slate-800">#FrontendTips</p>
+                <p className="rounded-xl bg-slate-950/60 px-3 py-3 border border-slate-800">#UIAnimation</p>
+              </div>
+            </section>
+          </div>
+        </aside>
       </div>
     </div>
   );
