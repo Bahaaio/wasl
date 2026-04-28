@@ -1,11 +1,8 @@
-﻿import { useState, useEffect } from "react";
+﻿import { useState } from "react";
 import { Mail, Lock, User, Eye, EyeOff, X } from "lucide-react";
 
 export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
   const [tab, setTab] = useState(initialTab);
-  useEffect(() => {
-    if (isOpen) setTab(initialTab);
-  }, [isOpen, initialTab]);
   const [showPassword, setShowPassword] = useState(false);
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [registerForm, setRegisterForm] = useState({
@@ -14,10 +11,6 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
     password: "",
     confirmPassword: "",
   });
-
-  if (!isOpen) {
-    return null;
-  }
 
   const handleLoginChange = event => {
     const { name, value } = event.target;
@@ -41,6 +34,10 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
     onClose();
   };
 
+  if (!isOpen) {
+    return null;
+  }
+
   return (
     <div className="fixed inset-0 z-100 flex items-center justify-center px-4">
       <button
@@ -57,7 +54,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
             <button
               type="button"
               onClick={onClose}
-              className="p-2.5 rounded-full bg-slate-800/50 hover:bg-gradient-to-br hover:from-orange-500/30 hover:to-red-600/30 text-slate-400 hover:text-orange-400 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/20 border border-slate-700/50 hover:border-orange-500/50"
+              className="p-2.5 rounded-full bg-slate-800/50 hover:bg-linear-to-br hover:from-orange-500/30 hover:to-red-600/30 text-slate-400 hover:text-orange-400 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/20 border border-slate-700/50 hover:border-orange-500/50"
               aria-label="Close auth modal"
             >
               <X className="w-5 h-5" />

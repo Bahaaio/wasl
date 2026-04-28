@@ -15,7 +15,7 @@ import {
   Rocket,
   Award,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import Navbar from "../components/Navbar.jsx";
 import Footer from "../components/Footer.jsx";
 
 const POSTS = [
@@ -106,23 +106,7 @@ export default function PostsPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
-      <header className="sticky top-0 z-30 h-16 border-b border-slate-800 bg-slate-950/95 backdrop-blur-md">
-        <div className="h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-3">
-              <Flame className="w-5 h-5 text-orange-500" />
-              <h1 className="text-xl sm:text-2xl font-bold">Posts</h1>
-            </div>
-          </div>
-
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-800 hover:bg-slate-700 transition-colors text-sm font-semibold"
-          >
-            Home
-          </Link>
-        </div>
-      </header>
+      <Navbar />
       <div className="relative flex min-h-[calc(100vh-4rem)] overflow-hidden">
         {!isSidebarOpen && (
           <button
@@ -149,7 +133,7 @@ export default function PostsPage() {
 
         <aside
           id="posts-sidebar"
-          className={`fixed left-0 top-16 z-30 h-[calc(100vh-4rem)] w-80 max-w-[85vw] shrink-0 border-r border-slate-800 bg-slate-950 overflow-y-overlay transition-transform duration-300 ease-out md:sticky md:top-0 md:h-[calc(100vh-4rem)] xl:w-96 ${
+          className={`fixed left-0 top-16 z-30 h-[calc(100vh-4rem)] w-80 max-w-[85vw] shrink-0 border-r border-slate-800 bg-slate-950 overflow-y-overlay transition-transform duration-300 ease-out md:sticky md:top-16 md:h-[calc(100vh-4rem)] xl:w-96 ${
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
           aria-hidden={!isSidebarOpen}
@@ -254,7 +238,7 @@ export default function PostsPage() {
           </div>
         </aside>
 
-        <main className="flex-1 px-4 sm:px-6 lg:px-8 py-8">
+        <main className="flex-1 px-4 sm:px-6 lg:px-8 pt-24 pb-8">
           <div className="max-w-3xl space-y-4">
             {posts.map(post => (
               <article

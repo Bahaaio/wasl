@@ -13,10 +13,10 @@ export default function Navbar() {
           <div className="flex items-center h-16">
             <div className="flex flex-1 items-center">
               <div className="flex items-center gap-2 cursor-pointer">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-orange-500 to-red-500 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-full bg-linear-to-tr from-orange-500 to-red-500 flex items-center justify-center">
                   <MessageSquare className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400 tracking-tight">
+                <span className="text-3xl font-bold bg-clip-text text-transparent bg-linear-to-r from-white to-slate-400 tracking-tight">
                   WASL
                 </span>
               </div>
@@ -45,7 +45,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => { setAuthInitialTab('login'); setIsAuthOpen(true); }}
-                className="hidden sm:block text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 px-4 py-2 rounded-full transition-all shadow-[0_0_25px_-10px_rgba(249,115,22,0.8)]"
+                className="hidden sm:block text-sm font-semibold text-white bg-linear-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 px-4 py-2 rounded-full transition-all shadow-[0_0_25px_-10px_rgba(249,115,22,0.8)]"
               >
                 Log In
               </button>
@@ -57,7 +57,7 @@ export default function Navbar() {
         </div>
       </nav>
 
-      <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} initialTab={authInitialTab} />
+      <AuthModal key={`${isAuthOpen}-${authInitialTab}`} isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} initialTab={authInitialTab} />
     </>
   );
 }
