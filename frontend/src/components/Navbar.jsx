@@ -1,6 +1,6 @@
-﻿import { useState } from 'react';
-import { MessageSquare, Search, Menu } from 'lucide-react';
-import AuthModal from './AuthModal.jsx';
+﻿import { useState } from "react";
+import { MessageSquare, Search, Menu } from "lucide-react";
+import AuthModal from "./AuthModal.jsx";
 
 export default function Navbar() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);

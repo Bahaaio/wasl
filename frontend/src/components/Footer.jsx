@@ -1,4 +1,4 @@
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -12,7 +12,9 @@ export default function Footer() {
               </div>
               <span className="font-bold text-lg">Threaded</span>
             </div>
-            <p className="text-slate-500 text-sm">The front page of your internet. Reimagined for 2026.</p>
+            <p className="text-slate-500 text-sm">
+              The front page of your internet. Reimagined for 2026.
+            </p>
           </div>
 
           <div>
@@ -28,19 +30,33 @@ export default function Footer() {
           <div>
             <h4 className="font-bold mb-4 text-slate-200">Resources</h4>
             <ul className="space-y-2 text-sm text-slate-500">
-              <li className="hover:text-orange-400 cursor-pointer">Community Rules</li>
-              <li className="hover:text-orange-400 cursor-pointer">Help Center</li>
-              <li className="hover:text-orange-400 cursor-pointer">API Documentation</li>
-              <li className="hover:text-orange-400 cursor-pointer">Moderator Guidelines</li>
+              <li className="hover:text-orange-400 cursor-pointer">
+                Community Rules
+              </li>
+              <li className="hover:text-orange-400 cursor-pointer">
+                Help Center
+              </li>
+              <li className="hover:text-orange-400 cursor-pointer">
+                API Documentation
+              </li>
+              <li className="hover:text-orange-400 cursor-pointer">
+                Moderator Guidelines
+              </li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-bold mb-4 text-slate-200">Legal</h4>
             <ul className="space-y-2 text-sm text-slate-500">
-              <li className="hover:text-orange-400 cursor-pointer">User Agreement</li>
-              <li className="hover:text-orange-400 cursor-pointer">Privacy Policy</li>
-              <li className="hover:text-orange-400 cursor-pointer">Content Policy</li>
+              <li className="hover:text-orange-400 cursor-pointer">
+                User Agreement
+              </li>
+              <li className="hover:text-orange-400 cursor-pointer">
+                Privacy Policy
+              </li>
+              <li className="hover:text-orange-400 cursor-pointer">
+                Content Policy
+              </li>
             </ul>
           </div>
         </div>

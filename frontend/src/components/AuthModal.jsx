@@ -1,40 +1,40 @@
-﻿import { useState } from 'react';
-import { Mail, Lock, User, Eye, EyeOff, X } from 'lucide-react';
+﻿import { useState } from "react";
+import { Mail, Lock, User, Eye, EyeOff, X } from "lucide-react";
 
 export default function AuthModal({ isOpen, onClose }) {
-  const [tab, setTab] = useState('login');
+  const [tab, setTab] = useState("login");
   const [showPassword, setShowPassword] = useState(false);
-  const [loginForm, setLoginForm] = useState({ email: '', password: '' });
+  const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [registerForm, setRegisterForm] = useState({
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
 
   if (!isOpen) {
     return null;
   }
 
-  const handleLoginChange = (event) => {
+  const handleLoginChange = event => {
     const { name, value } = event.target;
-    setLoginForm((previous) => ({ ...previous, [name]: value }));
+    setLoginForm(previous => ({ ...previous, [name]: value }));
   };
 
-  const handleRegisterChange = (event) => {
+  const handleRegisterChange = event => {
     const { name, value } = event.target;
-    setRegisterForm((previous) => ({ ...previous, [name]: value }));
+    setRegisterForm(previous => ({ ...previous, [name]: value }));
   };
 
-  const handleLoginSubmit = (event) => {
+  const handleLoginSubmit = event => {
     event.preventDefault();
-    console.log('Login:', loginForm);
+    console.log("Login:", loginForm);
     onClose();
   };
 
-  const handleRegisterSubmit = (event) => {
+  const handleRegisterSubmit = event => {
     event.preventDefault();
-    console.log('Register:', registerForm);
+    console.log("Register:", registerForm);
     onClose();
   };
 
@@ -64,32 +64,34 @@ export default function AuthModal({ isOpen, onClose }) {
           <div className="flex gap-2 mb-8 bg-slate-800/60 p-1 rounded-full">
             <button
               type="button"
-              onClick={() => setTab('login')}
+              onClick={() => setTab("login")}
               className={`flex-1 py-2.5 rounded-full font-semibold transition-all ${
-                tab === 'login'
-                  ? 'bg-linear-to-r from-orange-500 to-red-600 text-white shadow-lg'
-                  : 'text-slate-400 hover:text-slate-200'
+                tab === "login"
+                  ? "bg-linear-to-r from-orange-500 to-red-600 text-white shadow-lg"
+                  : "text-slate-400 hover:text-slate-200"
               }`}
             >
               Log In
             </button>
             <button
               type="button"
-              onClick={() => setTab('register')}
+              onClick={() => setTab("register")}
               className={`flex-1 py-2.5 rounded-full font-semibold transition-all ${
-                tab === 'register'
-                  ? 'bg-linear-to-r from-orange-500 to-red-600 text-white shadow-lg'
-                  : 'text-slate-400 hover:text-slate-200'
+                tab === "register"
+                  ? "bg-linear-to-r from-orange-500 to-red-600 text-white shadow-lg"
+                  : "text-slate-400 hover:text-slate-200"
               }`}
             >
               Register
             </button>
           </div>
 
-          {tab === 'login' ? (
+          {tab === "login" ? (
             <form onSubmit={handleLoginSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Email</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Email
+                </label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
@@ -105,11 +107,13 @@ export default function AuthModal({ isOpen, onClose }) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Password</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Password
+                </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     name="password"
                     value={loginForm.password}
                     onChange={handleLoginChange}
@@ -119,10 +123,14 @@ export default function AuthModal({ isOpen, onClose }) {
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword((current) => !current)}
+                    onClick={() => setShowPassword(current => !current)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300"
                   >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -135,10 +143,10 @@ export default function AuthModal({ isOpen, onClose }) {
               </button>
 
               <p className="text-center text-sm text-slate-400 mt-4">
-                Don't have an account?{' '}
+                Don't have an account?{" "}
                 <button
                   type="button"
-                  onClick={() => setTab('register')}
+                  onClick={() => setTab("register")}
                   className="text-orange-400 hover:text-orange-300 font-medium"
                 >
                   Register here
@@ -148,7 +156,9 @@ export default function AuthModal({ isOpen, onClose }) {
           ) : (
             <form onSubmit={handleRegisterSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Username</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Username
+                </label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
@@ -164,7 +174,9 @@ export default function AuthModal({ isOpen, onClose }) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Email</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Email
+                </label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
@@ -180,11 +192,13 @@ export default function AuthModal({ isOpen, onClose }) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Password</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Password
+                </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     name="password"
                     value={registerForm.password}
                     onChange={handleRegisterChange}
@@ -194,20 +208,26 @@ export default function AuthModal({ isOpen, onClose }) {
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword((current) => !current)}
+                    onClick={() => setShowPassword(current => !current)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300"
                   >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Confirm Password</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Confirm Password
+                </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     name="confirmPassword"
                     value={registerForm.confirmPassword}
                     onChange={handleRegisterChange}
@@ -217,10 +237,14 @@ export default function AuthModal({ isOpen, onClose }) {
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword((current) => !current)}
+                    onClick={() => setShowPassword(current => !current)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300"
                   >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -233,10 +257,10 @@ export default function AuthModal({ isOpen, onClose }) {
               </button>
 
               <p className="text-center text-sm text-slate-400 mt-4">
-                Already have an account?{' '}
+                Already have an account?{" "}
                 <button
                   type="button"
-                  onClick={() => setTab('login')}
+                  onClick={() => setTab("login")}
                   className="text-orange-400 hover:text-orange-300 font-medium"
                 >
                   Log in here
@@ -249,4 +273,3 @@ export default function AuthModal({ isOpen, onClose }) {
     </div>
   );
 }
-
