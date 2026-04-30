@@ -3,7 +3,7 @@ import {
   getAccessToken,
   setAccessToken,
 } from "../auth/store";
-import api, { API_BASE_URL } from "./client";
+import api from "./client";
 
 // add access token to the request header if it exists
 api.interceptors.request.use(config => {
@@ -49,7 +49,7 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const response = await api.post(`${API_BASE_URL}/auth/refresh`);
+        const response = await api.post("/auth/refresh");
         const { access_token } = response.data;
 
         setAccessToken(access_token);
