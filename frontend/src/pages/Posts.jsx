@@ -206,7 +206,7 @@ export default function PostsPage() {
           <button
             type="button"
             onClick={() => setIsSidebarOpen(true)}
-            className="fixed left-0 top-22 z-40 inline-flex h-12 w-10 items-center justify-center rounded-r-full border border-l-0 border-slate-800 bg-slate-900/95 text-slate-100 shadow-lg shadow-black/30 transition-colors hover:bg-slate-800"
+            className="fixed left-0 top-24 z-40 inline-flex h-12 w-10 items-center justify-center rounded-r-full border border-l-0 border-slate-800 bg-slate-900/95 text-slate-100 shadow-lg shadow-black/30 transition-colors hover:bg-slate-800"
             aria-label="Open sidebar"
             aria-expanded={isSidebarOpen}
             aria-controls="posts-sidebar"
@@ -333,16 +333,16 @@ export default function PostsPage() {
           </div>
         </aside>
 
-        <main className="flex-1 px-4 sm:px-6 lg:px-8 pt-24 pb-0 xl:pr-88">
+        <main className="flex-1 px-4 sm:px-6 lg:px-8 pt-24 pb-0 xl:pr-96">
           <div className="max-w-3xl space-y-4">
             {posts.map(post => (
               <article
                 key={post.id}
                 className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-all hover:shadow-lg hover:shadow-orange-500/5"
               >
-                <div className="flex items-start gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-start gap-4">
                   {/* Vote Column */}
-                  <div className="flex flex-col items-center gap-1 text-slate-400 shrink-0 bg-slate-800/50 rounded-xl p-2">
+                  <div className="flex flex-row sm:flex-col items-center gap-2 sm:gap-1 text-slate-400 shrink-0 bg-slate-800/50 rounded-xl p-2">
                     <button
                       type="button"
                       onClick={() => handleUpvote(post.id)}
@@ -373,12 +373,15 @@ export default function PostsPage() {
                   </div>
 
                   <div className="flex-1">
-                    <p className="text-xs text-slate-400 mb-2">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-400 mb-2">
                       <span className="font-semibold text-slate-200">
                         {post.community}
-                      </span>{" "}
-                      • posted by u/{post.author} • {post.time}
-                    </p>
+                      </span>
+                      <span className="text-slate-500">•</span>
+                      <span>posted by u/{post.author}</span>
+                      <span className="text-slate-500">•</span>
+                      <span>{post.time}</span>
+                    </div>
                     <h2 className="text-lg font-semibold mb-3">{post.title}</h2>
                     <div className="flex items-center gap-2 flex-wrap">
                       <button className="inline-flex items-center gap-1.5 text-sm text-slate-300 bg-slate-800/50 px-3 py-1.5 rounded-full hover:bg-slate-700 transition-colors">

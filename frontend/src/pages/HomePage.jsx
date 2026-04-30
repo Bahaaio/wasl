@@ -35,7 +35,7 @@ const PostCard = ({ post }) => (
 
       {/* Content */}
       <div className="flex-1">
-        <div className="flex items-center gap-2 text-xs mb-2">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs mb-2">
           <span className="font-bold text-slate-200 hover:underline">
             {post.community}
           </span>
@@ -48,7 +48,7 @@ const PostCard = ({ post }) => (
           {post.title}
         </h3>
 
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex flex-wrap items-center gap-2 mb-4">
           {post.tags.map(tag => (
             <span
               key={tag}

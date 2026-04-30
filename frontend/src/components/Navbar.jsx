@@ -41,7 +41,7 @@ export default function Navbar() {
               </Link>
             </div>
 
-            <div className="hidden md:flex flex-2 justify-center px-18">
+            <div className="hidden md:flex flex-2 justify-center px-4 lg:px-10">
               <div className="relative w-full max-w-xl">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
@@ -52,7 +52,17 @@ export default function Navbar() {
               </div>
             </div>
 
-            <div className="flex flex-1 items-center justify-end gap-4">
+            <div className="flex flex-1 items-center justify-end gap-3 sm:gap-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthInitialTab("login");
+                  setIsAuthOpen(true);
+                }}
+                className="inline-flex sm:hidden items-center justify-center text-xs font-semibold text-white bg-linear-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 px-3 py-2 rounded-full transition-all shadow-[0_0_25px_-10px_rgba(249,115,22,0.8)]"
+              >
+                Log In
+              </button>
               <button
                 type="button"
                 onClick={() => {
