@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ChevronDown,
   CircleHelp,
@@ -20,6 +21,7 @@ import PostCard from "../components/PostCard.jsx";
 import { MOCK_POSTS, MOCK_COMMUNITIES } from "../data/mockData.js";
 
 export default function PostsPage() {
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(
     () => window.innerWidth >= 768
   );
@@ -263,7 +265,7 @@ export default function PostsPage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => window.location.href = '/create-post'}
+                  onClick={() => navigate("/create-post")}
                   className="flex-1 bg-slate-800/50 text-slate-400 px-4 py-2.5 rounded-full border border-slate-700 hover:bg-slate-800 hover:text-slate-300 transition-all text-left"
                 >
                   What's on your mind?

@@ -3,7 +3,7 @@ import { MessageSquare, Search, Menu } from "lucide-react";
 import { Link } from "react-router-dom";
 import AuthModal from "./AuthModal.jsx";
 
-export default function Navbar() {
+export default function Navbar({ transparentMode = false }) {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authInitialTab, setAuthInitialTab] = useState("login");
   const [isScrolled, setIsScrolled] = useState(false);
@@ -13,19 +13,22 @@ export default function Navbar() {
       setIsScrolled(window.scrollY > 8);
     };
 
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    if (transparentMode) {
+      handleScroll();
+      window.addEventListener("scroll", handleScroll, { passive: true });
+      return () => window.removeEventListener("scroll", handleScroll);
+    }
+  }, [transparentMode]);
 
   return (
     <>
       <nav
         className={`fixed top-0 w-full z-50 transition-colors duration-300 ${
-          isScrolled
-            ? "bg-slate-950/80 backdrop-blur-md border-b border-slate-800"
-            : "bg-transparent border-b border-transparent"
+          transparentMode
+            ? isScrolled
+              ? "bg-slate-950/80 backdrop-blur-md border-b border-slate-800"
+              : "bg-transparent border-b border-transparent"
+            : "bg-slate-950/80 backdrop-blur-md border-b border-slate-800"
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

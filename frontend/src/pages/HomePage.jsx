@@ -87,7 +87,7 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay"></div>
       </div>
 
-      <Navbar />
+      <Navbar transparentMode={true} />
 
       <main className="relative z-10 pt-32 pb-20">
         {/* HERO SECTION */}

@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
 import { MOCK_COMMUNITIES } from "../data/mockData.js";
 
-export default function CreatePostPage({ onNavigate }) {
+export default function CreatePostPage() {
+  const navigate = useNavigate();
   const [isCreatingPost, setIsCreatingPost] = useState(false);
   const [createPostError, setCreatePostError] = useState(null);
   const [createPostForm, setCreatePostForm] = useState({
@@ -67,9 +69,7 @@ export default function CreatePostPage({ onNavigate }) {
       console.log("Create post:", createPostForm);
       setCreatePostForm({ title: "", content: "", community: "r/javascript" });
       // Navigate back to posts after success
-      if (onNavigate) {
-        onNavigate("posts");
-      }
+      navigate("/posts");
     } catch (error) {
       setCreatePostError(
         error.message || "Failed to create post. Please try again."
@@ -83,26 +83,22 @@ export default function CreatePostPage({ onNavigate }) {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <Navbar />
-      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] px-4 py-8">
+      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] px-4 pt-25 pb-9">
         <div className="w-full max-w-2xl">
-          <div className="absolute -inset-1 rounded-3xl bg-linear-to-r from-orange-500/40 to-red-600/40 blur-xl" />
-          <div className="relative bg-slate-900 border border-slate-800 backdrop-blur-xl rounded-3xl p-8 shadow-2xl">
+          <div className="relative bg-slate-900/50 border border-slate-800/50 backdrop-blur-md rounded-2xl p-8 shadow-xl">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-3xl font-bold text-white">Create a post</h2>
               <button
                 type="button"
-                onClick={() => onNavigate && onNavigate("posts")}
-                className="p-2.5 rounded-full bg-slate-800/50 hover:bg-linear-to-br hover:from-orange-500/30 hover:to-red-600/30 text-slate-400 hover:text-orange-400 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/20 border border-slate-700/50 hover:border-orange-500/50"
+                onClick={() => navigate("/posts")}
+                className="p-2.5 rounded-full bg-slate-800/50 hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition-all duration-300 border border-slate-700/50 hover:border-slate-600/50"
                 aria-label="Close and go back"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form
-              onSubmit={handleCreatePostSubmit}
-              className="space-y-4"
-            >
+            <form onSubmit={handleCreatePostSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
                   Community
@@ -171,9 +167,7 @@ export default function CreatePostPage({ onNavigate }) {
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => {
-                    if (onNavigate) onNavigate("posts");
-                  }}
+                  onClick={() => navigate("/posts")}
                   disabled={isCreatingPost}
                   className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-100 font-semibold rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
