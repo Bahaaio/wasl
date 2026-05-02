@@ -30,7 +30,10 @@ export default function CreatePostPage() {
     const files = Array.from(event.target.files || []);
     setCreatePostForm(previous => ({
       ...previous,
-      images: [...previous.images, ...files.slice(0, 4 - previous.images.length)],
+      images: [
+        ...previous.images,
+        ...files.slice(0, 4 - previous.images.length),
+      ],
     }));
   };
 
@@ -272,7 +275,9 @@ export default function CreatePostPage() {
                     multiple
                     accept="image/*"
                     onChange={handleImageUpload}
-                    disabled={isCreatingPost || createPostForm.images.length >= 4}
+                    disabled={
+                      isCreatingPost || createPostForm.images.length >= 4
+                    }
                     className="w-full text-sm text-slate-400 file:mr-4 file:px-3 file:py-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-orange-500/20 file:text-orange-400 hover:file:bg-orange-500/30 file:transition-all file:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                   {createPostForm.images.length > 0 && (
