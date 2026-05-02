@@ -18,95 +18,14 @@ import {
 } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
 import PostCard from "../components/PostCard.jsx";
-
-const POSTS = [
-  {
-    id: 1,
-    community: "r/javascript",
-    author: "frontendNinja",
-    upvoted: false,
-    downvoted: false,
-    saved: false,
-    title: "What is your favorite React optimization trick?",
-    comments: 128,
-    upvotes: "3.2k",
-    time: "4h ago",
-  },
-  {
-    id: 2,
-    community: "r/webdev",
-    author: "csswizard",
-    upvoted: false,
-    downvoted: false,
-    saved: false,
-    title: "Share your best UI animation examples",
-    comments: 87,
-    upvotes: "2.1k",
-    time: "7h ago",
-  },
-  {
-    id: 3,
-    community: "r/reactjs",
-    author: "stateManager",
-    upvoted: false,
-    downvoted: false,
-    saved: false,
-    title: "React Router v7: what changed for you?",
-    comments: 64,
-    upvotes: "1.6k",
-    time: "10h ago",
-  },
-  {
-    id: 4,
-    community: "r/reactjs",
-    author: "stateManager",
-    upvoted: false,
-    downvoted: false,
-    saved: false,
-    title: "React Router v7: what changed for you?",
-    comments: 64,
-    upvotes: "1.6k",
-    time: "10h ago",
-  },
-  {
-    id: 5,
-    community: "r/reactjs",
-    author: "stateManager",
-    upvoted: false,
-    downvoted: false,
-    saved: false,
-    title: "React Router v7: what changed for you?",
-    comments: 64,
-    upvotes: "1.6k",
-    time: "10h ago",
-  },
-];
-
-const COMMUNITIES = [
-  {
-    name: "r/javascript",
-    members: "2.4M members",
-    accent: "from-orange-500 to-red-500",
-  },
-  {
-    name: "r/reactjs",
-    members: "1.8M members",
-    accent: "from-indigo-500 to-cyan-500",
-  },
-
-  {
-    name: "r/frontend",
-    members: "840K members",
-    accent: "from-pink-500 to-rose-500",
-  },
-];
+import { MOCK_POSTS, MOCK_COMMUNITIES } from "../data/mockData.js";
 
 export default function PostsPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(
     () => window.innerWidth >= 768
   );
   const [resourcesOpen, setResourcesOpen] = useState(true);
-  const [posts, setPosts] = useState(POSTS);
+  const [posts, setPosts] = useState(MOCK_POSTS);
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const [isCreatingPost, setIsCreatingPost] = useState(false);
   const [createPostError, setCreatePostError] = useState(null);
@@ -208,7 +127,7 @@ export default function PostsPage() {
 
   const handleCreatePostSubmit = async event => {
     event.preventDefault();
-    
+
     // Validation
     if (!createPostForm.title.trim() || !createPostForm.content.trim()) {
       setCreatePostError("Title and content are required");
@@ -255,7 +174,9 @@ export default function PostsPage() {
       setCreatePostForm({ title: "", content: "", community: "r/javascript" });
       setIsCreatePostOpen(false);
     } catch (error) {
-      setCreatePostError(error.message || "Failed to create post. Please try again.");
+      setCreatePostError(
+        error.message || "Failed to create post. Please try again."
+      );
       console.error("Error creating post:", error);
     } finally {
       setIsCreatingPost(false);
@@ -464,7 +385,10 @@ export default function PostsPage() {
                       </button>
                     </div>
 
-                    <form onSubmit={handleCreatePostSubmit} className="space-y-4">
+                    <form
+                      onSubmit={handleCreatePostSubmit}
+                      className="space-y-4"
+                    >
                       <div>
                         <label className="block text-sm font-medium text-slate-300 mb-2">
                           Community
@@ -476,7 +400,7 @@ export default function PostsPage() {
                           disabled={isCreatingPost}
                           className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-100 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          {COMMUNITIES.map(community => (
+                          {MOCK_COMMUNITIES.map((community) => (
                             <option key={community.name} value={community.name}>
                               {community.name}
                             </option>
@@ -579,7 +503,7 @@ export default function PostsPage() {
               </div>
 
               <div className="space-y-3">
-                {COMMUNITIES.map(community => (
+                {MOCK_COMMUNITIES.map((community) => (
                   <button
                     key={community.name}
                     type="button"
