@@ -10,7 +10,7 @@ export default function Footer() {
               <div className="w-6 h-6 rounded-full bg-linear-to-tr from-orange-500 to-red-500 flex items-center justify-center">
                 <MessageSquare className="w-3 h-3 text-white" />
               </div>
-              <span className="font-bold text-lg">Threaded</span>
+              <span className="font-bold text-lg">WASL</span>
             </div>
             <p className="text-slate-500 text-sm">
               The front page of your internet. Reimagined for 2026.

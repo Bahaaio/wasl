@@ -1,21 +1,23 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  ArrowBigUp,
   ChevronDown,
   CircleHelp,
   Compass,
   Flame,
   Home,
-  MessageCircle,
   Menu,
   Newspaper,
   Share2,
   Users,
   BookOpen,
   Rocket,
-  Award,
+  X,
+  ImagePlus,
+  Link2,
+  BarChart3,
 } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
+import PostCard from "../components/PostCard.jsx";
 
 const POSTS = [
   {
@@ -105,6 +107,14 @@ export default function PostsPage() {
   );
   const [resourcesOpen, setResourcesOpen] = useState(true);
   const [posts, setPosts] = useState(POSTS);
+  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
+  const [isCreatingPost, setIsCreatingPost] = useState(false);
+  const [createPostError, setCreatePostError] = useState(null);
+  const [createPostForm, setCreatePostForm] = useState({
+    title: "",
+    content: "",
+    community: "r/javascript",
+  });
   const sidebarRef = useRef(null);
 
   useEffect(() => {
@@ -190,6 +200,68 @@ export default function PostsPage() {
     );
   };
 
+  const handleCreatePostChange = event => {
+    const { name, value } = event.target;
+    setCreatePostForm(previous => ({ ...previous, [name]: value }));
+    setCreatePostError(null);
+  };
+
+  const handleCreatePostSubmit = async event => {
+    event.preventDefault();
+    
+    // Validation
+    if (!createPostForm.title.trim() || !createPostForm.content.trim()) {
+      setCreatePostError("Title and content are required");
+      return;
+    }
+
+    if (createPostForm.title.length < 3) {
+      setCreatePostError("Title must be at least 3 characters");
+      return;
+    }
+
+    if (createPostForm.content.length < 10) {
+      setCreatePostError("Content must be at least 10 characters");
+      return;
+    }
+
+    setIsCreatingPost(true);
+    setCreatePostError(null);
+
+    try {
+      // TODO: Replace with actual API call
+      // const response = await fetch('/api/v1/posts', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     'Authorization': `Bearer ${accessToken}`,
+      //   },
+      //   body: JSON.stringify({
+      //     title: createPostForm.title,
+      //     content: createPostForm.content,
+      //     communityName: createPostForm.community,
+      //   }),
+      // });
+
+      // if (!response.ok) {
+      //   const error = await response.json();
+      //   throw new Error(error.message || 'Failed to create post');
+      // }
+
+      // const newPost = await response.json();
+      // setPosts(previous => [newPost, ...previous]);
+
+      console.log("Create post:", createPostForm);
+      setCreatePostForm({ title: "", content: "", community: "r/javascript" });
+      setIsCreatePostOpen(false);
+    } catch (error) {
+      setCreatePostError(error.message || "Failed to create post. Please try again.");
+      console.error("Error creating post:", error);
+    } finally {
+      setIsCreatingPost(false);
+    }
+  };
+
   const handleSave = postId => {
     setPosts(
       posts.map(post =>
@@ -236,7 +308,7 @@ export default function PostsPage() {
           <button
             type="button"
             onClick={() => setIsSidebarOpen(current => !current)}
-            className="fixed right-1 top-20 z-[70] inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-500 bg-slate-950 text-slate-100 shadow-lg shadow-black/30 transition-colors hover:bg-slate-900 md:absolute md:right-1 md:top-6"
+            className="fixed right-1 top-20 z-70 inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-500 bg-slate-950 text-slate-100 shadow-lg shadow-black/30 transition-colors hover:bg-slate-900 md:absolute md:right-1 md:top-6"
             aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
             aria-expanded={isSidebarOpen}
             aria-controls="posts-sidebar"
@@ -335,80 +407,163 @@ export default function PostsPage() {
 
         <main className="flex-1 px-4 sm:px-6 lg:px-8 pt-24 pb-0 xl:pr-96">
           <div className="max-w-3xl space-y-4">
-            {posts.map(post => (
-              <article
-                key={post.id}
-                className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-all hover:shadow-lg hover:shadow-orange-500/5"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-                  {/* Vote Column */}
-                  <div className="flex flex-row sm:flex-col items-center gap-2 sm:gap-1 text-slate-400 shrink-0 bg-slate-800/50 rounded-xl p-2">
-                    <button
-                      type="button"
-                      onClick={() => handleUpvote(post.id)}
-                      className={`p-1 rounded transition-colors ${
-                        post.upvoted
-                          ? "text-orange-500 bg-orange-500/10"
-                          : "hover:text-orange-400 hover:bg-slate-700"
-                      }`}
-                      aria-label="Upvote"
-                    >
-                      <ArrowBigUp className="w-5 h-5" />
-                    </button>
-                    <span className="text-sm font-semibold">
-                      {post.upvotes}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleDownvote(post.id)}
-                      className={`p-1 rounded transition-colors ${
-                        post.downvoted
-                          ? "text-indigo-500 bg-indigo-500/10"
-                          : "hover:text-indigo-400 hover:bg-slate-700"
-                      }`}
-                      aria-label="Downvote"
-                    >
-                      <ArrowBigUp className="w-5 h-5 rotate-180" />
-                    </button>
-                  </div>
+            {/* Create Post Section */}
+            <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-lg shadow-black/20">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-10 h-10 rounded-full bg-linear-to-br from-orange-500 to-red-600 flex items-center justify-center text-white font-bold text-sm">
+                  U
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsCreatePostOpen(true)}
+                  className="flex-1 bg-slate-800/50 text-slate-400 px-4 py-2.5 rounded-full border border-slate-700 hover:bg-slate-800 hover:text-slate-300 transition-all text-left"
+                >
+                  What's on your mind?
+                </button>
+              </div>
 
-                  <div className="flex-1">
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-400 mb-2">
-                      <span className="font-semibold text-slate-200">
-                        {post.community}
-                      </span>
-                      <span className="text-slate-500">•</span>
-                      <span>posted by u/{post.author}</span>
-                      <span className="text-slate-500">•</span>
-                      <span>{post.time}</span>
-                    </div>
-                    <h2 className="text-lg font-semibold mb-3">{post.title}</h2>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <button className="inline-flex items-center gap-1.5 text-sm text-slate-300 bg-slate-800/50 px-3 py-1.5 rounded-full hover:bg-slate-700 transition-colors">
-                        <MessageCircle className="w-4 h-4" />
-                        {post.comments} comments
-                      </button>
+              <div className="flex gap-2 flex-wrap">
+                <button className="inline-flex items-center gap-2 text-slate-400 hover:text-orange-400 px-3 py-2 rounded-full hover:bg-slate-800/50 transition-colors text-sm">
+                  <ImagePlus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Image</span>
+                </button>
+                <button className="inline-flex items-center gap-2 text-slate-400 hover:text-orange-400 px-3 py-2 rounded-full hover:bg-slate-800/50 transition-colors text-sm">
+                  <Link2 className="w-4 h-4" />
+                  <span className="hidden sm:inline">Link</span>
+                </button>
+                <button className="inline-flex items-center gap-2 text-slate-400 hover:text-orange-400 px-3 py-2 rounded-full hover:bg-slate-800/50 transition-colors text-sm">
+                  <BarChart3 className="w-4 h-4" />
+                  <span className="hidden sm:inline">Poll</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Create Post Modal */}
+            {isCreatePostOpen && (
+              <div className="fixed inset-0 z-100 flex items-center justify-center px-4">
+                <button
+                  type="button"
+                  className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
+                  onClick={() => setIsCreatePostOpen(false)}
+                  aria-label="Close create post modal"
+                />
+                <div className="relative w-full max-w-2xl">
+                  <div className="absolute -inset-1 rounded-3xl bg-linear-to-r from-orange-500/40 to-red-600/40 blur-xl" />
+                  <div className="relative bg-slate-900 border border-slate-800 backdrop-blur-xl rounded-3xl p-8 shadow-2xl">
+                    <div className="flex items-center justify-between mb-6">
+                      <h2 className="text-2xl font-bold text-white">
+                        Create a post
+                      </h2>
                       <button
                         type="button"
-                        onClick={() => handleSave(post.id)}
-                        className={`inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-full transition-colors ${
-                          post.saved
-                            ? "text-orange-400 bg-orange-500/10"
-                            : "text-slate-300 bg-slate-800/50 hover:bg-slate-700"
-                        }`}
-                        aria-label="Save post"
+                        onClick={() => setIsCreatePostOpen(false)}
+                        className="p-2.5 rounded-full bg-slate-800/50 hover:bg-linear-to-br hover:from-orange-500/30 hover:to-red-600/30 text-slate-400 hover:text-orange-400 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/20 border border-slate-700/50 hover:border-orange-500/50"
+                        aria-label="Close modal"
                       >
-                        <Award className="w-4 h-4" />
-                        Save
-                      </button>
-                      <button className="inline-flex items-center gap-1.5 text-sm text-slate-300 bg-slate-800/50 px-3 py-1.5 rounded-full hover:bg-slate-700 transition-colors">
-                        <Share2 className="w-4 h-4" />
-                        Share
+                        <X className="w-5 h-5" />
                       </button>
                     </div>
+
+                    <form onSubmit={handleCreatePostSubmit} className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">
+                          Community
+                        </label>
+                        <select
+                          name="community"
+                          value={createPostForm.community}
+                          onChange={handleCreatePostChange}
+                          disabled={isCreatingPost}
+                          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-100 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {COMMUNITIES.map(community => (
+                            <option key={community.name} value={community.name}>
+                              {community.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">
+                          Title
+                        </label>
+                        <input
+                          type="text"
+                          name="title"
+                          value={createPostForm.title}
+                          onChange={handleCreatePostChange}
+                          placeholder="Enter post title"
+                          maxLength="300"
+                          disabled={isCreatingPost}
+                          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                          required
+                        />
+                        <p className="text-xs text-slate-400 mt-1">
+                          {createPostForm.title.length}/300
+                        </p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">
+                          Content
+                        </label>
+                        <textarea
+                          name="content"
+                          value={createPostForm.content}
+                          onChange={handleCreatePostChange}
+                          placeholder="What's on your mind?"
+                          rows="6"
+                          maxLength="5000"
+                          disabled={isCreatingPost}
+                          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 transition-all resize-none disabled:opacity-50 disabled:cursor-not-allowed"
+                          required
+                        />
+                        <p className="text-xs text-slate-400 mt-1">
+                          {createPostForm.content.length}/5000
+                        </p>
+                      </div>
+
+                      {createPostError && (
+                        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-red-400 text-sm">
+                          {createPostError}
+                        </div>
+                      )}
+
+                      <div className="flex gap-3 pt-4">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsCreatePostOpen(false);
+                            setCreatePostError(null);
+                          }}
+                          disabled={isCreatingPost}
+                          className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-100 font-semibold rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={isCreatingPost}
+                          className="flex-1 py-2.5 bg-linear-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 text-white font-bold rounded-full transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isCreatingPost ? "Posting..." : "Post"}
+                        </button>
+                      </div>
+                    </form>
                   </div>
                 </div>
-              </article>
+              </div>
+            )}
+
+            {posts.map(post => (
+              <PostCard
+                key={post.id}
+                post={post}
+                onUpvote={handleUpvote}
+                onDownvote={handleDownvote}
+                onSave={handleSave}
+              />
             ))}
           </div>
         </main>
