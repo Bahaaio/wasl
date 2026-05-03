@@ -16,7 +16,9 @@ export default function UserProfile() {
   const [posts, setPosts] = useState(MOCK_POSTS);
   const [avatarUrl, setAvatarUrl] = useState(() => {
     try {
-      const saved = localStorage.getItem(`wasl-profile-media-${profileUsername}`);
+      const saved = localStorage.getItem(
+        `wasl-profile-media-${profileUsername}`
+      );
       if (!saved) {
         return "";
       }
@@ -28,7 +30,9 @@ export default function UserProfile() {
   });
   const [bannerUrl, setBannerUrl] = useState(() => {
     try {
-      const saved = localStorage.getItem(`wasl-profile-media-${profileUsername}`);
+      const saved = localStorage.getItem(
+        `wasl-profile-media-${profileUsername}`
+      );
       if (!saved) {
         return "";
       }
@@ -42,9 +46,7 @@ export default function UserProfile() {
   const bannerInputRef = useRef(null);
 
   const updatePosts = updatePost => {
-    setPosts(currentPosts =>
-      currentPosts.map(post => updatePost(post))
-    );
+    setPosts(currentPosts => currentPosts.map(post => updatePost(post)));
   };
 
   const handleUpvote = postId => {
@@ -206,7 +208,9 @@ export default function UserProfile() {
               <h1 className="text-3xl font-bold tracking-tight text-slate-100 sm:text-5xl">
                 u/{user.username}
               </h1>
-              <p className="mt-1 text-slate-300 text-lg">Member • {user.redditAge}</p>
+              <p className="mt-1 text-slate-300 text-lg">
+                Member • {user.redditAge}
+              </p>
             </div>
 
             <div className="mt-4 flex flex-wrap gap-2 sm:absolute sm:right-6 sm:top-5 sm:mt-0">
