@@ -1,6 +1,9 @@
+import { useNavigate } from "react-router-dom";
 import { ArrowBigUp, MessageCircle, Award, Share2 } from "lucide-react";
 
 export default function PostCard({ post, onUpvote, onDownvote, onSave }) {
+  const navigate = useNavigate();
+
   return (
     <article className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-all hover:shadow-lg hover:shadow-orange-500/5">
       <div className="flex flex-col sm:flex-row sm:items-start gap-4">
@@ -45,7 +48,11 @@ export default function PostCard({ post, onUpvote, onDownvote, onSave }) {
           </div>
           <h2 className="text-lg font-semibold mb-3">{post.title}</h2>
           <div className="flex items-center gap-2 flex-wrap">
-            <button className="inline-flex items-center gap-1.5 text-sm text-slate-300 bg-slate-800/50 px-3 py-1.5 rounded-full hover:bg-slate-700 transition-colors">
+            <button
+              type="button"
+              onClick={() => navigate(`/posts/${post.id}`)}
+              className="inline-flex items-center gap-1.5 text-sm text-slate-300 bg-slate-800/50 px-3 py-1.5 rounded-full hover:bg-slate-700 transition-colors"
+            >
               <MessageCircle className="w-4 h-4" />
               {post.comments} comments
             </button>

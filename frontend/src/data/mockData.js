@@ -61,6 +61,70 @@ export const MOCK_POSTS = [
   },
 ];
 
+export const MOCK_PROFILE_COMMENTS = [
+  {
+    id: 1,
+    author: "csswizard",
+    time: "2h ago",
+    community: "r/webdev",
+    body: "The gradient layering here is solid. I'd keep the motion subtle so the layout stays readable.",
+  },
+  {
+    id: 2,
+    author: "stateManager",
+    time: "6h ago",
+    community: "r/reactjs",
+    body: "A reusable component would make this much easier to place in a profile or post detail view.",
+  },
+  {
+    id: 3,
+    author: "frontendNinja",
+    time: "1d ago",
+    community: "r/javascript",
+    body: "The tab interaction feels cleaner once the empty state is replaced with actual content.",
+  },
+];
+
+export const MOCK_POST_DETAIL_COMMENTS = [
+  {
+    id: 1,
+    author: "AutoModerator",
+    time: "2d ago",
+    body: "Please keep the discussion civil and on-topic.",
+    sticky: true,
+    score: 42,
+  },
+  {
+    id: 2,
+    author: "No-Alternative-1185",
+    time: "2d ago",
+    body: "WOW",
+    score: 18,
+  },
+  {
+    id: 3,
+    author: "Big_mo32",
+    time: "2d ago",
+    body: "❤️❤️",
+    isOp: true,
+    score: 31,
+  },
+  {
+    id: 4,
+    author: "Theglamorous",
+    time: "1d ago",
+    body: "Impressive",
+    score: 15,
+  },
+  {
+    id: 5,
+    author: "anxious_girl5",
+    time: "1d ago",
+    body: "10/10",
+    score: 12,
+  },
+];
+
 export const MOCK_COMMUNITIES = [
   {
     name: "r/javascript",

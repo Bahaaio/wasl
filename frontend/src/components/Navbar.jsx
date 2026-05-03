@@ -9,10 +9,12 @@ import {
   Settings,
   LogOut,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AuthModal from "./AuthModal.jsx";
+import { MOCK_PROFILE_USER } from "../data/mockData.js";
 
 export default function Navbar({ transparentMode = false }) {
+  const navigate = useNavigate();
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authInitialTab, setAuthInitialTab] = useState("login");
   const [isScrolled, setIsScrolled] = useState(false);
@@ -92,7 +94,10 @@ export default function Navbar({ transparentMode = false }) {
                   <div className="absolute right-0 mt-2 w-56 bg-slate-900 border border-slate-800 rounded-lg shadow-xl z-50 overflow-hidden">
                     <button
                       type="button"
-                      onClick={() => setIsProfileOpen(false)}
+                      onClick={() => {
+                        setIsProfileOpen(false);
+                        navigate(`/u/${MOCK_PROFILE_USER.username}`);
+                      }}
                       className="w-full flex items-center gap-3 px-4 py-3 text-slate-200 hover:bg-slate-800 transition-colors text-left border-b border-slate-800"
                     >
                       <Edit3 className="w-4 h-4" />

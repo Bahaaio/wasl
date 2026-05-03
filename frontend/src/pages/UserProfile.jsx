@@ -2,8 +2,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Share2, ChevronRight, MessageSquare, Zap, Camera } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
+import CommentsList from "../components/CommentsList.jsx";
 import PostCard from "../components/PostCard.jsx";
 import {
+  MOCK_PROFILE_COMMENTS,
   MOCK_POSTS,
   MOCK_PROFILE_TABS,
   MOCK_PROFILE_USER,
@@ -120,6 +122,8 @@ export default function UserProfile() {
       case "posts":
       case "overview":
         return posts;
+      case "comments":
+        return MOCK_PROFILE_COMMENTS;
       case "saved":
         return posts.filter(p => p.saved);
       case "upvoted":
@@ -289,7 +293,9 @@ export default function UserProfile() {
             </div>
 
             {/* Empty State / Posts List */}
-            {filteredPosts.length === 0 ? (
+            {activeTab === "comments" ? (
+              <CommentsList comments={MOCK_PROFILE_COMMENTS} />
+            ) : filteredPosts.length === 0 ? (
               <div className="text-center py-20">
                 <div className="mb-6">
                   <Zap className="w-16 h-16 text-slate-600 mx-auto" />
