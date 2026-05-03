@@ -1,8 +1,5 @@
 package com.github.bahaaio.wasl.media.model;
 
-import com.github.bahaaio.wasl.comment.model.Comment;
-import com.github.bahaaio.wasl.post.model.Post;
-
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
@@ -12,8 +9,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 /**
- * Represents a media item attached to either a <code>Post</code> or a <code>Comment</code>.
- * <p> Each belongs to exactly one parent (never both). <p>
+ * Represents a media item attached to a <code>MediaOwnerType</code>
+ * <p>
  * File storage is handled separately from this entity.
  */
 @Getter
@@ -22,29 +19,19 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(
-    name = "media",
-    check = @CheckConstraint(
-        name = "chk_media_parent_not_null",
-        constraint = "(post_id IS NOT NULL AND comment_id IS NULL) OR (post_id IS NULL AND comment_id IS NOT NULL)"
-    )
-)
+@Table(name = "media")
 public class Media {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(nullable = false)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id")
-    private Post post;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "comment_id")
-    private Comment comment;
-
     @Column(nullable = false)
-    private String path;
+    private Long ownerId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private MediaOwnerType ownerType;
 
     /**
      * Order of media within its parent.
@@ -56,9 +43,10 @@ public class Media {
     @Column(nullable = false)
     private MediaType type;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MediaState state;
+    private MediaState state = MediaState.TEMP;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
