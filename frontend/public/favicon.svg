@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="waslGradient" x1="10" y1="8" x2="54" y2="56" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f97316" />
+      <stop offset="1" stop-color="#dc2626" />
+    </linearGradient>
+  </defs>
+  <rect x="6" y="6" width="52" height="52" rx="14" fill="url(#waslGradient)" />
+  <path d="M20 24C20 21.8 21.8 20 24 20H40C42.2 20 44 21.8 44 24V34C44 36.2 42.2 38 40 38H31.5L25.5 43.5C24.4 44.5 22.6 43.7 22.6 42.2V38H24C21.8 38 20 36.2 20 34V24Z" fill="white" fill-opacity="0.95"/>
+  <path d="M26 27H38" stroke="#ea580c" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M26 32H34" stroke="#ea580c" stroke-width="2.6" stroke-linecap="round"/>
+</svg>
