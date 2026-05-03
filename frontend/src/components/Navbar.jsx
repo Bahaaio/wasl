@@ -1,5 +1,14 @@
-﻿import { useEffect, useState } from "react";
-import { MessageSquare, Search, Menu } from "lucide-react";
+﻿import { useEffect, useState, useRef } from "react";
+import {
+  MessageSquare,
+  Search,
+  Menu,
+  User,
+  Edit3,
+  Moon,
+  Settings,
+  LogOut,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import AuthModal from "./AuthModal.jsx";
 
@@ -7,6 +16,19 @@ export default function Navbar({ transparentMode = false }) {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authInitialTab, setAuthInitialTab] = useState("login");
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = event => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setIsProfileOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -56,6 +78,53 @@ export default function Navbar({ transparentMode = false }) {
             </div>
 
             <div className="flex flex-1 items-center justify-end gap-3 sm:gap-4">
+              <div className="relative" ref={profileRef}>
+                <button
+                  type="button"
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="p-2 rounded-full text-slate-400 hover:text-orange-400 hover:bg-slate-800/50 transition-all border border-transparent hover:border-slate-700"
+                  title="User menu"
+                >
+                  <User className="w-5 h-5" />
+                </button>
+
+                {isProfileOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-slate-900 border border-slate-800 rounded-lg shadow-xl z-50 overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-slate-200 hover:bg-slate-800 transition-colors text-left border-b border-slate-800"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                      <span>Edit Avatar</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-slate-200 hover:bg-slate-800 transition-colors text-left"
+                    >
+                      <Moon className="w-4 h-4" />
+                      <span>Display Mode</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-slate-200 hover:bg-slate-800 transition-colors text-left border-t border-slate-800"
+                    >
+                      <Settings className="w-4 h-4" />
+                      <span>Settings</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 transition-colors text-left border-t border-slate-800"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span>Log Out</span>
+                    </button>
+                  </div>
+                )}
+              </div>
               <button
                 type="button"
                 onClick={() => {

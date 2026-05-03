@@ -12,10 +12,10 @@ import {
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar.jsx";
 import Footer from "../components/Footer.jsx";
-
-const TRENDING_POSTS = [];
-
-const COMMUNITIES = [];
+import {
+  MOCK_HOMEPAGE_COMMUNITIES,
+  MOCK_TRENDING_POSTS,
+} from "../data/mockData.js";
 
 const PostCard = ({ post }) => (
   <div className="bg-slate-900/50 border border-slate-800/60 rounded-2xl p-5 hover:bg-slate-800/50 transition-all duration-300 cursor-pointer group hover:border-slate-700 relative overflow-hidden backdrop-blur-sm">
@@ -128,7 +128,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 gap-8">
             {/* Feed */}
             <div className="space-y-4">
-              {TRENDING_POSTS.map(post => (
+              {MOCK_TRENDING_POSTS.map(post => (
                 <PostCard key={post.id} post={post} />
               ))}
             </div>
@@ -140,7 +140,7 @@ export default function HomePage() {
                   Top Communities
                 </h3>
                 <div className="space-y-4">
-                  {COMMUNITIES.map((comm, i) => (
+                  {MOCK_HOMEPAGE_COMMUNITIES.map((comm, i) => (
                     <div
                       key={comm.name}
                       className="flex items-center justify-between group cursor-pointer"

@@ -78,3 +78,29 @@ export const MOCK_COMMUNITIES = [
     accent: "from-pink-500 to-rose-500",
   },
 ];
+
+export const MOCK_PROFILE_USER = {
+  username: "frontendNinja",
+  avatar: "FN",
+  karma: 1,
+  followers: 0,
+  contributions: 0,
+  redditAge: "0 d",
+  activeIn: 0,
+  goldEarned: 0,
+};
+
+export const MOCK_PROFILE_TABS = [
+  "Overview",
+  "Posts",
+  "Comments",
+  "Saved",
+  "History",
+  "Hidden",
+  "Upvoted",
+  "Downvoted",
+];
+
+export const MOCK_TRENDING_POSTS = [];
+
+export const MOCK_HOMEPAGE_COMMUNITIES = [];

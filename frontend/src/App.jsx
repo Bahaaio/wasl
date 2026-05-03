@@ -2,6 +2,7 @@
 import HomePage from "./pages/HomePage.jsx";
 import PostsPage from "./pages/Posts.jsx";
 import CreatePostPage from "./pages/CreatePostPage.jsx";
+import UserProfile from "./pages/UserProfile.jsx";
 
 export default function App() {
   return (
@@ -9,6 +10,7 @@ export default function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/posts" element={<PostsPage />} />
       <Route path="/create-post" element={<CreatePostPage />} />
+      <Route path="/u/:username" element={<UserProfile />} />
     </Routes>
   );
 }
