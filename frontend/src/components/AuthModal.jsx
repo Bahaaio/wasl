@@ -1,11 +1,12 @@
 ﻿import { useState } from "react";
+import { authApi } from "../api/auth";
 import { Mail, Lock, User, Eye, EyeOff, X, ArrowLeft } from "lucide-react";
 
 export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
   const [tab, setTab] = useState(initialTab);
   const [showPassword, setShowPassword] = useState(false);
   const [isForgotOpen, setIsForgotOpen] = useState(false);
-  const [loginForm, setLoginForm] = useState({ email: "", password: "" });
+  const [loginForm, setLoginForm] = useState({ username: "", password: "" });
   const [registerForm, setRegisterForm] = useState({
     username: "",
     email: "",
@@ -24,16 +25,42 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
     setRegisterForm(previous => ({ ...previous, [name]: value }));
   };
 
-  const handleLoginSubmit = event => {
+  const [loginError, setLoginError] = useState("");
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  const handleLoginSubmit = async event => {
     event.preventDefault();
-    console.log("Login:", loginForm);
-    onClose();
+    setLoginError("");
+    setIsLoggingIn(true);
+
+    try {
+      await authApi.login(loginForm);
+      onClose();
+      window.location.reload();
+    } catch (err) {
+      setLoginError(err.response?.data?.message || err.message || "Login failed");
+    } finally {
+      setIsLoggingIn(false);
+    }
   };
 
-  const handleRegisterSubmit = event => {
+  const [registerError, setRegisterError] = useState("");
+  const [isRegistering, setIsRegistering] = useState(false);
+
+  const handleRegisterSubmit = async event => {
     event.preventDefault();
-    console.log("Register:", registerForm);
-    onClose();
+    setRegisterError("");
+    setIsRegistering(true);
+
+    try {
+      await authApi.register(registerForm);
+      onClose();
+      window.location.reload();
+    } catch (err) {
+      setRegisterError(err.response?.data?.message || err.message || "Registration failed");
+    } finally {
+      setIsRegistering(false);
+    }
   };
 
   const handleForgotChange = event => {
@@ -104,16 +131,16 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
             <form onSubmit={handleLoginSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Email
+                  Username
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
-                    type="email"
-                    name="email"
-                    value={loginForm.email}
+                    type="text"
+                    name="username"
+                    value={loginForm.username}
                     onChange={handleLoginChange}
-                    placeholder="you@example.com"
+                    placeholder="your_username"
                     className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 transition-all"
                     required
                   />
@@ -162,9 +189,14 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
               <button
                 type="submit"
                 className="w-full mt-6 py-2.5 bg-linear-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 text-white font-bold rounded-full transition-all shadow-lg hover:shadow-xl"
+                disabled={isLoggingIn}
               >
-                Log In
+                {isLoggingIn ? "Logging in..." : "Log In"}
               </button>
+
+              {loginError && (
+                <p className="text-center text-sm text-red-400 mt-3">{loginError}</p>
+              )}
 
               <p className="text-center text-sm text-slate-400 mt-4">
                 Don't have an account?{" "}
@@ -286,9 +318,14 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
               <button
                 type="submit"
                 className="w-full mt-6 py-2.5 bg-linear-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 text-white font-bold rounded-full transition-all shadow-lg hover:shadow-xl"
+                disabled={isRegistering}
               >
-                Create Account
+                {isRegistering ? "Creating..." : "Create Account"}
               </button>
+
+              {registerError && (
+                <p className="text-center text-sm text-red-400 mt-3">{registerError}</p>
+              )}
 
               <p className="text-center text-sm text-slate-400 mt-4">
                 Already have an account?{" "}

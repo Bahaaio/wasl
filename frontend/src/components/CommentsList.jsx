@@ -1,6 +1,9 @@
 import { MessageCircle, MoreHorizontal } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function CommentsList({ comments }) {
+  const navigate = useNavigate();
+  
   if (!comments?.length) {
     return (
       <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 text-center text-slate-400">
@@ -28,9 +31,13 @@ export default function CommentsList({ comments }) {
 
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-400">
-                <span className="font-semibold text-slate-200">
+                <button
+                  type="button"
+                  onClick={() => navigate(`/u/${comment.author}`)}
+                  className="font-semibold text-slate-200 hover:text-orange-400 transition-colors"
+                >
                   u/{comment.author}
-                </span>
+                </button>
                 <span className="text-slate-600">•</span>
                 <span>{comment.time}</span>
                 <span className="text-slate-600">•</span>

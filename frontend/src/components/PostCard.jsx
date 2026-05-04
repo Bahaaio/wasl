@@ -42,7 +42,13 @@ export default function PostCard({ post, onUpvote, onDownvote, onSave }) {
               {post.community}
             </span>
             <span className="text-slate-500">•</span>
-            <span>posted by u/{post.author}</span>
+            <button
+              type="button"
+              onClick={() => navigate(`/u/${post.author}`)}
+              className="text-slate-300 hover:text-orange-400 transition-colors font-medium"
+            >
+              posted by u/{post.author}
+            </button>
             <span className="text-slate-500">•</span>
             <span>{post.time}</span>
           </div>

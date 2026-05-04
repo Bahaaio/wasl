@@ -4,6 +4,8 @@ import { Share2, ChevronRight, MessageSquare, Zap, Camera } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
 import CommentsList from "../components/CommentsList.jsx";
 import PostCard from "../components/PostCard.jsx";
+import { usersApi } from "../api/users.js";
+import { getUser, getAccessToken } from "../auth/store.js";
 import {
   MOCK_PROFILE_COMMENTS,
   MOCK_POSTS,
@@ -16,36 +18,61 @@ export default function UserProfile() {
   const profileUsername = username || "Dismal-Low1544";
   const [activeTab, setActiveTab] = useState("overview");
   const [posts, setPosts] = useState(MOCK_POSTS);
-  const [avatarUrl, setAvatarUrl] = useState(() => {
-    try {
-      const saved = localStorage.getItem(
-        `wasl-profile-media-${profileUsername}`
-      );
-      if (!saved) {
-        return "";
-      }
-      const parsed = JSON.parse(saved);
-      return parsed.avatarUrl || "";
-    } catch {
-      return "";
-    }
-  });
-  const [bannerUrl, setBannerUrl] = useState(() => {
-    try {
-      const saved = localStorage.getItem(
-        `wasl-profile-media-${profileUsername}`
-      );
-      if (!saved) {
-        return "";
-      }
-      const parsed = JSON.parse(saved);
-      return parsed.bannerUrl || "";
-    } catch {
-      return "";
-    }
-  });
+  const [user, setUser] = useState(null);
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [bannerUrl, setBannerUrl] = useState("");
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const avatarInputRef = useRef(null);
   const bannerInputRef = useRef(null);
+
+  const loggedInUser = getUser();
+  const isOwnProfile = loggedInUser?.username === profileUsername;
+  const hasToken = !!getAccessToken();
+
+  // Fetch user profile on mount
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        setIsLoadingProfile(true);
+        const userData = await usersApi.getUserByUsername(profileUsername);
+        setUser(userData);
+
+        // Load avatar if it exists
+        if (userData?.avatarMediaId) {
+          try {
+            const blob = await usersApi.getCurrentUserFullAvatar(
+              userData.avatarMediaId
+            );
+            const url = URL.createObjectURL(blob);
+            setAvatarUrl(url);
+          } catch (err) {
+            console.error("Failed to load avatar:", err);
+          }
+        }
+
+        // Load banner if it exists
+        if (userData?.bannerMediaId) {
+          try {
+            const blob = await usersApi.getCurrentUserFullBanner(
+              userData.bannerMediaId
+            );
+            const url = URL.createObjectURL(blob);
+            setBannerUrl(url);
+          } catch (err) {
+            console.error("Failed to load banner:", err);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load profile:", err);
+      } finally {
+        setIsLoadingProfile(false);
+      }
+    };
+
+    loadProfile();
+  }, [profileUsername]);
 
   const updatePosts = updatePost => {
     setPosts(currentPosts => currentPosts.map(post => updatePost(post)));
@@ -81,40 +108,76 @@ export default function UserProfile() {
     );
   };
 
-  useEffect(() => {
-    localStorage.setItem(
-      `wasl-profile-media-${profileUsername}`,
-      JSON.stringify({ avatarUrl, bannerUrl })
-    );
-  }, [avatarUrl, bannerUrl, profileUsername]);
-
-  const readImageFile = (file, onSuccess) => {
+  // Handle avatar upload to backend
+  const handleAvatarUpload = async event => {
+    const file = event.target.files?.[0];
     if (!file || !file.type.startsWith("image/")) {
+      event.target.value = "";
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      onSuccess(String(reader.result || ""));
-    };
-    reader.readAsDataURL(file);
+    if (!isOwnProfile || !hasToken) {
+      alert("You can only upload your own avatar");
+      event.target.value = "";
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    try {
+      await usersApi.updateCurrentUserAvatar(file);
+      // Reload profile to get updated avatar media ID
+      const userData = await usersApi.getCurrentUser();
+      setUser(userData);
+      if (userData?.avatarMediaId) {
+        const blob = await usersApi.getCurrentUserFullAvatar(
+          userData.avatarMediaId
+        );
+        const url = URL.createObjectURL(blob);
+        setAvatarUrl(url);
+      }
+    } catch (err) {
+      console.error("Avatar upload failed:", err);
+      alert("Failed to upload avatar");
+    } finally {
+      setIsUploadingAvatar(false);
+      event.target.value = "";
+    }
   };
 
-  const handleAvatarUpload = event => {
+  // Handle banner upload to backend
+  const handleBannerUpload = async event => {
     const file = event.target.files?.[0];
-    readImageFile(file, setAvatarUrl);
-    event.target.value = "";
-  };
+    if (!file || !file.type.startsWith("image/")) {
+      event.target.value = "";
+      return;
+    }
 
-  const handleBannerUpload = event => {
-    const file = event.target.files?.[0];
-    readImageFile(file, setBannerUrl);
-    event.target.value = "";
-  };
+    if (!isOwnProfile || !hasToken) {
+      alert("You can only upload your own banner");
+      event.target.value = "";
+      return;
+    }
 
-  const user = {
-    ...MOCK_PROFILE_USER,
-    username: profileUsername,
+    setIsUploadingBanner(true);
+    try {
+      await usersApi.updateCurrentUserBanner(file);
+      // Reload profile to get updated banner media ID
+      const userData = await usersApi.getCurrentUser();
+      setUser(userData);
+      if (userData?.bannerMediaId) {
+        const blob = await usersApi.getCurrentUserFullBanner(
+          userData.bannerMediaId
+        );
+        const url = URL.createObjectURL(blob);
+        setBannerUrl(url);
+      }
+    } catch (err) {
+      console.error("Banner upload failed:", err);
+      alert("Failed to upload banner");
+    } finally {
+      setIsUploadingBanner(false);
+      event.target.value = "";
+    }
   };
 
   const filteredPosts = useMemo(() => {
@@ -134,6 +197,22 @@ export default function UserProfile() {
         return [];
     }
   }, [activeTab, posts]);
+
+  if (isLoadingProfile) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-100">
+        <Navbar />
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-12 text-center">
+          <p className="text-slate-400">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const displayUser = user || {
+    ...MOCK_PROFILE_USER,
+    username: profileUsername,
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -176,6 +255,8 @@ export default function UserProfile() {
               onClick={() => bannerInputRef.current?.click()}
               className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-950/70 text-slate-200 border border-slate-700 hover:border-orange-500/60 hover:text-orange-300 transition-colors"
               aria-label="Upload banner"
+              disabled={!isOwnProfile || isUploadingBanner}
+              style={{ opacity: !isOwnProfile ? 0.5 : 1, pointerEvents: !isOwnProfile ? "none" : "auto" }}
             >
               <Camera className="w-4 h-4" />
             </button>
@@ -193,7 +274,7 @@ export default function UserProfile() {
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      user.avatar
+                      displayUser.avatar
                     )}
                   </div>
                 </div>
@@ -202,6 +283,8 @@ export default function UserProfile() {
                   onClick={() => avatarInputRef.current?.click()}
                   className="absolute right-1 bottom-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 border border-slate-600 text-slate-300 hover:text-orange-300 hover:border-orange-500/60 transition-colors"
                   aria-label="Upload avatar"
+                  disabled={!isOwnProfile || isUploadingAvatar}
+                  style={{ opacity: !isOwnProfile ? 0.5 : 1, pointerEvents: !isOwnProfile ? "none" : "auto" }}
                 >
                   <Camera className="w-4 h-4" />
                 </button>
@@ -210,19 +293,21 @@ export default function UserProfile() {
 
             <div className="pl-24 pr-0 sm:pl-36 sm:pr-52">
               <h1 className="text-3xl font-bold tracking-tight text-slate-100 sm:text-5xl">
-                u/{user.username}
+                u/{displayUser.username}
               </h1>
               <p className="mt-1 text-slate-300 text-lg">
-                Member • {user.redditAge}
+                Member • {displayUser.redditAge || "0 d"}
               </p>
             </div>
 
             <div className="mt-4 flex flex-wrap gap-2 sm:absolute sm:right-6 sm:top-5 sm:mt-0">
-              <button className="px-4 py-2 bg-slate-800/80 text-slate-100 rounded-lg border border-slate-700 hover:bg-slate-700 hover:border-orange-500/50 transition-all">
-                Edit profile
-              </button>
+              {isOwnProfile && (
+                <button className="px-4 py-2 bg-slate-800/80 text-slate-100 rounded-lg border border-slate-700 hover:bg-slate-700 hover:border-orange-500/50 transition-all">
+                  Edit profile
+                </button>
+              )}
               <button className="px-4 py-2 bg-linear-to-r from-orange-500 to-red-600 text-white rounded-lg hover:from-orange-400 hover:to-red-500 shadow-lg hover:shadow-orange-500/50 transition-all">
-                Follow
+                {isOwnProfile ? "Your Profile" : "Follow"}
               </button>
             </div>
           </div>

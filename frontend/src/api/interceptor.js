@@ -56,7 +56,7 @@ api.interceptors.response.use(
 
       try {
         const response = await api.post("/auth/refresh");
-        const { access_token } = response.data;
+        const access_token = response.data?.accessToken ?? response.data?.access_token;
 
         setAccessToken(access_token);
 
