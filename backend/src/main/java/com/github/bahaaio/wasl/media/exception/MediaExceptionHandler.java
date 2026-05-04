@@ -29,4 +29,11 @@ public class MediaExceptionHandler {
             ApiError.of("UNSUPPORTED_MEDIA_TYPE", "Unsupported media type: " + ex.getMessage())
         );
     }
+
+    @ExceptionHandler(MediaAlreadyAttachedException.class)
+    public ResponseEntity<ApiError<Void>> handleMediaAlreadyAttachedException(MediaAlreadyAttachedException ex) {
+        return ResponseEntity.badRequest().body(
+            ApiError.of("MEDIA_ALREADY_ATTACHED", "Media with id: " + ex.getId() + "already attached")
+        );
+    }
 }

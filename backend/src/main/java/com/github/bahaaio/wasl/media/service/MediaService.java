@@ -3,11 +3,9 @@ package com.github.bahaaio.wasl.media.service;
 import com.github.bahaaio.wasl.media.dto.MediaFileResponse;
 import com.github.bahaaio.wasl.media.dto.MediaResponse;
 import com.github.bahaaio.wasl.media.exception.FileNotFoundException;
+import com.github.bahaaio.wasl.media.exception.MediaAlreadyAttachedException;
 import com.github.bahaaio.wasl.media.exception.UnsupportedMediaTypeException;
-import com.github.bahaaio.wasl.media.model.Media;
-import com.github.bahaaio.wasl.media.model.MediaPathService;
-import com.github.bahaaio.wasl.media.model.MediaState;
-import com.github.bahaaio.wasl.media.model.MediaType;
+import com.github.bahaaio.wasl.media.model.*;
 import com.github.bahaaio.wasl.media.repository.MediaRepository;
 import com.github.bahaaio.wasl.user.service.UserService;
 
@@ -58,8 +56,8 @@ public class MediaService {
         return MediaResponse.builder()
             .id(media.getId())
             .type(mediaType)
-            .fullUrl("/media/" + media.getId() + "/full")
-            .previewUrl("/media/" + media.getId() + "/preview")
+            .fullUrl("api/v1/media/" + media.getId())
+            .previewUrl("api/v1/media/" + media.getId() + "/preview")
             .build();
     }
 
@@ -81,6 +79,24 @@ public class MediaService {
         var file = storageService.load(path);
 
         return new MediaFileResponse(file, media.getMimeType());
+    }
+
+    public void attachMedia(UUID mediaId, MediaOwnerType ownerType, Long ownerId) {
+        var media = mediaRepository.findById(mediaId)
+            .orElseThrow(() -> new FileNotFoundException("Media not found"));
+
+        if (media.getState() != MediaState.TEMP) {
+            throw new MediaAlreadyAttachedException(mediaId);
+        }
+
+        media.setOwnerId(ownerId);
+        media.setOwnerType(ownerType);
+        media.setState(MediaState.ATTACHED);
+    }
+
+    public void deleteMediaById(UUID id) {
+        storageService.delete(mediaPathService.getStorageKey(id));
+        mediaRepository.deleteById(id);
     }
 
     private String getMimeType(MultipartFile file) {

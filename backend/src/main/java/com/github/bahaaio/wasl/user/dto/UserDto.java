@@ -1,6 +1,7 @@
 package com.github.bahaaio.wasl.user.dto;
 
 import java.time.Instant;
+import java.util.UUID;
 
 import lombok.Builder;
 
@@ -9,8 +10,8 @@ public record UserDto(
     String username,
     String email,
     String about,
-    String avatarUrl,
-    String bannerUrl,
+    UUID avatarMediaId,
+    UUID bannerMediaId,
     Instant createdAt
 ) {
 }

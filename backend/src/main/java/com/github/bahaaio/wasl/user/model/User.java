@@ -3,6 +3,7 @@ package com.github.bahaaio.wasl.user.model;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
+import java.util.UUID;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -33,13 +34,8 @@ public class User {
     @Column(nullable = false)
     private String about = "";
 
-    @Builder.Default
-    @Column(nullable = false)
-    private String avatarUrl = "";
-
-    @Builder.Default
-    @Column(nullable = false)
-    private String bannerUrl = "";
+    private UUID avatarMediaId;
+    private UUID bannerMediaId;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

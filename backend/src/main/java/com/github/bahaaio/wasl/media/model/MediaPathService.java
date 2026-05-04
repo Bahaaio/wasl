@@ -2,8 +2,14 @@ package com.github.bahaaio.wasl.media.model;
 
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 public class MediaPathService {
+    public String getStorageKey(UUID id) {
+        return id.toString();
+    }
+
     public String getFullPath(Media media) {
         return switch (media.getType()) {
             case IMAGE -> media.getId() + "/full.webp";
