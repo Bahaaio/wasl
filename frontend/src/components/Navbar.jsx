@@ -11,7 +11,12 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import AuthModal from "./AuthModal.jsx";
-import { getAccessToken, getUser, clearAccessToken } from "../auth/store.js";
+import {
+  getAccessToken,
+  getUser,
+  clearAccessToken,
+  onAuthChange,
+} from "../auth/store.js";
 import { authApi } from "../api/auth.js";
 
 export default function Navbar({ transparentMode = false }) {
@@ -24,16 +29,6 @@ export default function Navbar({ transparentMode = false }) {
   const [user, setUser] = useState(null);
   const profileRef = useRef(null);
 
-  // Load auth state on mount
-  useEffect(() => {
-    const token = getAccessToken();
-    const userData = getUser();
-    if (token) {
-      setIsLoggedIn(true);
-      setUser(userData);
-    }
-  }, []);
-
   useEffect(() => {
     const handleClickOutside = event => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
@@ -43,6 +38,21 @@ export default function Navbar({ transparentMode = false }) {
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Listen for auth state changes
+  useEffect(() => {
+    const unsubscribe = onAuthChange(authState => {
+      if (authState.token && authState.user) {
+        setIsLoggedIn(true);
+        setUser(authState.user);
+      } else {
+        setIsLoggedIn(false);
+        setUser(null);
+      }
+    });
+
+    return unsubscribe;
   }, []);
 
   useEffect(() => {

@@ -1,28 +1,37 @@
-const TOKEN_KEY = "access_token";
-const USER_KEY = "user_info";
+let access_token = null;
+let user_info = null;
+let listeners = [];
 
 export const setAccessToken = token => {
-  if (token) {
-    localStorage.setItem(TOKEN_KEY, token);
-  }
+  access_token = token;
+  notifyListeners();
 };
 
-export const getAccessToken = () => {
-  return localStorage.getItem(TOKEN_KEY);
-};
+export const getAccessToken = () => access_token;
 
 export const setUser = user => {
-  if (user) {
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
-  }
+  user_info = user;
+  notifyListeners();
 };
 
-export const getUser = () => {
-  const user = localStorage.getItem(USER_KEY);
-  return user ? JSON.parse(user) : null;
-};
+export const getUser = () => user_info;
 
 export const clearAccessToken = () => {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(USER_KEY);
+  access_token = null;
+  user_info = null;
+  notifyListeners();
+};
+
+// Observer pattern for auth state changes
+const notifyListeners = () => {
+  listeners.forEach(listener =>
+    listener({ token: access_token, user: user_info })
+  );
+};
+
+export const onAuthChange = callback => {
+  listeners.push(callback);
+  return () => {
+    listeners = listeners.filter(l => l !== callback);
+  };
 };

@@ -36,9 +36,10 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
     try {
       await authApi.login(loginForm);
       onClose();
-      window.location.reload();
     } catch (err) {
-      setLoginError(err.response?.data?.message || err.message || "Login failed");
+      setLoginError(
+        err.response?.data?.message || err.message || "Login failed"
+      );
     } finally {
       setIsLoggingIn(false);
     }
@@ -55,9 +56,10 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
     try {
       await authApi.register(registerForm);
       onClose();
-      window.location.reload();
     } catch (err) {
-      setRegisterError(err.response?.data?.message || err.message || "Registration failed");
+      setRegisterError(
+        err.response?.data?.message || err.message || "Registration failed"
+      );
     } finally {
       setIsRegistering(false);
     }
@@ -195,7 +197,9 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
               </button>
 
               {loginError && (
-                <p className="text-center text-sm text-red-400 mt-3">{loginError}</p>
+                <p className="text-center text-sm text-red-400 mt-3">
+                  {loginError}
+                </p>
               )}
 
               <p className="text-center text-sm text-slate-400 mt-4">
@@ -324,7 +328,9 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
               </button>
 
               {registerError && (
-                <p className="text-center text-sm text-red-400 mt-3">{registerError}</p>
+                <p className="text-center text-sm text-red-400 mt-3">
+                  {registerError}
+                </p>
               )}
 
               <p className="text-center text-sm text-slate-400 mt-4">

@@ -137,7 +137,9 @@ export default function UserProfile() {
       }
     } catch (err) {
       console.error("Avatar upload failed:", err);
-      alert("Failed to upload avatar");
+      alert(
+        err.response?.data?.message || err.message || "Failed to upload avatar"
+      );
     } finally {
       setIsUploadingAvatar(false);
       event.target.value = "";
@@ -173,7 +175,9 @@ export default function UserProfile() {
       }
     } catch (err) {
       console.error("Banner upload failed:", err);
-      alert("Failed to upload banner");
+      alert(
+        err.response?.data?.message || err.message || "Failed to upload banner"
+      );
     } finally {
       setIsUploadingBanner(false);
       event.target.value = "";
@@ -256,7 +260,10 @@ export default function UserProfile() {
               className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-950/70 text-slate-200 border border-slate-700 hover:border-orange-500/60 hover:text-orange-300 transition-colors"
               aria-label="Upload banner"
               disabled={!isOwnProfile || isUploadingBanner}
-              style={{ opacity: !isOwnProfile ? 0.5 : 1, pointerEvents: !isOwnProfile ? "none" : "auto" }}
+              style={{
+                opacity: !isOwnProfile ? 0.5 : 1,
+                pointerEvents: !isOwnProfile ? "none" : "auto",
+              }}
             >
               <Camera className="w-4 h-4" />
             </button>
@@ -284,7 +291,10 @@ export default function UserProfile() {
                   className="absolute right-1 bottom-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 border border-slate-600 text-slate-300 hover:text-orange-300 hover:border-orange-500/60 transition-colors"
                   aria-label="Upload avatar"
                   disabled={!isOwnProfile || isUploadingAvatar}
-                  style={{ opacity: !isOwnProfile ? 0.5 : 1, pointerEvents: !isOwnProfile ? "none" : "auto" }}
+                  style={{
+                    opacity: !isOwnProfile ? 0.5 : 1,
+                    pointerEvents: !isOwnProfile ? "none" : "auto",
+                  }}
                 >
                   <Camera className="w-4 h-4" />
                 </button>
