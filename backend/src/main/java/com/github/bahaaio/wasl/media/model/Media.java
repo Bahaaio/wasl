@@ -1,5 +1,7 @@
 package com.github.bahaaio.wasl.media.model;
 
+import com.github.bahaaio.wasl.user.model.User;
+
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
@@ -26,12 +28,17 @@ public class Media {
     @Column(nullable = false)
     private UUID id;
 
-    @Column(nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "uploaded_by", nullable = false)
+    private User uploader;
+
     private Long ownerId;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private MediaOwnerType ownerType;
+
+    @Column(nullable = false)
+    private String mimeType;
 
     /**
      * Order of media within its parent.
