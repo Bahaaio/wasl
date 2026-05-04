@@ -46,6 +46,16 @@ public class UserService {
     }
 
     /**
+     * Persists a user entity.
+     *
+     * @param user user entity to save
+     * @return saved user entity
+     */
+    public User save(User user) {
+        return userRepository.saveAndFlush(user);
+    }
+
+    /**
      * Updates a user by username
      *
      * @param username unique username

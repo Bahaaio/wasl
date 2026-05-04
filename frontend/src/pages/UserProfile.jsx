@@ -5,7 +5,7 @@ import Navbar from "../components/Navbar.jsx";
 import CommentsList from "../components/CommentsList.jsx";
 import PostCard from "../components/PostCard.jsx";
 import { usersApi } from "../api/users.js";
-import { getUser, getAccessToken } from "../auth/store.js";
+import { getUser, getAccessToken, setUser } from "../auth/store.js";
 import {
   MOCK_PROFILE_COMMENTS,
   MOCK_POSTS,
@@ -123,6 +123,10 @@ export default function UserProfile() {
     }
 
     setIsUploadingAvatar(true);
+    const previousAvatarUrl = avatarUrl;
+    const previewAvatarUrl = URL.createObjectURL(file);
+    setAvatarUrl(previewAvatarUrl);
+
     try {
       await usersApi.updateCurrentUserAvatar(file);
       // Reload profile to get updated avatar media ID
@@ -137,6 +141,7 @@ export default function UserProfile() {
       }
     } catch (err) {
       console.error("Avatar upload failed:", err);
+      setAvatarUrl(previousAvatarUrl);
       alert(
         err.response?.data?.message || err.message || "Failed to upload avatar"
       );
@@ -161,6 +166,10 @@ export default function UserProfile() {
     }
 
     setIsUploadingBanner(true);
+    const previousBannerUrl = bannerUrl;
+    const previewBannerUrl = URL.createObjectURL(file);
+    setBannerUrl(previewBannerUrl);
+
     try {
       await usersApi.updateCurrentUserBanner(file);
       // Reload profile to get updated banner media ID
@@ -175,6 +184,7 @@ export default function UserProfile() {
       }
     } catch (err) {
       console.error("Banner upload failed:", err);
+      setBannerUrl(previousBannerUrl);
       alert(
         err.response?.data?.message || err.message || "Failed to upload banner"
       );

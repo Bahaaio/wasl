@@ -10,6 +10,7 @@ api.interceptors.request.use(config => {
   const token = getAccessToken();
 
   if (token) {
+    config.headers = config.headers || {};
     config.headers.Authorization = `Bearer ${token}`;
   }
 
@@ -31,17 +32,17 @@ const processQueue = (error, token) => {
   failedQueue = [];
 };
 
-// try to refresh the access token if the request fails with a 401 error
+// try to refresh the access token if the request fails with an auth error
 api.interceptors.response.use(
   response => response,
   async error => {
     const originalRequest = error.config;
 
-    // reject if not unauthorized error, or if the request has already been retried
-    const isUnauthorized = error.response?.status === 401;
+    // reject if not an auth error, or if the request has already been retried
+    const isAuthError = [401, 403].includes(error.response?.status);
 
     if (
-      !isUnauthorized ||
+      !isAuthError ||
       originalRequest._retry ||
       originalRequest.url === "/auth/refresh"
     ) {
