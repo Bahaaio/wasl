@@ -6,6 +6,8 @@ import com.github.bahaaio.wasl.media.service.MediaService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.UUID;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -18,10 +20,15 @@ public class UserMediaService {
     @Transactional
     public void updateAvatar(MultipartFile file, String username) {
         var user = userService.getEntityByUsername(username);
-        var response = mediaService.uploadMedia(file, username);
+        UUID oldAvatarMediaId = user.getAvatarMediaId();
 
+        var response = mediaService.uploadMedia(file, username);
         mediaService.attachMedia(response.id(), MediaOwnerType.USER, user.getId());
         user.setAvatarMediaId(response.id());
+
+        if (oldAvatarMediaId != null) {
+            mediaService.deleteMediaById(oldAvatarMediaId);
+        }
     }
 
     @Transactional
@@ -37,10 +44,15 @@ public class UserMediaService {
     @Transactional
     public void updateBanner(MultipartFile file, String username) {
         var user = userService.getEntityByUsername(username);
-        var response = mediaService.uploadMedia(file, username);
+        UUID oldBannerMediaId = user.getBannerMediaId();
 
+        var response = mediaService.uploadMedia(file, username);
         mediaService.attachMedia(response.id(), MediaOwnerType.USER, user.getId());
         user.setBannerMediaId(response.id());
+
+        if (oldBannerMediaId != null) {
+            mediaService.deleteMediaById(oldBannerMediaId);
+        }
     }
 
     @Transactional
