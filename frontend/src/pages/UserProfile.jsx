@@ -5,7 +5,7 @@ import Navbar from "../components/Navbar.jsx";
 import CommentsList from "../components/CommentsList.jsx";
 import PostCard from "../components/PostCard.jsx";
 import { usersApi } from "../api/users.js";
-import { getUser, getAccessToken, setUser } from "../auth/store.js";
+import { getUser, getAccessToken } from "../auth/store.js";
 import {
   MOCK_PROFILE_COMMENTS,
   MOCK_POSTS,
