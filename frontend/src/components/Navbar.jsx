@@ -42,6 +42,17 @@ export default function Navbar({ transparentMode = false }) {
 
   // Listen for auth state changes
   useEffect(() => {
+    // set initial auth state from store (so refresh keeps user logged in)
+    const currentToken = getAccessToken();
+    const currentUser = getUser();
+    if (currentToken && currentUser) {
+      setIsLoggedIn(true);
+      setUser(currentUser);
+    } else {
+      setIsLoggedIn(false);
+      setUser(null);
+    }
+
     const unsubscribe = onAuthChange(authState => {
       if (authState.token && authState.user) {
         setIsLoggedIn(true);
