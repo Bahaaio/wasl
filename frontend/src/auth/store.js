@@ -7,8 +7,9 @@ try {
     const raw = localStorage.getItem("user");
     user_info = raw ? JSON.parse(raw) : null;
   }
-} catch (e) {
+} catch (err) {
   user_info = null;
+  console.debug("auth/store: failed to read user from localStorage:", err);
 }
 
 let listeners = [];
@@ -20,7 +21,12 @@ export const setAccessToken = token => {
       if (token) localStorage.setItem("accessToken", token);
       else localStorage.removeItem("accessToken");
     }
-  } catch (e) {}
+  } catch (err) {
+    console.debug(
+      "auth/store: failed to write accessToken to localStorage:",
+      err
+    );
+  }
   notifyListeners();
 };
 
@@ -33,7 +39,9 @@ export const setUser = user => {
       if (user) localStorage.setItem("user", JSON.stringify(user));
       else localStorage.removeItem("user");
     }
-  } catch (e) {}
+  } catch (err) {
+    console.debug("auth/store: failed to write user to localStorage:", err);
+  }
   notifyListeners();
 };
 
@@ -47,7 +55,9 @@ export const clearAccessToken = () => {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("user");
     }
-  } catch (e) {}
+  } catch (err) {
+    console.debug("auth/store: failed to clear localStorage:", err);
+  }
   notifyListeners();
 };
 
