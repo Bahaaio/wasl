@@ -32,7 +32,7 @@ public class MediaController {
             .body(response.file());
     }
 
-    @GetMapping("/{id}/preview")
+    @GetMapping("/{id}/thumbnail")
     public ResponseEntity<Resource> getMediaThumbnail(@PathVariable UUID id) {
         var response = mediaService.getMediaThumbnail(id);
 

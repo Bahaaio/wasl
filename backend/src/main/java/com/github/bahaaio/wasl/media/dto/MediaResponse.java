@@ -11,6 +11,6 @@ public record MediaResponse(
     UUID id,
     MediaType type,
     String fullUrl,
-    String previewUrl
+    String thumbnailUrl
 ) {
 }

@@ -1,7 +1,7 @@
 import api from "./client";
 
-export const getMedia = (id, preview = false) => {
-  const url = preview ? `/media/${id}/preview` : `/media/${id}`;
+export const getMedia = (id, thumbnail = false) => {
+  const url = thumbnail ? `/media/${id}/thumbnail` : `/media/${id}`;
   return api.get(url, { responseType: "blob" }).then(res => res.data);
 };
 

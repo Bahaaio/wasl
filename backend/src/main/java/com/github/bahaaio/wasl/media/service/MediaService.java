@@ -57,7 +57,7 @@ public class MediaService {
             .id(media.getId())
             .type(mediaType)
             .fullUrl("api/v1/media/" + media.getId())
-            .previewUrl("api/v1/media/" + media.getId() + "/preview")
+            .thumbnailUrl("api/v1/media/" + media.getId() + "/thumbnail")
             .build();
     }
 
