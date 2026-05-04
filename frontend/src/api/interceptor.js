@@ -38,7 +38,13 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     // reject if not unauthorized error, or if the request has already been retried
-    if (error.response?.status !== 401 || originalRequest._retry) {
+    const isUnauthorized = error.response?.status === 401;
+
+    if (
+      !isUnauthorized ||
+      originalRequest._retry ||
+      originalRequest.url === "/auth/refresh"
+    ) {
       return Promise.reject(error);
     }
 
@@ -63,7 +69,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         clearAccessToken();
-        // TODO: logout
+        window.location.href = "/login";
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
