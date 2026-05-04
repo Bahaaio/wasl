@@ -23,7 +23,7 @@ public class UserMediaService {
         UUID oldAvatarMediaId = user.getAvatarMediaId();
 
         var response = mediaService.uploadMedia(file, username);
-        mediaService.attachMedia(response.id(), MediaOwnerType.USER, user.getId());
+        mediaService.attachMedia(response.id(), MediaOwnerType.USER, user.getId(), username);
         user.setAvatarMediaId(response.id());
 
         if (oldAvatarMediaId != null) {
@@ -47,7 +47,7 @@ public class UserMediaService {
         UUID oldBannerMediaId = user.getBannerMediaId();
 
         var response = mediaService.uploadMedia(file, username);
-        mediaService.attachMedia(response.id(), MediaOwnerType.USER, user.getId());
+        mediaService.attachMedia(response.id(), MediaOwnerType.USER, user.getId(), username);
         user.setBannerMediaId(response.id());
 
         if (oldBannerMediaId != null) {

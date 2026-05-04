@@ -1,5 +1,7 @@
 package com.github.bahaaio.wasl.media.service;
 
+import com.github.bahaaio.wasl.auth.exception.ForbiddenException;
+import com.github.bahaaio.wasl.media.dto.MediaDto;
 import com.github.bahaaio.wasl.media.dto.MediaFileResponse;
 import com.github.bahaaio.wasl.media.dto.MediaResponse;
 import com.github.bahaaio.wasl.media.exception.FileNotFoundException;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 import jakarta.transaction.Transactional;
@@ -81,9 +84,22 @@ public class MediaService {
         return new MediaFileResponse(file, media.getMimeType());
     }
 
-    public void attachMedia(UUID mediaId, MediaOwnerType ownerType, Long ownerId) {
+    public List<MediaDto> getByOwnerId(Long ownerId, MediaOwnerType ownerType) {
+        var mediaList = mediaRepository.findAllByOwnerIdAndOwnerType(ownerId, ownerType);
+
+        return mediaList.stream()
+            .map(media -> new MediaDto(media.getId(), media.getType()))
+            .toList();
+    }
+
+    @Transactional
+    public MediaDto attachMedia(UUID mediaId, MediaOwnerType ownerType, Long ownerId, String username) {
         var media = mediaRepository.findById(mediaId)
             .orElseThrow(() -> new FileNotFoundException("Media not found"));
+
+        if (!media.getUploader().getUsername().equals(username)) {
+            throw new ForbiddenException();
+        }
 
         if (media.getState() != MediaState.TEMP) {
             throw new MediaAlreadyAttachedException(mediaId);
@@ -92,9 +108,14 @@ public class MediaService {
         media.setOwnerId(ownerId);
         media.setOwnerType(ownerType);
         media.setState(MediaState.ATTACHED);
+
+        media = mediaRepository.save(media);
+
+        return new MediaDto(media.getId(), media.getType());
     }
 
     // keeps directory empty
+    @Transactional
     public void deleteMediaById(UUID id) {
         var media = mediaRepository.findById(id)
             .orElseThrow(() -> new FileNotFoundException("Media not found"));
@@ -103,6 +124,12 @@ public class MediaService {
         storageService.delete(mediaPathService.getThumbnailPath(media));
 
         mediaRepository.deleteById(id);
+    }
+
+    @Transactional
+    public void deleteMediaByOwnerId(Long ownerId, MediaOwnerType ownerType) {
+        mediaRepository.findAllByOwnerIdAndOwnerType(ownerId, ownerType)
+            .forEach(media -> deleteMediaById(media.getId()));
     }
 
     private String getMimeType(MultipartFile file) {

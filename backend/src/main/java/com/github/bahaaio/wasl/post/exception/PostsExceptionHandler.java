@@ -1,4 +1,4 @@
-package com.github.bahaaio.wasl.user.exception;
+package com.github.bahaaio.wasl.post.exception;
 
 import com.github.bahaaio.wasl.exception.ApiError;
 
@@ -8,11 +8,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
-public class UserExceptionHandler {
-    @ExceptionHandler
-    public ResponseEntity<ApiError<Void>> handleUsernameNotFound(UsernameNotFoundException ex) {
+public class PostsExceptionHandler {
+    @ExceptionHandler(PostNotFoundException.class)
+    public ResponseEntity<ApiError<Void>> handlePostNotFoundException(PostNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-            ApiError.of("USERNAME_NOT_FOUND", ex.getMessage())
+            ApiError.of("POST_NOT_FOUND", "Post with id: " + ex.getId() + " not found")
         );
     }
 }

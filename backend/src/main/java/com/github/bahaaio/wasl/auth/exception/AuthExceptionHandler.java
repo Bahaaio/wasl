@@ -18,6 +18,13 @@ public class AuthExceptionHandler {
         );
     }
 
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ApiError<Void>> handleForbiddenException() {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+            ApiError.of("FORBIDDEN", "You are not allowed to perform this action")
+        );
+    }
+
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<ApiError<Void>> handleInvalidCredentials() {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
