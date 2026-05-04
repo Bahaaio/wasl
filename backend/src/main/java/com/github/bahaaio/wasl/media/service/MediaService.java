@@ -94,8 +94,14 @@ public class MediaService {
         media.setState(MediaState.ATTACHED);
     }
 
+    // keeps directory empty
     public void deleteMediaById(UUID id) {
-        storageService.delete(mediaPathService.getStorageKey(id));
+        var media = mediaRepository.findById(id)
+            .orElseThrow(() -> new FileNotFoundException("Media not found"));
+
+        storageService.delete(mediaPathService.getFullPath(media));
+        storageService.delete(mediaPathService.getThumbnailPath(media));
+
         mediaRepository.deleteById(id);
     }
 
