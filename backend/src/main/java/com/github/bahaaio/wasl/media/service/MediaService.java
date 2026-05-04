@@ -9,8 +9,7 @@ import com.github.bahaaio.wasl.media.model.MediaPathService;
 import com.github.bahaaio.wasl.media.model.MediaState;
 import com.github.bahaaio.wasl.media.model.MediaType;
 import com.github.bahaaio.wasl.media.repository.MediaRepository;
-import com.github.bahaaio.wasl.user.exception.UsernameNotFoundException;
-import com.github.bahaaio.wasl.user.repository.UserRepository;
+import com.github.bahaaio.wasl.user.service.UserService;
 
 import org.apache.tika.Tika;
 import org.springframework.stereotype.Service;
@@ -31,12 +30,11 @@ public class MediaService {
     private final StorageService storageService;
     private final MediaPathService mediaPathService;
     private final Tika tika;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @Transactional
     public MediaResponse uploadMedia(MultipartFile file, String uploaderUsername) {
-        var uploader = userRepository.findByUsername(uploaderUsername)
-            .orElseThrow(() -> new UsernameNotFoundException(uploaderUsername));
+        var uploader = userService.getEntityByUsername(uploaderUsername);
 
         var mimeType = getMimeType(file);
         var mediaType = resolveMimeType(mimeType);

@@ -5,6 +5,7 @@ import com.github.bahaaio.wasl.user.dto.UserDto;
 import com.github.bahaaio.wasl.user.dto.UserPatchRequest;
 import com.github.bahaaio.wasl.user.exception.UsernameNotFoundException;
 import com.github.bahaaio.wasl.user.mapper.UserMapper;
+import com.github.bahaaio.wasl.user.model.User;
 import com.github.bahaaio.wasl.user.repository.UserRepository;
 
 import org.apache.commons.lang3.StringUtils;
@@ -24,14 +25,24 @@ public class UserService {
      * Retrieves a user by username.
      *
      * @param username unique username
-     * @return the updated user
+     * @return the user DTO
      * @throws UsernameNotFoundException if the user does not exist
      */
     public UserDto getUserByUsername(String username) {
-        var user = userRepository.findByUsername(username)
-            .orElseThrow(() -> new UsernameNotFoundException(username));
-
+        var user = getEntityByUsername(username);
         return userMapper.toDto(user);
+    }
+
+    /**
+     * Retrieves a user database entity by username.
+     *
+     * @param username unique username
+     * @return the user entity
+     * @throws UsernameNotFoundException if the user does not exist
+     */
+    public User getEntityByUsername(String username) {
+        return userRepository.findByUsername(username)
+            .orElseThrow(() -> new UsernameNotFoundException(username));
     }
 
     /**
@@ -43,8 +54,7 @@ public class UserService {
      * @throws UsernameNotFoundException if the user does not exist
      */
     public UserDto updateUserByUsername(String username, UserPatchRequest request) {
-        var user = userRepository.findByUsername(username)
-            .orElseThrow(() -> new UsernameNotFoundException(username));
+        var user = getEntityByUsername(username);
 
         if (StringUtils.isNotBlank(request.about())) {
             user.setAbout(request.about());
