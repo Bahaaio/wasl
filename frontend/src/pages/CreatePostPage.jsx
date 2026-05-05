@@ -4,18 +4,22 @@ import { X, ImagePlus, Link2, BarChart3 } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
 import AuthModal from "../components/AuthModal.jsx";
 import { MOCK_COMMUNITIES } from "../data/mockData.js";
-import { getAccessToken } from "../auth/store.js";
+import { getAccessToken, onAuthChange } from "../auth/store.js";
 
 export default function CreatePostPage() {
   const navigate = useNavigate();
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(() => !getAccessToken());
 
   useEffect(() => {
-    // Check if user is logged in
-    if (!getAccessToken()) {
-      // Show auth modal if not authenticated
-      setShowAuthModal(true);
-    }
+    // Subscribe to auth changes to close modal when user logs in
+    const unsubscribe = onAuthChange(({ token }) => {
+      if (token) {
+        // User logged in, close the modal
+        setShowAuthModal(false);
+      }
+    });
+
+    return unsubscribe;
   }, []);
 
   const handleAuthModalClose = () => {

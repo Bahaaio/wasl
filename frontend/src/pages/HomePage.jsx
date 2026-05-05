@@ -10,7 +10,7 @@ import {
   Share2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar.jsx";
 import Footer from "../components/Footer.jsx";
 import AuthModal from "../components/AuthModal.jsx";
@@ -18,7 +18,7 @@ import {
   MOCK_HOMEPAGE_COMMUNITIES,
   MOCK_TRENDING_POSTS,
 } from "../data/mockData.js";
-import { getAccessToken } from "../auth/store.js";
+import { getAccessToken, onAuthChange } from "../auth/store.js";
 
 const PostCard = ({ post }) => (
   <div className="bg-slate-900/50 border border-slate-800/60 rounded-2xl p-5 hover:bg-slate-800/50 transition-all duration-300 cursor-pointer group hover:border-slate-700 relative overflow-hidden backdrop-blur-sm">
@@ -80,6 +80,19 @@ const PostCard = ({ post }) => (
 export default function HomePage() {
   const navigate = useNavigate();
   const [showAuthModal, setShowAuthModal] = useState(false);
+
+  useEffect(() => {
+    // Subscribe to auth changes to close modal when user logs in
+    const unsubscribe = onAuthChange(({ token }) => {
+      if (token) {
+        // User logged in, close the modal and navigate to community creation
+        setShowAuthModal(false);
+        navigate("/create-community");
+      }
+    });
+
+    return unsubscribe;
+  }, [navigate]);
 
   const handleCreateCommunity = () => {
     if (!getAccessToken()) {
