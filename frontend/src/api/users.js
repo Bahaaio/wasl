@@ -9,7 +9,7 @@ export const usersApi = {
   getCurrentUser: () => api.get("/users/me").then(res => res.data),
 
   updateCurrentUser: ({ about }) =>
-    api.put("/users/me", { about }).then(res => res.data),
+    api.patch("/users/me", { about }).then(res => res.data),
 
   deleteCurrentUser: () => api.delete("/users/me"),
 

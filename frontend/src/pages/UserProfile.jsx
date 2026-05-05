@@ -27,6 +27,17 @@ export default function UserProfile() {
   const avatarInputRef = useRef(null);
   const bannerInputRef = useRef(null);
 
+  const getAvatarFallback = profile =>
+    profile?.username
+      ? profile.username
+          .split(/[^a-zA-Z0-9]+/)
+          .filter(Boolean)
+          .map(part => part[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase()
+      : "U";
+
   const loggedInUser = getUser();
   const isOwnProfile = loggedInUser?.username === profileUsername;
   const hasToken = !!getAccessToken();
@@ -40,10 +51,10 @@ export default function UserProfile() {
         setUser(userData);
 
         // Load avatar if it exists
-        if (userData?.avatarMediaId) {
+        if (userData?.avatar_media_id) {
           try {
             const blob = await usersApi.getCurrentUserFullAvatar(
-              userData.avatarMediaId
+              userData.avatar_media_id
             );
             const url = URL.createObjectURL(blob);
             setAvatarUrl(url);
@@ -53,10 +64,10 @@ export default function UserProfile() {
         }
 
         // Load banner if it exists
-        if (userData?.bannerMediaId) {
+        if (userData?.banner_media_id) {
           try {
             const blob = await usersApi.getCurrentUserFullBanner(
-              userData.bannerMediaId
+              userData.banner_media_id
             );
             const url = URL.createObjectURL(blob);
             setBannerUrl(url);
@@ -132,9 +143,9 @@ export default function UserProfile() {
       // Reload profile to get updated avatar media ID
       const userData = await usersApi.getCurrentUser();
       setUser(userData);
-      if (userData?.avatarMediaId) {
+      if (userData?.avatar_media_id) {
         const blob = await usersApi.getCurrentUserFullAvatar(
-          userData.avatarMediaId
+          userData.avatar_media_id
         );
         const url = URL.createObjectURL(blob);
         setAvatarUrl(url);
@@ -175,9 +186,9 @@ export default function UserProfile() {
       // Reload profile to get updated banner media ID
       const userData = await usersApi.getCurrentUser();
       setUser(userData);
-      if (userData?.bannerMediaId) {
+      if (userData?.banner_media_id) {
         const blob = await usersApi.getCurrentUserFullBanner(
-          userData.bannerMediaId
+          userData.banner_media_id
         );
         const url = URL.createObjectURL(blob);
         setBannerUrl(url);
@@ -291,7 +302,7 @@ export default function UserProfile() {
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      displayUser.avatar
+                      getAvatarFallback(displayUser)
                     )}
                   </div>
                 </div>
@@ -374,7 +385,7 @@ export default function UserProfile() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    user.avatar
+                    getAvatarFallback(user)
                   )}
                 </div>
                 <button

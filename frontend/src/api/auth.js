@@ -1,6 +1,18 @@
 import api from "./client";
 import { clearAccessToken, setAccessToken, setUser } from "../auth/store";
 
+const readAuthResponse = data => {
+  const token = data?.access_token;
+
+  if (token) {
+    setAccessToken(token);
+  }
+
+  if (data?.user) {
+    setUser(data.user);
+  }
+};
+
 export const authApi = {
   register: async ({ username, email, password }) => {
     const { data } = await api.post("/auth/register", {
@@ -9,9 +21,7 @@ export const authApi = {
       password,
     });
 
-    const token = data?.accessToken ?? data?.access_token;
-    if (token) setAccessToken(token);
-    if (data?.user) setUser(data.user);
+    readAuthResponse(data);
   },
 
   login: async ({ username, password }) => {
@@ -20,9 +30,7 @@ export const authApi = {
       password,
     });
 
-    const token = data?.accessToken ?? data?.access_token;
-    if (token) setAccessToken(token);
-    if (data?.user) setUser(data.user);
+    readAuthResponse(data);
   },
 
   logout: async () => {

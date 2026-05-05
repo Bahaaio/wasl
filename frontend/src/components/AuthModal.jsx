@@ -51,6 +51,12 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
   const handleRegisterSubmit = async event => {
     event.preventDefault();
     setRegisterError("");
+
+    if (registerForm.password !== registerForm.confirmPassword) {
+      setRegisterError("Passwords do not match");
+      return;
+    }
+
     setIsRegistering(true);
 
     try {
@@ -143,6 +149,9 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
                     value={loginForm.username}
                     onChange={handleLoginChange}
                     placeholder="your_username"
+                    minLength={3}
+                    maxLength={30}
+                    pattern="\\w{3,30}"
                     className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 transition-all"
                     required
                   />
@@ -227,6 +236,9 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
                     value={registerForm.username}
                     onChange={handleRegisterChange}
                     placeholder="your_username"
+                    minLength={3}
+                    maxLength={30}
+                    pattern="\\w{3,30}"
                     className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 transition-all"
                     required
                   />
@@ -263,6 +275,8 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
                     value={registerForm.password}
                     onChange={handleRegisterChange}
                     placeholder="Enter your password"
+                    minLength={8}
+                    maxLength={30}
                     className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-10 pr-10 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 transition-all"
                     required
                   />
@@ -292,6 +306,8 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
                     value={registerForm.confirmPassword}
                     onChange={handleRegisterChange}
                     placeholder="Confirm your password"
+                    minLength={8}
+                    maxLength={30}
                     className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-10 pr-10 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 transition-all"
                     required
                   />
