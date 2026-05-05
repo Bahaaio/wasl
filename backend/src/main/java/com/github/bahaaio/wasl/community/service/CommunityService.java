@@ -11,7 +11,6 @@ import com.github.bahaaio.wasl.community.model.CommunityCategory;
 import com.github.bahaaio.wasl.community.repository.CommunityRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.validator.internal.util.stereotypes.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,10 +27,8 @@ public class CommunityService {
     private final CommunityRepository communityRepository;
     private final CommunityMapper communityMapper;
     private final CommunityCategoryService categoryService;
-
-    // Lazy to avoid circular dependency
-    @Lazy
     private final CommunityMembershipService membershipService;
+    private final CommunityManagementService subscriberManagementService;
 
     /**
      * Retrieves all communities available in the system.
@@ -97,9 +94,7 @@ public class CommunityService {
         // Add creator as owner
         membershipService.addOwner(saved, username);
 
-        // Increment subscribers count manually since addOwner does it but we have the object in current context
-        saved.setSubscribersCount(1L);
-        return communityMapper.toDto(communityRepository.save(saved));
+        return communityMapper.toDto(communityRepository.findById(saved.getId()).orElse(saved));
     }
 
     /**
@@ -158,9 +153,7 @@ public class CommunityService {
      */
     @Transactional
     public void incrementSubscribers(Long id) {
-        Community community = getEntityById(id);
-        community.setSubscribersCount(community.getSubscribersCount() + 1);
-        communityRepository.save(community);
+        subscriberManagementService.incrementSubscribers(id);
     }
 
     /**
@@ -172,9 +165,6 @@ public class CommunityService {
      */
     @Transactional
     public void decrementSubscribers(Long id) {
-        Community community = getEntityById(id);
-        long count = community.getSubscribersCount() - 1;
-        community.setSubscribersCount(count < 0 ? 0 : count);
-        communityRepository.save(community);
+        subscriberManagementService.decrementSubscribers(id);
     }
 }

@@ -3,16 +3,17 @@ package com.github.bahaaio.wasl.community.service;
 import com.github.bahaaio.wasl.auth.exception.ForbiddenException;
 import com.github.bahaaio.wasl.community.dto.response.CommunityMembershipDto;
 import com.github.bahaaio.wasl.community.exception.CommunityMembershipNotFoundException;
+import com.github.bahaaio.wasl.community.exception.CommunityNotFoundException;
 import com.github.bahaaio.wasl.community.mapper.CommunityMembershipMapper;
 import com.github.bahaaio.wasl.community.model.Community;
 import com.github.bahaaio.wasl.community.model.CommunityMembership;
 import com.github.bahaaio.wasl.community.model.CommunityRole;
 import com.github.bahaaio.wasl.community.repository.CommunityMembershipRepository;
+import com.github.bahaaio.wasl.community.repository.CommunityRepository;
 import com.github.bahaaio.wasl.user.model.User;
 import com.github.bahaaio.wasl.user.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.validator.internal.util.stereotypes.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,10 +30,8 @@ public class CommunityMembershipService {
     private final CommunityMembershipRepository membershipRepository;
     private final CommunityMembershipMapper membershipMapper;
     private final UserService userService;
-
-    // Lazy to avoid circular dependency
-    @Lazy
-    private final CommunityService communityService;
+    private final CommunityRepository communityRepository;
+    private final CommunityManagementService subscriberManagementService;
 
     /**
      * Retrieves all memberships for a specific community.
@@ -80,7 +79,8 @@ public class CommunityMembershipService {
             throw new IllegalArgumentException("User is already a member of this community");
         }
 
-        Community community = communityService.getEntityById(communityId);
+        Community community = communityRepository.findById(communityId)
+                .orElseThrow(() -> new CommunityNotFoundException(communityId));
         User user = userService.getEntityByUsername(username);
 
         CommunityMembership membership = CommunityMembership.builder()
@@ -90,7 +90,7 @@ public class CommunityMembershipService {
                 .build();
 
         membershipRepository.save(membership);
-        communityService.incrementSubscribers(communityId);
+        subscriberManagementService.incrementSubscribers(communityId);
     }
 
     /**
@@ -111,7 +111,7 @@ public class CommunityMembershipService {
         }
 
         membershipRepository.delete(membership);
-        communityService.decrementSubscribers(communityId);
+        subscriberManagementService.decrementSubscribers(communityId);
     }
 
     /**
@@ -138,7 +138,7 @@ public class CommunityMembershipService {
         }
 
         membershipRepository.delete(membership);
-        communityService.decrementSubscribers(communityId);
+        subscriberManagementService.decrementSubscribers(communityId);
     }
 
     /**
