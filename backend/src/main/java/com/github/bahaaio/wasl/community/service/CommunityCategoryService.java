@@ -5,7 +5,9 @@ import com.github.bahaaio.wasl.community.dto.response.CommunityCategoryDto;
 import com.github.bahaaio.wasl.community.exception.CommunityCategoryNotFoundException;
 import com.github.bahaaio.wasl.community.mapper.CommunityCategoryMapper;
 import com.github.bahaaio.wasl.community.model.CommunityCategory;
+import com.github.bahaaio.wasl.community.model.CommunityRole;
 import com.github.bahaaio.wasl.community.repository.CommunityCategoryRepository;
+import com.github.bahaaio.wasl.community.repository.CommunityMembershipRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ import java.util.List;
 public class CommunityCategoryService {
     private final CommunityCategoryRepository categoryRepository;
     private final CommunityCategoryMapper categoryMapper;
+    private final CommunityMembershipRepository membershipRepository;
 
     /**
      * Retrieves a list of all community categories.
@@ -55,7 +58,11 @@ public class CommunityCategoryService {
      */
     @Transactional
     public CommunityCategoryDto createCategory(CommunityCategoryCreateRequest request, String username) {
-        // TODO: Validate that user has ADMIN or MODERATOR role
+        // Validate that user has MODERATOR or OWNER role in any community (admin-level permission)
+        if (!membershipRepository.existsByUserUsernameAndRoleIn(username,
+                List.of(CommunityRole.MODERATOR, CommunityRole.OWNER))) {
+            throw new IllegalArgumentException("User must be a moderator or owner in at community to create categories");
+        }
 
         if (categoryRepository.existsByNameIgnoreCase(request.name())) {
             throw new IllegalArgumentException("Category with this name already exists");
