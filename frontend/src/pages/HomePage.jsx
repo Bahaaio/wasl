@@ -10,12 +10,15 @@ import {
   Share2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import Navbar from "../components/Navbar.jsx";
 import Footer from "../components/Footer.jsx";
+import AuthModal from "../components/AuthModal.jsx";
 import {
   MOCK_HOMEPAGE_COMMUNITIES,
   MOCK_TRENDING_POSTS,
 } from "../data/mockData.js";
+import { getAccessToken } from "../auth/store.js";
 
 const PostCard = ({ post }) => (
   <div className="bg-slate-900/50 border border-slate-800/60 rounded-2xl p-5 hover:bg-slate-800/50 transition-all duration-300 cursor-pointer group hover:border-slate-700 relative overflow-hidden backdrop-blur-sm">
@@ -76,6 +79,16 @@ const PostCard = ({ post }) => (
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  const handleCreateCommunity = () => {
+    if (!getAccessToken()) {
+      setShowAuthModal(true);
+      return;
+    }
+    // TODO: Navigate to community creation page when it exists
+    navigate("/create-community");
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-50 selection:bg-orange-500/30 font-sans overflow-x-hidden">
@@ -112,7 +125,10 @@ export default function HomePage() {
             >
               Start Browsing Now
             </button>
-            <button className="w-full sm:w-auto px-8 py-4 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 text-white rounded-full font-bold text-lg transition-all backdrop-blur-md flex items-center justify-center gap-2 hover:-translate-y-1">
+            <button
+              onClick={handleCreateCommunity}
+              className="w-full sm:w-auto px-8 py-4 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 text-white rounded-full font-bold text-lg transition-all backdrop-blur-md flex items-center justify-center gap-2 hover:-translate-y-1"
+            >
               Create a Community <ChevronRight className="w-5 h-5" />
             </button>
           </div>
@@ -244,6 +260,11 @@ export default function HomePage() {
       </main>
 
       <Footer />
+
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </div>
   );
 }

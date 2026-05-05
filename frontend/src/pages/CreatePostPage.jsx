@@ -1,11 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, ImagePlus, Link2, BarChart3 } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
+import AuthModal from "../components/AuthModal.jsx";
 import { MOCK_COMMUNITIES } from "../data/mockData.js";
+import { getAccessToken } from "../auth/store.js";
 
 export default function CreatePostPage() {
   const navigate = useNavigate();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  useEffect(() => {
+    // Check if user is logged in
+    if (!getAccessToken()) {
+      // Show auth modal if not authenticated
+      setShowAuthModal(true);
+    }
+  }, []);
+
+  const handleAuthModalClose = () => {
+    setShowAuthModal(false);
+    // Redirect to home if they close the modal without logging in
+    if (!getAccessToken()) {
+      navigate("/", { replace: true });
+    }
+  };
   const [isCreatingPost, setIsCreatingPost] = useState(false);
   const [createPostError, setCreatePostError] = useState(null);
   const [showImages, setShowImages] = useState(false);
@@ -149,6 +168,7 @@ export default function CreatePostPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
+      <AuthModal isOpen={showAuthModal} onClose={handleAuthModalClose} />
       <Navbar />
       <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-24 pb-12">
         {/* Header with Create post and Drafts */}
