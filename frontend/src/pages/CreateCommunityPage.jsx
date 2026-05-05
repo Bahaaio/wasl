@@ -194,7 +194,7 @@ export default function CreateCommunityPage() {
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+              className="inline-flex items-center gap-2 rounded-full border border-slate-700/50 bg-slate-800/50 px-4 py-2 text-slate-400 transition-all duration-300 hover:border-orange-500/50 hover:bg-linear-to-br hover:from-orange-500/30 hover:to-red-600/30 hover:text-orange-400 hover:shadow-lg hover:shadow-orange-500/20"
             >
               <ArrowLeft className="w-4 h-4" />
               Back

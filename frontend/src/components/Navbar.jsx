@@ -3,7 +3,6 @@ import {
   MessageSquare,
   Search,
   Menu,
-  User,
   Edit3,
   Moon,
   Settings,
@@ -18,6 +17,7 @@ import {
   onAuthChange,
 } from "../auth/store.js";
 import { authApi } from "../api/auth.js";
+import { usersApi } from "../api/users.js";
 
 export default function Navbar({ transparentMode = false }) {
   const navigate = useNavigate();
@@ -35,7 +35,19 @@ export default function Navbar({ transparentMode = false }) {
     const currentUser = getUser();
     return currentToken && currentUser ? currentUser : null;
   });
+  const [avatarUrl, setAvatarUrl] = useState("");
   const profileRef = useRef(null);
+
+  const getAvatarFallback = userObj =>
+    userObj?.username
+      ? userObj.username
+          .split(/[^a-zA-Z0-9]+/)
+          .filter(Boolean)
+          .map(part => part[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase()
+      : "U";
 
   useEffect(() => {
     const handleClickOutside = event => {
@@ -57,11 +69,34 @@ export default function Navbar({ transparentMode = false }) {
       } else {
         setIsLoggedIn(false);
         setUser(null);
+        setAvatarUrl("");
       }
     });
 
     return unsubscribe;
   }, []);
+
+  // Load user avatar
+  useEffect(() => {
+    const loadUserAvatar = async () => {
+      try {
+        const currentUser = getUser();
+        if (currentUser?.avatar_media_id) {
+          const blob = await usersApi.getCurrentUserFullAvatar(
+            currentUser.avatar_media_id
+          );
+          const url = URL.createObjectURL(blob);
+          setAvatarUrl(url);
+        }
+      } catch (err) {
+        console.error("Failed to load avatar:", err);
+      }
+    };
+
+    if (isLoggedIn) {
+      loadUserAvatar();
+    }
+  }, [isLoggedIn]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -129,10 +164,20 @@ export default function Navbar({ transparentMode = false }) {
                   <button
                     type="button"
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
-                    className="p-2 rounded-full text-slate-400 hover:text-orange-400 hover:bg-slate-800/50 transition-all border border-transparent hover:border-slate-700"
+                    className="p-1 rounded-full transition-all border border-transparent hover:border-slate-700 hover:bg-slate-800/50"
                     title="User menu"
                   >
-                    <User className="w-5 h-5" />
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt="User avatar"
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-6 h-6 rounded-full bg-linear-to-br from-orange-500 to-red-600 flex items-center justify-center text-white font-bold text-xs">
+                        {getAvatarFallback(user)}
+                      </div>
+                    )}
                   </button>
                 ) : null}
 

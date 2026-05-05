@@ -19,6 +19,8 @@ import {
 import Navbar from "../components/Navbar.jsx";
 import PostCard from "../components/PostCard.jsx";
 import { MOCK_POSTS, MOCK_COMMUNITIES } from "../data/mockData.js";
+import { getUser } from "../auth/store.js";
+import { usersApi } from "../api/users.js";
 
 export default function PostsPage() {
   const navigate = useNavigate();
@@ -27,7 +29,19 @@ export default function PostsPage() {
   );
   const [resourcesOpen, setResourcesOpen] = useState(true);
   const [posts, setPosts] = useState(MOCK_POSTS);
+  const [avatarUrl, setAvatarUrl] = useState("");
   const sidebarRef = useRef(null);
+
+  const getAvatarFallback = user =>
+    user?.username
+      ? user.username
+          .split(/[^a-zA-Z0-9]+/)
+          .filter(Boolean)
+          .map(part => part[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase()
+      : "U";
 
   useEffect(() => {
     const handleEscape = event => {
@@ -39,6 +53,26 @@ export default function PostsPage() {
     window.addEventListener("keydown", handleEscape);
 
     return () => window.removeEventListener("keydown", handleEscape);
+  }, []);
+
+  // Load user avatar
+  useEffect(() => {
+    const loadUserAvatar = async () => {
+      try {
+        const user = getUser();
+        if (user?.avatar_media_id) {
+          const blob = await usersApi.getCurrentUserFullAvatar(
+            user.avatar_media_id
+          );
+          const url = URL.createObjectURL(blob);
+          setAvatarUrl(url);
+        }
+      } catch (err) {
+        console.error("Failed to load avatar:", err);
+      }
+    };
+
+    loadUserAvatar();
   }, []);
 
   useEffect(() => {
@@ -260,9 +294,17 @@ export default function PostsPage() {
             {/* Create Post Section */}
             <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-lg shadow-black/20">
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-10 h-10 rounded-full bg-linear-to-br from-orange-500 to-red-600 flex items-center justify-center text-white font-bold text-sm">
-                  U
-                </div>
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt="User avatar"
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-linear-to-br from-orange-500 to-red-600 flex items-center justify-center text-white font-bold text-sm">
+                    {getAvatarFallback(getUser())}
+                  </div>
+                )}
                 <button
                   type="button"
                   onClick={() => navigate("/create-post")}
