@@ -1,10 +1,9 @@
 package com.github.bahaaio.wasl.auth.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.BDDMockito.*;
 
 import com.github.bahaaio.wasl.auth.config.RefreshTokenProperties;
 import com.github.bahaaio.wasl.auth.exception.InvalidTokenException;
@@ -15,7 +14,7 @@ import com.github.bahaaio.wasl.user.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.security.SecureRandom;
@@ -35,10 +34,17 @@ class RefreshTokenServiceTest {
     @Mock
     TokenHasher hasher;
 
+    @Spy
+    RefreshTokenProperties refreshProperties = new RefreshTokenProperties();
+
+    @InjectMocks
     RefreshTokenService service;
 
     User testUser;
     RefreshToken testToken;
+
+    @Captor
+    ArgumentCaptor<RefreshToken> refreshTokenCaptor;
 
     @BeforeEach
     void setUp() {
@@ -51,28 +57,39 @@ class RefreshTokenServiceTest {
             .revoked(false)
             .expiresAt(Instant.now().plus(Duration.ofDays(7)))
             .build();
-
-        service = new RefreshTokenService(repo, secureRandom, hasher, new RefreshTokenProperties());
     }
 
     @Test
     void shouldCreateRefreshToken() {
-        doAnswer(inv -> {
+        String tokenHash = "hashed";
+
+        willAnswer(inv -> {
             Arrays.fill((byte[]) inv.getArgument(0), (byte) 1);
             return null;
-        }).when(secureRandom).nextBytes(any(byte[].class));
+        }).given(secureRandom).nextBytes(any(byte[].class));
+        given(hasher.hash(any())).willReturn(tokenHash);
 
         String token = service.createToken(testUser);
 
-        assertNotNull(token);
-        then(repo).should().save(any(RefreshToken.class));
+        assertThat(token).isNotBlank();
+
+        then(repo).should().save(refreshTokenCaptor.capture());
+        var savedToken = refreshTokenCaptor.getValue();
+
+        assertThat(savedToken.getUser()).isEqualTo(testUser);
+        assertThat(savedToken.getTokenHash()).isEqualTo(tokenHash);
+        assertThat(savedToken.isRevoked()).isFalse();
+        assertThat(savedToken.isExpired()).isFalse();
     }
 
     @Test
     void shouldThrowWhenRevoked() {
         testToken.setRevoked(true);
+
         given(repo.findByTokenHash(any())).willReturn(Optional.of(testToken));
-        assertThrows(InvalidTokenException.class, () -> service.rotateToken("test"));
+
+        assertThatThrownBy(() -> service.rotateToken("test"))
+            .isInstanceOf(InvalidTokenException.class);
     }
 
     @Test
@@ -82,9 +99,11 @@ class RefreshTokenServiceTest {
         given(repo.findByTokenHash(any())).willReturn(Optional.of(testToken));
 
         var newToken = service.rotateToken(token);
-        assertNotNull(newToken);
 
-        assertTrue(testToken.isRevoked());
+        assertThat(newToken).isNotNull();
+        assertThat(newToken).isNotEqualTo(token);
+        assertThat(testToken.isRevoked()).isTrue();
+
         then(repo).should().save(testToken);
     }
 
@@ -96,8 +115,12 @@ class RefreshTokenServiceTest {
 
         given(hasher.hash(token)).willReturn(tokenHash);
         given(repo.findByTokenHash(tokenHash)).willReturn(Optional.of(testToken));
+
         service.revokeByToken(token);
-        assertTrue(testToken.isRevoked());
+
+        assertThat(testToken.isRevoked()).isTrue();
+
+        then(repo).should().save(testToken);
     }
 
     @Test
@@ -113,13 +136,17 @@ class RefreshTokenServiceTest {
 
         then(hasher).should().hash(token);
         then(repo).should().findByTokenHash(tokenHash);
-        assertEquals(testUser, user);
+
+        assertThat(testToken.isRevoked()).isFalse();
+        assertThat(testToken.getUser()).isEqualTo(user);
     }
 
     @Test
     void shouldRevokeAllTokens() {
         testUser.setUsername("bahaa");
+
         service.revokeAllTokens(testUser.getUsername());
+
         then(repo).should().revokeAllTokensByUsername(testUser.getUsername());
     }
 }
