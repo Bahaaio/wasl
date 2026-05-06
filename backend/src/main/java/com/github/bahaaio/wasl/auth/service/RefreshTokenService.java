@@ -34,14 +34,15 @@ public class RefreshTokenService {
         String encodedToken = encoder.encodeToString(tokenBytes);
         String tokenHash = hasher.hash(encodedToken);
 
-        RefreshToken token = RefreshToken.builder()
-            .user(user)
-            .tokenHash(tokenHash)
-            .expiresAt(Instant.now().plus(Duration.ofDays(refreshProperties.getExpirationDays())))
-            .revoked(false)
-            .build();
+        refreshTokenRepository.save(
+            RefreshToken.builder()
+                .user(user)
+                .tokenHash(tokenHash)
+                .expiresAt(Instant.now().plus(Duration.ofDays(refreshProperties.getExpirationDays())))
+                .revoked(false)
+                .build()
+        );
 
-        refreshTokenRepository.save(token);
         return encodedToken;
     }
 
