@@ -10,14 +10,14 @@ import lombok.Builder;
 
 @Builder
 public record PostDto(
-    Long id,
+    long id,
     String title,
     String content,
 
     String authorUsername,
     UUID authorAvatarMediaId,
 
-    Long communityId,
+    long communityId,
     String communityName,
     List<MediaDto> media,
 
