@@ -58,7 +58,7 @@ public class UserService {
 
         if (StringUtils.isNotBlank(request.about())) {
             user.setAbout(request.about());
-            userRepository.save(user);
+            user = userRepository.save(user);
         }
 
         return userMapper.toDto(user);
