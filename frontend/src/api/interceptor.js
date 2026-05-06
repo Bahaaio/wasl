@@ -57,15 +57,15 @@ api.interceptors.response.use(
 
       try {
         const response = await api.post("/auth/refresh");
-        const access_token = response.data?.access_token;
+        const accessToken = response.data?.accessToken;
 
-        setAccessToken(access_token);
+        setAccessToken(accessToken);
 
         // retry all queued requests
-        processQueue(null, access_token);
+        processQueue(null, accessToken);
 
         // retry original request
-        originalRequest.headers.Authorization = `Bearer ${access_token}`;
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);

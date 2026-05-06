@@ -78,7 +78,7 @@ class AuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(registerRequest)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.access_token", is("jwt")))
+            .andExpect(jsonPath("$.accessToken", is("jwt")))
             .andExpect(cookie().value("refresh_token", "refresh"))
             .andExpect(jsonPath("$.user.username").exists());
 
@@ -114,7 +114,7 @@ class AuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.access_token", is("jwt")))
+            .andExpect(jsonPath("$.accessToken", is("jwt")))
             .andExpect(cookie().value("refresh_token", "refresh"))
             .andExpect(jsonPath("$.user.username").exists());
 
@@ -158,7 +158,7 @@ class AuthControllerTest {
         mockMvc.perform(post("/api/v1/auth/refresh")
                 .cookie(new Cookie("refresh_token", "123")))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.access_token").exists())
+            .andExpect(jsonPath("$.accessToken").exists())
             .andExpect(cookie().value("refresh_token", not("123")));
 
         verify(authService).refresh("123");

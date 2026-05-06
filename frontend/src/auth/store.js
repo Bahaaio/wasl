@@ -1,21 +1,21 @@
 // Persist auth state in localStorage so refreshes keep the user logged in
-let access_token =
+let accessToken =
   typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
-let user_info = null;
+let userInfo = null;
 try {
   if (typeof window !== "undefined") {
     const raw = localStorage.getItem("user");
-    user_info = raw ? JSON.parse(raw) : null;
+    userInfo = raw ? JSON.parse(raw) : null;
   }
 } catch (err) {
-  user_info = null;
+  userInfo = null;
   console.debug("auth/store: failed to read user from localStorage:", err);
 }
 
 let listeners = [];
 
 export const setAccessToken = token => {
-  access_token = token;
+  accessToken = token;
   try {
     if (typeof window !== "undefined") {
       if (token) localStorage.setItem("accessToken", token);
@@ -30,10 +30,10 @@ export const setAccessToken = token => {
   notifyListeners();
 };
 
-export const getAccessToken = () => access_token;
+export const getAccessToken = () => accessToken;
 
 export const setUser = user => {
-  user_info = user;
+  userInfo = user;
   try {
     if (typeof window !== "undefined") {
       if (user) localStorage.setItem("user", JSON.stringify(user));
@@ -45,11 +45,11 @@ export const setUser = user => {
   notifyListeners();
 };
 
-export const getUser = () => user_info;
+export const getUser = () => userInfo;
 
 export const clearAccessToken = () => {
-  access_token = null;
-  user_info = null;
+  accessToken = null;
+  userInfo = null;
   try {
     if (typeof window !== "undefined") {
       localStorage.removeItem("accessToken");
@@ -64,7 +64,7 @@ export const clearAccessToken = () => {
 // Observer pattern for auth state changes
 const notifyListeners = () => {
   listeners.forEach(listener =>
-    listener({ token: access_token, user: user_info })
+    listener({ token: accessToken, user: userInfo })
   );
 };
 

@@ -51,10 +51,10 @@ export default function UserProfile() {
         setUser(userData);
 
         // Load avatar if it exists
-        if (userData?.avatar_media_id) {
+        if (userData?.avatarMediaId) {
           try {
             const blob = await usersApi.getCurrentUserFullAvatar(
-              userData.avatar_media_id
+              userData.avatarMediaId
             );
             const url = URL.createObjectURL(blob);
             setAvatarUrl(url);
@@ -64,10 +64,10 @@ export default function UserProfile() {
         }
 
         // Load banner if it exists
-        if (userData?.banner_media_id) {
+        if (userData?.bannerMediaId) {
           try {
             const blob = await usersApi.getCurrentUserFullBanner(
-              userData.banner_media_id
+              userData.bannerMediaId
             );
             const url = URL.createObjectURL(blob);
             setBannerUrl(url);
@@ -143,9 +143,9 @@ export default function UserProfile() {
       // Reload profile to get updated avatar media ID
       const userData = await usersApi.getCurrentUser();
       setUser(userData);
-      if (userData?.avatar_media_id) {
+      if (userData?.avatarMediaId) {
         const blob = await usersApi.getCurrentUserFullAvatar(
-          userData.avatar_media_id
+          userData.avatarMediaId
         );
         const url = URL.createObjectURL(blob);
         setAvatarUrl(url);
@@ -186,9 +186,9 @@ export default function UserProfile() {
       // Reload profile to get updated banner media ID
       const userData = await usersApi.getCurrentUser();
       setUser(userData);
-      if (userData?.banner_media_id) {
+      if (userData?.bannerMediaId) {
         const blob = await usersApi.getCurrentUserFullBanner(
-          userData.banner_media_id
+          userData.bannerMediaId
         );
         const url = URL.createObjectURL(blob);
         setBannerUrl(url);

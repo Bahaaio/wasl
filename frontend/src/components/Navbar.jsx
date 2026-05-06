@@ -81,9 +81,9 @@ export default function Navbar({ transparentMode = false }) {
     const loadUserAvatar = async () => {
       try {
         const currentUser = getUser();
-        if (currentUser?.avatar_media_id) {
+        if (currentUser?.avatarMediaId) {
           const blob = await usersApi.getCurrentUserFullAvatar(
-            currentUser.avatar_media_id
+            currentUser.avatarMediaId
           );
           const url = URL.createObjectURL(blob);
           setAvatarUrl(url);

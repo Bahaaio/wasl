@@ -2,7 +2,7 @@ import api from "./client";
 import { clearAccessToken, setAccessToken, setUser } from "../auth/store";
 
 const readAuthResponse = data => {
-  const token = data?.access_token;
+  const token = data?.accessToken;
 
   if (token) {
     setAccessToken(token);

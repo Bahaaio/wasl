@@ -60,9 +60,9 @@ export default function PostsPage() {
     const loadUserAvatar = async () => {
       try {
         const user = getUser();
-        if (user?.avatar_media_id) {
+        if (user?.avatarMediaId) {
           const blob = await usersApi.getCurrentUserFullAvatar(
-            user.avatar_media_id
+            user.avatarMediaId
           );
           const url = URL.createObjectURL(blob);
           setAvatarUrl(url);
