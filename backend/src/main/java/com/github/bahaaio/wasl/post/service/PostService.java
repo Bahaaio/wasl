@@ -28,18 +28,21 @@ public class PostService {
 
     @Transactional
     public PostDto getById(Long id) {
-        var post = postRepository.findById(id)
-            .orElseThrow(() -> new PostNotFoundException(id));
+        var post = getEntityById(id);
 
-        // TODO:
+        // TODO: join with media
         var media = mediaService.getByOwnerId(post.getId(), MediaOwnerType.POST);
 
         return toPostDto(post, media);
     }
 
+    public Post getEntityById(Long id) {
+        return postRepository.findById(id)
+            .orElseThrow(() -> new PostNotFoundException(id));
+    }
+
     @Transactional
     public PostDto create(PostCreateRequest request, String username) {
-
         var author = userService.getEntityByUsername(username);
         // TODO: use community service
         Community community = null;
@@ -62,9 +65,10 @@ public class PostService {
 
     @Transactional
     public void deleteById(Long id, String username) {
-        var post = postRepository.findById(id)
-            .orElseThrow(() -> new PostNotFoundException(id));
+//        var user = userService.getEntityByUsername(username);
+        var post = getEntityById(id);
 
+        // TODO: check if user is moderator from membership service
         if (!post.getAuthor().getUsername().equals(username)) {
             throw new ForbiddenException();
         }
