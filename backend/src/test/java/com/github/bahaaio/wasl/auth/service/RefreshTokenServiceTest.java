@@ -3,8 +3,8 @@ package com.github.bahaaio.wasl.auth.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.verify;
 
 import com.github.bahaaio.wasl.auth.config.RefreshTokenProperties;
 import com.github.bahaaio.wasl.auth.exception.InvalidTokenException;
@@ -65,7 +65,7 @@ class RefreshTokenServiceTest {
         String token = service.createToken(testUser);
 
         assertNotNull(token);
-        verify(repo).save(any(RefreshToken.class));
+        then(repo).should().save(any(RefreshToken.class));
     }
 
     @Test
@@ -85,7 +85,7 @@ class RefreshTokenServiceTest {
         assertNotNull(newToken);
 
         assertTrue(testToken.isRevoked());
-        verify(repo).save(testToken);
+        then(repo).should().save(testToken);
     }
 
     @Test
@@ -111,8 +111,8 @@ class RefreshTokenServiceTest {
 
         var user = service.validateAndGetUser("test");
 
-        verify(hasher).hash(token);
-        verify(repo).findByTokenHash(tokenHash);
+        then(hasher).should().hash(token);
+        then(repo).should().findByTokenHash(tokenHash);
         assertEquals(testUser, user);
     }
 
@@ -120,6 +120,6 @@ class RefreshTokenServiceTest {
     void shouldRevokeAllTokens() {
         testUser.setUsername("bahaa");
         service.revokeAllTokens(testUser.getUsername());
-        verify(repo).revokeAllTokensByUsername(testUser.getUsername());
+        then(repo).should().revokeAllTokensByUsername(testUser.getUsername());
     }
 }

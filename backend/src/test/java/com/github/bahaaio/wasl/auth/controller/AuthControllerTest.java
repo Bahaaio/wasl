@@ -4,7 +4,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
+import static org.mockito.BDDMockito.then;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -82,7 +82,7 @@ class AuthControllerTest {
             .andExpect(cookie().value("refresh_token", "refresh"))
             .andExpect(jsonPath("$.user.username").exists());
 
-        verify(authService).register(registerRequest);
+        then(authService).should().register(registerRequest);
     }
 
     @ParameterizedTest
@@ -118,7 +118,7 @@ class AuthControllerTest {
             .andExpect(cookie().value("refresh_token", "refresh"))
             .andExpect(jsonPath("$.user.username").exists());
 
-        verify(authService).login(loginRequest);
+        then(authService).should().login(loginRequest);
     }
 
     @Test
@@ -161,7 +161,7 @@ class AuthControllerTest {
             .andExpect(jsonPath("$.accessToken").exists())
             .andExpect(cookie().value("refresh_token", not("123")));
 
-        verify(authService).refresh("123");
+        then(authService).should().refresh("123");
     }
 
     @Test
@@ -177,7 +177,7 @@ class AuthControllerTest {
             .andExpect(status().isNoContent())
             .andExpect(cookie().value("refresh_token", ""));
 
-        verify(authService).logout("refresh");
+        then(authService).should().logout("refresh");
     }
 
     @Test
