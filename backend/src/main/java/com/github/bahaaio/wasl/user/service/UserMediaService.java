@@ -25,7 +25,6 @@ public class UserMediaService {
         var response = mediaService.uploadMedia(file, username);
         mediaService.attachMedia(response.id(), MediaOwnerType.USER, user.getId(), username);
         user.setAvatarMediaId(response.id());
-        userService.save(user);
 
         if (oldAvatarMediaId != null) {
             mediaService.deleteMediaById(oldAvatarMediaId);
@@ -39,7 +38,6 @@ public class UserMediaService {
         if (user.getAvatarMediaId() != null) {
             mediaService.deleteMediaById(user.getAvatarMediaId());
             user.setAvatarMediaId(null);
-            userService.save(user);
         }
     }
 
@@ -51,7 +49,6 @@ public class UserMediaService {
         var response = mediaService.uploadMedia(file, username);
         mediaService.attachMedia(response.id(), MediaOwnerType.USER, user.getId(), username);
         user.setBannerMediaId(response.id());
-        userService.save(user);
 
         if (oldBannerMediaId != null) {
             mediaService.deleteMediaById(oldBannerMediaId);
@@ -65,7 +62,6 @@ public class UserMediaService {
         if (user.getBannerMediaId() != null) {
             mediaService.deleteMediaById(user.getBannerMediaId());
             user.setBannerMediaId(null);
-            userService.save(user);
         }
     }
 }
