@@ -29,10 +29,10 @@ export default function PostsPage() {
   );
   const [resourcesOpen, setResourcesOpen] = useState(true);
   const [posts, setPosts] = useState(MOCK_POSTS);
+  const { user } = useUser();
   const avatarUrl = user?.avatarMediaId
     ? UsersApi.getUserAvatarThumbnailUrl(user.avatarMediaId)
     : "";
-  const { user } = useUser();
   const sidebarRef = useRef(null);
 
   const getAvatarFallback = user =>
