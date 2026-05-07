@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import AuthModal from "./AuthModal.jsx";
+import SettingsComponent from "./Settings.jsx";
 import { useUser } from "../auth/useUser.jsx";
 import { authApi } from "../api/auth.js";
 import { UsersApi } from "../api/users.js";
@@ -20,6 +21,7 @@ export default function Navbar({ transparentMode = false }) {
   const [authInitialTab, setAuthInitialTab] = useState("login");
   const [isScrolled, setIsScrolled] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { user, setUser, isLoggedIn } = useUser();
   const avatarUrl = user?.avatarMediaId
     ? UsersApi.getUserAvatarThumbnailUrl(user.avatarMediaId)
@@ -158,7 +160,10 @@ export default function Navbar({ transparentMode = false }) {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setIsProfileOpen(false)}
+                      onClick={() => {
+                        setIsProfileOpen(false);
+                        setIsSettingsOpen(true);
+                      }}
                       className="w-full flex items-center gap-3 px-4 py-3 text-slate-200 hover:bg-slate-800 transition-colors text-left border-t border-slate-800"
                     >
                       <Settings className="w-4 h-4" />
@@ -225,6 +230,10 @@ export default function Navbar({ transparentMode = false }) {
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
         initialTab={authInitialTab}
+      />
+      <SettingsComponent
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
       />
     </>
   );
