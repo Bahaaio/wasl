@@ -262,18 +262,6 @@ export default function UserProfile() {
       />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-12">
-        {/* Back Button */}
-        <div className="mb-6">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="p-2.5 rounded-full bg-slate-800/50 hover:bg-linear-to-br hover:from-orange-500/30 hover:to-red-600/30 text-slate-400 hover:text-orange-400 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/20 border border-slate-700/50 hover:border-orange-500/50"
-            aria-label="Go back"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-        </div>
-
         {/* Profile Header */}
         <div className="mb-8 overflow-hidden rounded-2xl border border-slate-800/70">
           <div className="relative h-24 sm:h-36">
@@ -290,6 +278,14 @@ export default function UserProfile() {
                 <div className="absolute right-0 top-2 h-28 w-28 rounded-full border-14 border-sky-400/70" />
               </div>
             )}
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="absolute left-3 top-3 z-10 p-2.5 rounded-full bg-slate-950/85 text-white border border-orange-400/70 shadow-lg shadow-slate-950/50 backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-linear-to-br hover:from-orange-500/80 hover:to-red-600/80 hover:text-white hover:border-orange-300 hover:shadow-xl hover:shadow-orange-500/35"
+              aria-label="Go back"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
             {isOwnProfile && (
               <CameraButton
                 onClick={() => bannerInputRef.current?.click()}
