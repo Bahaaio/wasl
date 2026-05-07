@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { X, ImagePlus, Link2, BarChart3 } from "lucide-react";
+import { X, ImagePlus, Link2, BarChart3, ArrowLeft } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
 import AuthModal from "../components/AuthModal.jsx";
 import { MOCK_COMMUNITIES } from "../data/mockData.js";
@@ -162,7 +162,17 @@ export default function CreatePostPage() {
       <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-24 pb-12">
         {/* Header with Create post and Drafts */}
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-slate-100">Create post</h1>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate("/posts")}
+              className="p-2.5 rounded-full bg-slate-800/50 hover:bg-linear-to-br hover:from-orange-500/30 hover:to-red-600/30 text-slate-400 hover:text-orange-400 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/20 border border-slate-700/50 hover:border-orange-500/50"
+              aria-label="Go back"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <h1 className="text-2xl font-bold text-slate-100">Create post</h1>
+          </div>
           <button
             type="button"
             onClick={() => navigate("/posts")}

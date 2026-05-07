@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
-import { Share2, ChevronRight, MessageSquare, Zap } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  Share2,
+  ChevronRight,
+  MessageSquare,
+  Zap,
+  ArrowLeft,
+} from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
 import CommentsList from "../components/CommentsList.jsx";
 import PostCard from "../components/PostCard.jsx";
@@ -16,6 +22,7 @@ import {
 
 export default function UserProfile() {
   const { username } = useParams();
+  const navigate = useNavigate();
   const profileUsername = username || "Dismal-Low1544";
   const [activeTab, setActiveTab] = useState("overview");
   const [posts, setPosts] = useState(MOCK_POSTS);
@@ -255,6 +262,18 @@ export default function UserProfile() {
       />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-12">
+        {/* Back Button */}
+        <div className="mb-6">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="p-2.5 rounded-full bg-slate-800/50 hover:bg-linear-to-br hover:from-orange-500/30 hover:to-red-600/30 text-slate-400 hover:text-orange-400 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/20 border border-slate-700/50 hover:border-orange-500/50"
+            aria-label="Go back"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+        </div>
+
         {/* Profile Header */}
         <div className="mb-8 overflow-hidden rounded-2xl border border-slate-800/70">
           <div className="relative h-24 sm:h-36">
