@@ -5,17 +5,19 @@ import com.github.bahaaio.wasl.media.dto.MediaDto;
 import com.github.bahaaio.wasl.media.dto.MediaFileResponse;
 import com.github.bahaaio.wasl.media.dto.MediaResponse;
 import com.github.bahaaio.wasl.media.exception.MediaAlreadyAttachedException;
-import com.github.bahaaio.wasl.media.exception.UnsupportedMediaTypeException;
-import com.github.bahaaio.wasl.media.model.*;
+import com.github.bahaaio.wasl.media.model.Media;
+import com.github.bahaaio.wasl.media.model.MediaOwnerType;
+import com.github.bahaaio.wasl.media.model.MediaPathService;
+import com.github.bahaaio.wasl.media.model.MediaState;
 import com.github.bahaaio.wasl.media.repository.MediaRepository;
 import com.github.bahaaio.wasl.media.service.processing.MediaProcessor;
 import com.github.bahaaio.wasl.media.service.processing.MediaProcessorFactory;
+import com.github.bahaaio.wasl.media.service.validation.MediaValidator;
 import com.github.bahaaio.wasl.storage.exception.FileNotFoundException;
 import com.github.bahaaio.wasl.storage.exception.StorageException;
 import com.github.bahaaio.wasl.storage.service.StorageService;
 import com.github.bahaaio.wasl.user.service.UserService;
 
-import org.apache.tika.Tika;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,25 +28,24 @@ import java.util.UUID;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
-// TODO: validation
+// TODO: private media validation
 @RequiredArgsConstructor
 @Service
 public class MediaService {
     private final MediaRepository mediaRepository;
     private final StorageService storageService;
     private final MediaPathService mediaPathService;
-    private final Tika tika;
     private final UserService userService;
     private final MediaProcessorFactory mediaProcessorFactory;
+    private final MediaValidator mediaValidator;
 
     @Transactional
     public MediaResponse uploadMedia(MultipartFile file, String uploaderUsername) {
-        if (file.isEmpty()) throw new StorageException("File is empty");
+        var validationResult = mediaValidator.validate(file);
 
         var uploader = userService.getEntityByUsername(uploaderUsername);
-        // TODO: extract
-        var mimeType = getMimeType(file);
-        var mediaType = resolveMimeType(mimeType);
+        var mimeType = validationResult.mimeType();
+        var mediaType = validationResult.mediaType();
 
         var media = mediaRepository.save(
             Media.builder()
@@ -145,25 +146,5 @@ public class MediaService {
     public void deleteMediaByOwnerId(Long ownerId, MediaOwnerType ownerType) {
         mediaRepository.findAllByOwnerIdAndOwnerType(ownerId, ownerType)
             .forEach(media -> deleteMediaById(media.getId()));
-    }
-
-    private String getMimeType(MultipartFile file) {
-        try (var inputStream = file.getInputStream()) {
-            return tika.detect(inputStream);
-        } catch (IOException e) {
-            throw new UnsupportedMediaTypeException("Failed to detect media type");
-        }
-    }
-
-    private MediaType resolveMimeType(String mime) {
-        if (mime.startsWith("image/")) {
-            return MediaType.IMAGE;
-        }
-
-        if (mime.startsWith("video/")) {
-            return MediaType.VIDEO;
-        }
-
-        throw new UnsupportedMediaTypeException(mime);
     }
 }
