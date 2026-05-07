@@ -1,7 +1,8 @@
 import api from "./client";
-import { getMedia, uploadFile } from "./util";
+import { MediaApi } from "./media";
+import { uploadFile } from "./util";
 
-export const usersApi = {
+export const UsersApi = {
   // User
   getUserByUsername: username =>
     api.get(`/users/${username}`).then(res => res.data),
@@ -15,9 +16,11 @@ export const usersApi = {
 
   // Avatar
 
-  getCurrentUserFullAvatar: avatarMediaId => getMedia(avatarMediaId),
+  getUserFullAvatarUrl: avatarMediaId =>
+    MediaApi.getFullMediaUrl(avatarMediaId),
 
-  getCurrentUserAvatarThumbnail: avatarMediaId => getMedia(avatarMediaId, true),
+  getUserAvatarThumbnailUrl: avatarMediaId =>
+    MediaApi.getThumbnailMediaUrl(avatarMediaId),
 
   updateCurrentUserAvatar: avatarFile =>
     uploadFile("/users/me/avatar", avatarFile),
@@ -26,9 +29,11 @@ export const usersApi = {
 
   // Banner
 
-  getCurrentUserFullBanner: bannerMediaId => getMedia(bannerMediaId),
+  getUserFullBannerUrl: bannerMediaId =>
+    MediaApi.getFullMediaUrl(bannerMediaId),
 
-  getCurrentUserBannerThumbnail: bannerMediaId => getMedia(bannerMediaId, true),
+  getUserBannerThumbnailUrl: bannerMediaId =>
+    MediaApi.getThumbnailMediaUrl(bannerMediaId),
 
   updateCurrentUserBanner: bannerFile =>
     uploadFile("/users/me/banner", bannerFile),

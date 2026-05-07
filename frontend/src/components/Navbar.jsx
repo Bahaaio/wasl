@@ -12,7 +12,7 @@ import { Link, useNavigate } from "react-router-dom";
 import AuthModal from "./AuthModal.jsx";
 import { useUser } from "../auth/useUser.jsx";
 import { authApi } from "../api/auth.js";
-import { usersApi } from "../api/users.js";
+import { UsersApi } from "../api/users.js";
 
 export default function Navbar({ transparentMode = false }) {
   const navigate = useNavigate();
@@ -21,7 +21,9 @@ export default function Navbar({ transparentMode = false }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { user, setUser, isLoggedIn } = useUser();
-  const [avatarUrl, setAvatarUrl] = useState("");
+  const avatarUrl = user?.avatarMediaId
+    ? UsersApi.getUserAvatarThumbnailUrl(user.avatarMediaId)
+    : "";
   const profileRef = useRef(null);
 
   const getAvatarFallback = userObj =>
@@ -45,35 +47,6 @@ export default function Navbar({ transparentMode = false }) {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  // Load user avatar
-  useEffect(() => {
-    let objectUrl = "";
-    const loadUserAvatar = async () => {
-      try {
-        if (user?.avatarMediaId) {
-          const blob = await usersApi.getCurrentUserAvatarThumbnail(
-            user.avatarMediaId
-          );
-          objectUrl = URL.createObjectURL(blob);
-          setAvatarUrl(objectUrl);
-        } else {
-          setAvatarUrl("");
-        }
-      } catch (err) {
-        console.error("Failed to load avatar:", err);
-        setAvatarUrl("");
-      }
-    };
-
-    loadUserAvatar();
-
-    return () => {
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
-      }
-    };
-  }, [user?.avatarMediaId]);
 
   useEffect(() => {
     const handleScroll = () => {

@@ -5,7 +5,7 @@ import Navbar from "../components/Navbar.jsx";
 import CommentsList from "../components/CommentsList.jsx";
 import PostCard from "../components/PostCard.jsx";
 import CameraButton from "../components/CameraButton.jsx";
-import { usersApi } from "../api/users.js";
+import { UsersApi } from "../api/users.js";
 import { useUser } from "../auth/useUser.jsx";
 import {
   MOCK_PROFILE_COMMENTS,
@@ -44,39 +44,24 @@ export default function UserProfile() {
 
   // Fetch user profile on mount
   useEffect(() => {
-    let avatarObjectUrl = "";
-    let bannerObjectUrl = "";
-
     const loadProfile = async () => {
       try {
         setIsLoadingProfile(true);
-        const userData = await usersApi.getUserByUsername(profileUsername);
+        const userData = await UsersApi.getUserByUsername(profileUsername);
         setProfileUser(userData);
 
-        // Load avatar if it exists
         if (userData?.avatarMediaId) {
-          try {
-            const blob = await usersApi.getCurrentUserFullAvatar(
-              userData.avatarMediaId
-            );
-            avatarObjectUrl = URL.createObjectURL(blob);
-            setAvatarUrl(avatarObjectUrl);
-          } catch (err) {
-            console.error("Failed to load avatar:", err);
-          }
+          setAvatarUrl(
+            UsersApi.getUserAvatarThumbnailUrl(userData.avatarMediaId)
+          );
+        } else {
+          setAvatarUrl("");
         }
 
-        // Load banner if it exists
         if (userData?.bannerMediaId) {
-          try {
-            const blob = await usersApi.getCurrentUserFullBanner(
-              userData.bannerMediaId
-            );
-            bannerObjectUrl = URL.createObjectURL(blob);
-            setBannerUrl(bannerObjectUrl);
-          } catch (err) {
-            console.error("Failed to load banner:", err);
-          }
+          setBannerUrl(UsersApi.getUserFullBannerUrl(userData.bannerMediaId));
+        } else {
+          setBannerUrl("");
         }
       } catch (err) {
         console.error("Failed to load profile:", err);
@@ -86,14 +71,6 @@ export default function UserProfile() {
     };
 
     loadProfile();
-    return () => {
-      if (avatarObjectUrl) {
-        URL.revokeObjectURL(avatarObjectUrl);
-      }
-      if (bannerObjectUrl) {
-        URL.revokeObjectURL(bannerObjectUrl);
-      }
-    };
   }, [profileUsername]);
 
   const updatePosts = updatePost => {
@@ -144,31 +121,31 @@ export default function UserProfile() {
     }
 
     setIsUploadingAvatar(true);
-    const previousAvatarUrl = avatarUrl;
-    if (previousAvatarUrl) {
-      URL.revokeObjectURL(previousAvatarUrl);
-    }
     const previewAvatarUrl = URL.createObjectURL(file);
     setAvatarUrl(previewAvatarUrl);
 
     try {
-      await usersApi.updateCurrentUserAvatar(file);
-      // Reload profile to get updated avatar media ID
-      const userData = await usersApi.getCurrentUser();
-      setProfileUser(userData);
-      setAuthUser(userData);
-      if (userData?.avatarMediaId) {
-        const blob = await usersApi.getCurrentUserFullAvatar(
-          userData.avatarMediaId
-        );
-        const url = URL.createObjectURL(blob);
-        URL.revokeObjectURL(previewAvatarUrl);
-        setAvatarUrl(url);
+      const response = await UsersApi.updateCurrentUserAvatar(file);
+      const nextMediaId = response?.mediaId;
+      URL.revokeObjectURL(previewAvatarUrl);
+      if (nextMediaId) {
+        const nextUser = { ...loggedInUser, avatarMediaId: nextMediaId };
+        setProfileUser(nextUser);
+        setAuthUser(nextUser);
+        setAvatarUrl(UsersApi.getUserAvatarThumbnailUrl(nextMediaId));
+      } else {
+        setAvatarUrl("");
       }
     } catch (err) {
       console.error("Avatar upload failed:", err);
       URL.revokeObjectURL(previewAvatarUrl);
-      setAvatarUrl(previousAvatarUrl);
+      if (profileUser?.avatarMediaId) {
+        setAvatarUrl(
+          UsersApi.getUserAvatarThumbnailUrl(profileUser.avatarMediaId)
+        );
+      } else {
+        setAvatarUrl("");
+      }
       alert(
         err.response?.data?.message || err.message || "Failed to upload avatar"
       );
@@ -192,31 +169,29 @@ export default function UserProfile() {
     }
 
     setIsUploadingBanner(true);
-    const previousBannerUrl = bannerUrl;
-    if (previousBannerUrl) {
-      URL.revokeObjectURL(previousBannerUrl);
-    }
     const previewBannerUrl = URL.createObjectURL(file);
     setBannerUrl(previewBannerUrl);
 
     try {
-      await usersApi.updateCurrentUserBanner(file);
-      // Reload profile to get updated banner media ID
-      const userData = await usersApi.getCurrentUser();
-      setProfileUser(userData);
-      setAuthUser(userData);
-      if (userData?.bannerMediaId) {
-        const blob = await usersApi.getCurrentUserFullBanner(
-          userData.bannerMediaId
-        );
-        const url = URL.createObjectURL(blob);
-        URL.revokeObjectURL(previewBannerUrl);
-        setBannerUrl(url);
+      const response = await UsersApi.updateCurrentUserBanner(file);
+      const nextMediaId = response?.mediaId;
+      URL.revokeObjectURL(previewBannerUrl);
+      if (nextMediaId) {
+        const nextUser = { ...loggedInUser, bannerMediaId: nextMediaId };
+        setProfileUser(nextUser);
+        setAuthUser(nextUser);
+        setBannerUrl(UsersApi.getUserFullBannerUrl(nextMediaId));
+      } else {
+        setBannerUrl("");
       }
     } catch (err) {
       console.error("Banner upload failed:", err);
       URL.revokeObjectURL(previewBannerUrl);
-      setBannerUrl(previousBannerUrl);
+      if (profileUser?.bannerMediaId) {
+        setBannerUrl(UsersApi.getUserFullBannerUrl(profileUser.bannerMediaId));
+      } else {
+        setBannerUrl("");
+      }
       alert(
         err.response?.data?.message || err.message || "Failed to upload banner"
       );

@@ -20,7 +20,7 @@ import Navbar from "../components/Navbar.jsx";
 import PostCard from "../components/PostCard.jsx";
 import { MOCK_POSTS, MOCK_COMMUNITIES } from "../data/mockData.js";
 import { useUser } from "../auth/useUser.jsx";
-import { usersApi } from "../api/users.js";
+import { UsersApi } from "../api/users.js";
 
 export default function PostsPage() {
   const navigate = useNavigate();
@@ -29,7 +29,9 @@ export default function PostsPage() {
   );
   const [resourcesOpen, setResourcesOpen] = useState(true);
   const [posts, setPosts] = useState(MOCK_POSTS);
-  const [avatarUrl, setAvatarUrl] = useState("");
+  const avatarUrl = user?.avatarMediaId
+    ? UsersApi.getUserAvatarThumbnailUrl(user.avatarMediaId)
+    : "";
   const { user } = useUser();
   const sidebarRef = useRef(null);
 
@@ -55,35 +57,6 @@ export default function PostsPage() {
 
     return () => window.removeEventListener("keydown", handleEscape);
   }, []);
-
-  // Load user avatar
-  useEffect(() => {
-    let objectUrl = "";
-    const loadUserAvatar = async () => {
-      try {
-        if (user?.avatarMediaId) {
-          const blob = await usersApi.getCurrentUserFullAvatar(
-            user.avatarMediaId
-          );
-          objectUrl = URL.createObjectURL(blob);
-          setAvatarUrl(objectUrl);
-        } else {
-          setAvatarUrl("");
-        }
-      } catch (err) {
-        console.error("Failed to load avatar:", err);
-        setAvatarUrl("");
-      }
-    };
-
-    loadUserAvatar();
-
-    return () => {
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
-      }
-    };
-  }, [user?.avatarMediaId]);
 
   useEffect(() => {
     const sidebar = sidebarRef.current;
