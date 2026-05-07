@@ -1,8 +1,8 @@
-package com.github.bahaaio.wasl.media.service;
+package com.github.bahaaio.wasl.storage.service;
 
-import com.github.bahaaio.wasl.media.config.StorageProperties;
-import com.github.bahaaio.wasl.media.exception.FileNotFoundException;
-import com.github.bahaaio.wasl.media.exception.StorageException;
+import com.github.bahaaio.wasl.storage.config.StorageProperties;
+import com.github.bahaaio.wasl.storage.exception.FileNotFoundException;
+import com.github.bahaaio.wasl.storage.exception.StorageException;
 
 import org.jspecify.annotations.NonNull;
 import org.springframework.core.io.Resource;

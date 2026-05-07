@@ -1,4 +1,4 @@
-package com.github.bahaaio.wasl.media.exception;
+package com.github.bahaaio.wasl.storage.exception;
 
 public class StorageException extends RuntimeException {
     public StorageException(String message) {

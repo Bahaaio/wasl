@@ -3,8 +3,9 @@ package com.github.bahaaio.wasl.media.service;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
-import com.github.bahaaio.wasl.media.config.StorageProperties;
-import com.github.bahaaio.wasl.media.exception.FileNotFoundException;
+import com.github.bahaaio.wasl.storage.config.StorageProperties;
+import com.github.bahaaio.wasl.storage.exception.FileNotFoundException;
+import com.github.bahaaio.wasl.storage.service.LocalStorageService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

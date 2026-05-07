@@ -4,14 +4,15 @@ import com.github.bahaaio.wasl.auth.exception.ForbiddenException;
 import com.github.bahaaio.wasl.media.dto.MediaDto;
 import com.github.bahaaio.wasl.media.dto.MediaFileResponse;
 import com.github.bahaaio.wasl.media.dto.MediaResponse;
-import com.github.bahaaio.wasl.media.exception.FileNotFoundException;
 import com.github.bahaaio.wasl.media.exception.MediaAlreadyAttachedException;
-import com.github.bahaaio.wasl.media.exception.StorageException;
 import com.github.bahaaio.wasl.media.exception.UnsupportedMediaTypeException;
 import com.github.bahaaio.wasl.media.model.*;
 import com.github.bahaaio.wasl.media.repository.MediaRepository;
 import com.github.bahaaio.wasl.media.service.processing.MediaProcessor;
 import com.github.bahaaio.wasl.media.service.processing.MediaProcessorFactory;
+import com.github.bahaaio.wasl.storage.exception.FileNotFoundException;
+import com.github.bahaaio.wasl.storage.exception.StorageException;
+import com.github.bahaaio.wasl.storage.service.StorageService;
 import com.github.bahaaio.wasl.user.service.UserService;
 
 import org.apache.tika.Tika;
