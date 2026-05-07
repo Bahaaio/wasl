@@ -5,7 +5,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 import com.github.bahaaio.wasl.media.config.StorageProperties;
 import com.github.bahaaio.wasl.media.exception.FileNotFoundException;
-import com.github.bahaaio.wasl.media.exception.StorageException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,7 +30,7 @@ class LocalStorageServiceTest {
         var fileName = UUID.randomUUID() + ".txt";
         var path = "test/" + fileName;
 
-        storageService.store(file, path);
+        storageService.store(file.getInputStream(), path);
         var resource = storageService.load(path);
 
         assertThat(resource.exists()).isTrue();
@@ -40,24 +39,15 @@ class LocalStorageServiceTest {
     }
 
     @Test
-    void testStoreAndDelete() {
+    void testStoreAndDelete() throws IOException {
         var content = "Hello world".getBytes();
         var file = new MockMultipartFile("file.txt", content);
         var path = "test/" + UUID.randomUUID() + ".txt";
 
-        storageService.store(file, path);
+        storageService.store(file.getInputStream(), path);
         storageService.delete(path);
 
         assertThatThrownBy(() -> storageService.load(path))
             .isInstanceOf(FileNotFoundException.class);
-    }
-
-    @Test
-    void store_shouldThrow_whenGivenEmptyFile() {
-        var file = new MockMultipartFile("file.txt", new byte[0]);
-        var path = "test/" + UUID.randomUUID() + ".txt";
-
-        assertThatThrownBy(() -> storageService.store(file, path))
-            .isInstanceOf(StorageException.class);
     }
 }

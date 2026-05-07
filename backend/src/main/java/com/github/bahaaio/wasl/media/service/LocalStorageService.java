@@ -8,9 +8,9 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -32,35 +32,31 @@ public class LocalStorageService implements StorageService {
     }
 
     @Override
-    public void store(MultipartFile file, String filePath) {
-        if (file.isEmpty()) {
-            throw new StorageException("File is empty");
-        }
+    public void store(InputStream inputStream, String destination) {
+        var filePath = resolve(destination);
 
-        var destination = resolve(filePath);
-
-        try (var inputStream = file.getInputStream()) {
-            Files.createDirectories(destination.getParent());
-            Files.copy(inputStream, destination, StandardCopyOption.REPLACE_EXISTING);
+        try (inputStream) {
+            Files.createDirectories(filePath.getParent());
+            Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             throw new StorageException("Failed to store file", e);
         }
     }
 
     @Override
-    public Resource load(String filePath) {
-        var file = resolve(filePath);
+    public Resource load(String key) {
+        var file = resolve(key);
 
         try {
             Resource resource = new UrlResource(file.toUri());
 
             if (!resource.exists() || !resource.isReadable()) {
-                throw new FileNotFoundException("Could not read file: " + filePath);
+                throw new FileNotFoundException("Could not read file: " + key);
             }
 
             return resource;
         } catch (MalformedURLException e) {
-            throw new FileNotFoundException("Could not read file: " + filePath);
+            throw new FileNotFoundException("Could not read file: " + key);
         }
     }
 
