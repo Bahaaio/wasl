@@ -58,9 +58,7 @@ export default function UserProfile() {
         setProfileUser(userData);
 
         if (userData?.avatarMediaId) {
-          setAvatarUrl(
-            UsersApi.getUserAvatarThumbnailUrl(userData.avatarMediaId)
-          );
+          setAvatarUrl(UsersApi.getUserFullAvatarUrl(userData.avatarMediaId));
         } else {
           setAvatarUrl("");
         }
@@ -139,7 +137,7 @@ export default function UserProfile() {
         const nextUser = { ...loggedInUser, avatarMediaId: nextMediaId };
         setProfileUser(nextUser);
         setAuthUser(nextUser);
-        setAvatarUrl(UsersApi.getUserAvatarThumbnailUrl(nextMediaId));
+        setAvatarUrl(UsersApi.getUserFullAvatarUrl(nextMediaId));
       } else {
         setAvatarUrl("");
       }
@@ -147,9 +145,7 @@ export default function UserProfile() {
       console.error("Avatar upload failed:", err);
       URL.revokeObjectURL(previewAvatarUrl);
       if (profileUser?.avatarMediaId) {
-        setAvatarUrl(
-          UsersApi.getUserAvatarThumbnailUrl(profileUser.avatarMediaId)
-        );
+        setAvatarUrl(UsersApi.getUserFullAvatarUrl(profileUser.avatarMediaId));
       } else {
         setAvatarUrl("");
       }
