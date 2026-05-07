@@ -6,7 +6,7 @@ import {
   ChevronRight,
   Globe,
   Lock,
-  Users,
+ 
 } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
 import AuthModal from "../components/AuthModal.jsx";
@@ -32,12 +32,6 @@ const COMMUNITY_TYPES = [
     title: "Public",
     description: "Anyone can view, post, and comment.",
     icon: Globe,
-  },
-  {
-    value: "restricted",
-    title: "Restricted",
-    description: "Anyone can view, but only approved users can post.",
-    icon: Users,
   },
   {
     value: "private",
@@ -423,47 +417,10 @@ export default function CreateCommunityPage() {
                             </select>
                           </div>
 
-                          <div>
-                            <label className="mb-2 block text-sm font-medium text-slate-300">
-                              Theme accent
-                            </label>
-                            <div className="grid grid-cols-4 gap-3">
-                              {THEME_SWATCHES.map(theme => (
-                                <button
-                                  key={theme}
-                                  type="button"
-                                  onClick={() => handleThemeSelect(theme)}
-                                  className={`h-14 rounded-2xl border transition-all bg-linear-to-br ${theme} ${
-                                    form.theme === theme
-                                      ? "border-white shadow-lg shadow-black/30 scale-[1.03]"
-                                      : "border-transparent opacity-70 hover:opacity-100"
-                                  }`}
-                                  aria-label={`Select ${theme} theme`}
-                                />
-                              ))}
-                            </div>
-                          </div>
+                          
                         </div>
 
-                        <div className="grid gap-4 sm:grid-cols-2">
-                          <label className="flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-950/60 px-4 py-4">
-                            <div>
-                              <div className="font-semibold text-white">
-                                Enable chat
-                              </div>
-                              <p className="text-sm text-slate-400">
-                                Let members start live chats.
-                              </p>
-                            </div>
-                            <input
-                              type="checkbox"
-                              name="allowChat"
-                              checked={form.allowChat}
-                              onChange={handleChange}
-                              className="h-5 w-5 accent-orange-500"
-                            />
-                          </label>
-                        </div>
+                       
                       </div>
                     )}
 
@@ -506,11 +463,7 @@ export default function CreateCommunityPage() {
                                 18+ / NSFW
                               </span>
                             )}
-                            {form.allowChat && (
-                              <span className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1.5 text-cyan-300">
-                                Chat enabled
-                              </span>
-                            )}
+                            
                           </div>
                         </div>
 
