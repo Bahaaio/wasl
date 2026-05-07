@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
+import com.github.bahaaio.wasl.media.dto.MediaDto;
 import com.github.bahaaio.wasl.media.dto.MediaResponse;
 import com.github.bahaaio.wasl.media.model.MediaOwnerType;
 import com.github.bahaaio.wasl.media.service.MediaService;
@@ -39,11 +40,13 @@ class UserMediaServiceTest {
 
         given(userService.getEntityByUsername("bahaa")).willReturn(user);
         given(mediaService.uploadMedia(any(), any())).willReturn(response);
-        given(mediaService.attachMedia(any(), any(), any(), any())).willReturn(null);
+        given(mediaService.attachMedia(any(), any(), any(), any()))
+            .willReturn(new MediaDto(response.id(), response.type()));
 
-        userMediaService.updateAvatar(avatar, "bahaa");
+        var result = userMediaService.updateAvatar(avatar, "bahaa");
 
         assertThat(user.getAvatarMediaId()).isEqualTo(response.id());
+        assertThat(result.mediaId()).isEqualTo(response.id());
 
         then(mediaService).should().uploadMedia(avatar, "bahaa");
         then(mediaService).should().attachMedia(response.id(), MediaOwnerType.USER, user.getId(), user.getUsername());
@@ -73,11 +76,12 @@ class UserMediaServiceTest {
 
         given(userService.getEntityByUsername("bahaa")).willReturn(user);
         given(mediaService.uploadMedia(any(), any())).willReturn(response);
-        given(mediaService.attachMedia(any(), any(), any(), any())).willReturn(null);
+        given(mediaService.attachMedia(any(), any(), any(), any())).willReturn(new MediaDto(response.id(), response.type()));
 
-        userMediaService.updateBanner(banner, "bahaa");
+        var result = userMediaService.updateBanner(banner, "bahaa");
 
         assertThat(user.getBannerMediaId()).isEqualTo(response.id());
+        assertThat(result.mediaId()).isEqualTo(response.id());
 
         then(mediaService).should().uploadMedia(banner, "bahaa");
         then(mediaService).should().attachMedia(response.id(), MediaOwnerType.USER, user.getId(), user.getUsername());
