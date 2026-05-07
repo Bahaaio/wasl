@@ -138,7 +138,7 @@ export default function CreateCommunityPage() {
 
     setIsSubmitting(true);
     setTimeout(() => {
-      setCreatedCommunity({
+      const nextCommunity = {
         slug: communitySlug,
         displayName: form.displayName.trim(),
         description: form.description.trim(),
@@ -146,8 +146,12 @@ export default function CreateCommunityPage() {
         visibility: form.visibility,
         nsfw: form.nsfw,
         allowChat: form.allowChat,
-      });
+      };
+      setCreatedCommunity(nextCommunity);
       setIsSubmitting(false);
+      navigate(`/r/${nextCommunity.slug}`, {
+        state: { community: nextCommunity },
+      });
     }, 700);
   };
 
