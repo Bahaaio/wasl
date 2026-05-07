@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, ImagePlus, Link2, BarChart3, ArrowLeft } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
+import RichTextEditor from "../components/RichTextEditor.jsx";
 import AuthModal from "../components/AuthModal.jsx";
 import { MOCK_COMMUNITIES } from "../data/mockData.js";
 import { useUser } from "../auth/useUser.jsx";
@@ -298,15 +299,12 @@ export default function CreatePostPage() {
           {/* Post Content Area */}
           {isPostTab && (
             <div>
-              <textarea
-                name="content"
+              <RichTextEditor
                 value={createPostForm.content}
-                onChange={handleCreatePostChange}
+                onChange={val =>
+                  setCreatePostForm(previous => ({ ...previous, content: val }))
+                }
                 placeholder="Text (optional)"
-                rows="10"
-                maxLength="5000"
-                disabled={isCreatingPost}
-                className="w-full bg-slate-800/40 border border-slate-700 rounded-lg px-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 transition-all resize-none disabled:opacity-50 disabled:cursor-not-allowed text-base"
               />
               <p className="text-xs text-slate-500 text-right">
                 {createPostForm.content.length}/5000
