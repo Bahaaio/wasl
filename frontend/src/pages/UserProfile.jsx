@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Share2, ChevronRight, MessageSquare, Zap, Camera } from "lucide-react";
+import { Share2, ChevronRight, MessageSquare, Zap } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
 import CommentsList from "../components/CommentsList.jsx";
 import PostCard from "../components/PostCard.jsx";
+import CameraButton from "../components/CameraButton.jsx";
 import { usersApi } from "../api/users.js";
 import { useUser } from "../auth/useUser.jsx";
 import {
@@ -18,7 +19,7 @@ export default function UserProfile() {
   const profileUsername = username || "Dismal-Low1544";
   const [activeTab, setActiveTab] = useState("overview");
   const [posts, setPosts] = useState(MOCK_POSTS);
-  const [user, setUser] = useState(null);
+  const [profileUser, setProfileUser] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState("");
   const [bannerUrl, setBannerUrl] = useState("");
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
@@ -50,7 +51,7 @@ export default function UserProfile() {
       try {
         setIsLoadingProfile(true);
         const userData = await usersApi.getUserByUsername(profileUsername);
-        setUser(userData);
+        setProfileUser(userData);
 
         // Load avatar if it exists
         if (userData?.avatarMediaId) {
@@ -138,7 +139,6 @@ export default function UserProfile() {
     }
 
     if (!isOwnProfile) {
-      alert("You can only upload your own avatar");
       event.target.value = "";
       return;
     }
@@ -155,7 +155,7 @@ export default function UserProfile() {
       await usersApi.updateCurrentUserAvatar(file);
       // Reload profile to get updated avatar media ID
       const userData = await usersApi.getCurrentUser();
-      setUser(userData);
+      setProfileUser(userData);
       setAuthUser(userData);
       if (userData?.avatarMediaId) {
         const blob = await usersApi.getCurrentUserFullAvatar(
@@ -187,7 +187,6 @@ export default function UserProfile() {
     }
 
     if (!isOwnProfile) {
-      alert("You can only upload your own banner");
       event.target.value = "";
       return;
     }
@@ -204,7 +203,7 @@ export default function UserProfile() {
       await usersApi.updateCurrentUserBanner(file);
       // Reload profile to get updated banner media ID
       const userData = await usersApi.getCurrentUser();
-      setUser(userData);
+      setProfileUser(userData);
       setAuthUser(userData);
       if (userData?.bannerMediaId) {
         const blob = await usersApi.getCurrentUserFullBanner(
@@ -256,7 +255,7 @@ export default function UserProfile() {
     );
   }
 
-  const displayUser = user || {
+  const displayUser = profileUser || {
     ...MOCK_PROFILE_USER,
     username: profileUsername,
   };
@@ -297,19 +296,14 @@ export default function UserProfile() {
                 <div className="absolute right-0 top-2 h-28 w-28 rounded-full border-14 border-sky-400/70" />
               </div>
             )}
-            <button
-              type="button"
-              onClick={() => bannerInputRef.current?.click()}
-              className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-950/70 text-slate-200 border border-slate-700 hover:border-orange-500/60 hover:text-orange-300 transition-colors"
-              aria-label="Upload banner"
-              disabled={!isOwnProfile || isUploadingBanner}
-              style={{
-                opacity: !isOwnProfile ? 0.5 : 1,
-                pointerEvents: !isOwnProfile ? "none" : "auto",
-              }}
-            >
-              <Camera className="w-4 h-4" />
-            </button>
+            {isOwnProfile && (
+              <CameraButton
+                onClick={() => bannerInputRef.current?.click()}
+                ariaLabel="Upload banner"
+                disabled={isUploadingBanner}
+                className="absolute right-3 top-3"
+              />
+            )}
           </div>
 
           <div className="relative bg-[#020a1f] px-4 pb-4 pt-7 sm:px-6 sm:pb-5 sm:pt-8">
@@ -328,19 +322,14 @@ export default function UserProfile() {
                     )}
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => avatarInputRef.current?.click()}
-                  className="absolute right-1 bottom-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 border border-slate-600 text-slate-300 hover:text-orange-300 hover:border-orange-500/60 transition-colors"
-                  aria-label="Upload avatar"
-                  disabled={!isOwnProfile || isUploadingAvatar}
-                  style={{
-                    opacity: !isOwnProfile ? 0.5 : 1,
-                    pointerEvents: !isOwnProfile ? "none" : "auto",
-                  }}
-                >
-                  <Camera className="w-4 h-4" />
-                </button>
+                {isOwnProfile && (
+                  <CameraButton
+                    onClick={() => avatarInputRef.current?.click()}
+                    ariaLabel="Upload avatar"
+                    disabled={isUploadingAvatar}
+                    className="absolute right-1 bottom-1"
+                  />
+                )}
               </div>
             </div>
 
@@ -407,7 +396,7 @@ export default function UserProfile() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    getAvatarFallback(user)
+                    getAvatarFallback(displayUser)
                   )}
                 </div>
                 <button
@@ -477,20 +466,20 @@ export default function UserProfile() {
               <div className="bg-slate-900/40 border border-slate-800/60 rounded-lg p-6 space-y-6 backdrop-blur-sm hover:border-slate-700 transition-all">
                 <div>
                   <div className="text-slate-400 text-sm">
-                    {user.followers} followers
+                    {displayUser.followers} followers
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-slate-800/30 rounded p-3 border border-slate-800/50">
                     <div className="text-2xl font-bold bg-linear-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
-                      {user.karma}
+                      {displayUser.karma}
                     </div>
                     <div className="text-xs text-slate-400">Karma</div>
                   </div>
                   <div className="bg-slate-800/30 rounded p-3 border border-slate-800/50">
                     <div className="text-2xl font-bold text-slate-100">
-                      {user.contributions}
+                      {displayUser.contributions}
                     </div>
                     <div className="text-xs text-slate-400">Contributions</div>
                   </div>
@@ -499,13 +488,13 @@ export default function UserProfile() {
                 <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-800">
                   <div>
                     <div className="text-lg font-bold text-slate-100">
-                      {user.redditAge}
+                      {displayUser.redditAge}
                     </div>
                     <div className="text-xs text-slate-400">Reddit Age</div>
                   </div>
                   <div>
                     <div className="text-lg font-bold text-slate-100">
-                      {user.activeIn}
+                      {displayUser.activeIn}
                     </div>
                     <div className="text-xs text-slate-400">Active in</div>
                   </div>
@@ -513,7 +502,7 @@ export default function UserProfile() {
 
                 <div className="pt-4 border-t border-slate-800">
                   <div className="text-lg font-bold text-slate-100">
-                    {user.goldEarned}
+                    {displayUser.goldEarned}
                   </div>
                   <div className="text-xs text-slate-400">Gold earned</div>
                 </div>
