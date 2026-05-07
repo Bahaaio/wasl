@@ -38,7 +38,7 @@ export default function UserProfile() {
           .toUpperCase()
       : "U";
 
-  const { user: loggedInUser } = useUser();
+  const { user: loggedInUser, setUser: setAuthUser } = useUser();
   const isOwnProfile = loggedInUser?.username === profileUsername;
 
   // Fetch user profile on mount
@@ -156,6 +156,7 @@ export default function UserProfile() {
       // Reload profile to get updated avatar media ID
       const userData = await usersApi.getCurrentUser();
       setUser(userData);
+      setAuthUser(userData);
       if (userData?.avatarMediaId) {
         const blob = await usersApi.getCurrentUserFullAvatar(
           userData.avatarMediaId
@@ -204,6 +205,7 @@ export default function UserProfile() {
       // Reload profile to get updated banner media ID
       const userData = await usersApi.getCurrentUser();
       setUser(userData);
+      setAuthUser(userData);
       if (userData?.bannerMediaId) {
         const blob = await usersApi.getCurrentUserFullBanner(
           userData.bannerMediaId
