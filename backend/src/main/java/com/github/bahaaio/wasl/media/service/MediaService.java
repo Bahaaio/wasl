@@ -114,7 +114,6 @@ public class MediaService {
         return new MediaDto(media.getId(), media.getType());
     }
 
-    // keeps directory empty
     @Transactional
     public void deleteMediaById(UUID id) {
         var media = mediaRepository.findById(id)
@@ -122,6 +121,7 @@ public class MediaService {
 
         storageService.delete(mediaPathService.getFullPath(media));
         storageService.delete(mediaPathService.getThumbnailPath(media));
+        storageService.delete(mediaPathService.getStorageKey(media.getId()));
 
         mediaRepository.deleteById(id);
     }
