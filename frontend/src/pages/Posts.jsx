@@ -1,11 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Users,
-  ImagePlus,
-  Link2,
-  BarChart3,
-} from "lucide-react";
+import { Users, ImagePlus, Link2, BarChart3 } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
 import PostCard from "../components/PostCard.jsx";
 import SideBar from "../components/SideBar.jsx";

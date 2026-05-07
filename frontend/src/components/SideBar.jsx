@@ -73,7 +73,9 @@ export default function SideBar({ isOpen, setIsOpen }) {
 
       <div
         className={`fixed inset-0 top-16 z-20 bg-slate-950/70 backdrop-blur-sm transition-opacity md:hidden ${
-          isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          isOpen
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
         }`}
         onClick={() => setIsOpen(false)}
         aria-hidden="true"
@@ -106,10 +108,23 @@ export default function SideBar({ isOpen, setIsOpen }) {
           </div>
           <nav className="space-y-8 flex-1">
             <div className="space-y-1">
-              <SidebarItem icon={<Home className="w-5 h-5" />} label="Home" active />
-              <SidebarItem icon={<Compass className="w-5 h-5" />} label="Popular" />
-              <SidebarItem icon={<Newspaper className="w-5 h-5" />} label="News" />
-              <SidebarItem icon={<Rocket className="w-5 h-5" />} label="Explore" />
+              <SidebarItem
+                icon={<Home className="w-5 h-5" />}
+                label="Home"
+                active
+              />
+              <SidebarItem
+                icon={<Compass className="w-5 h-5" />}
+                label="Popular"
+              />
+              <SidebarItem
+                icon={<Newspaper className="w-5 h-5" />}
+                label="News"
+              />
+              <SidebarItem
+                icon={<Rocket className="w-5 h-5" />}
+                label="Explore"
+              />
             </div>
 
             <div className="border-t border-slate-800 pt-6">
@@ -127,20 +142,48 @@ export default function SideBar({ isOpen, setIsOpen }) {
               </button>
               {resourcesOpen && (
                 <div className="space-y-1">
-                  <SidebarItem icon={<CircleHelp className="w-5 h-5" />} label="About WASL" />
-                  <SidebarItem icon={<Share2 className="w-5 h-5" />} label="Advertise" />
-                  <SidebarItem icon={<BookOpen className="w-5 h-5" />} label="Developer Platform" />
-                  <SidebarItem icon={<Flame className="w-5 h-5" />} label="WASL Pro" badge="BETA" />
-                  <SidebarItem icon={<CircleHelp className="w-5 h-5" />} label="Help" />
-                  <SidebarItem icon={<BookOpen className="w-5 h-5" />} label="Blog" />
-                  <SidebarItem icon={<Users className="w-5 h-5" />} label="Careers" />
-                  <SidebarItem icon={<Share2 className="w-5 h-5" />} label="Press" />
+                  <SidebarItem
+                    icon={<CircleHelp className="w-5 h-5" />}
+                    label="About WASL"
+                  />
+                  <SidebarItem
+                    icon={<Share2 className="w-5 h-5" />}
+                    label="Advertise"
+                  />
+                  <SidebarItem
+                    icon={<BookOpen className="w-5 h-5" />}
+                    label="Developer Platform"
+                  />
+                  <SidebarItem
+                    icon={<Flame className="w-5 h-5" />}
+                    label="WASL Pro"
+                    badge="BETA"
+                  />
+                  <SidebarItem
+                    icon={<CircleHelp className="w-5 h-5" />}
+                    label="Help"
+                  />
+                  <SidebarItem
+                    icon={<BookOpen className="w-5 h-5" />}
+                    label="Blog"
+                  />
+                  <SidebarItem
+                    icon={<Users className="w-5 h-5" />}
+                    label="Careers"
+                  />
+                  <SidebarItem
+                    icon={<Share2 className="w-5 h-5" />}
+                    label="Press"
+                  />
                 </div>
               )}
             </div>
 
             <div className="border-t border-slate-800 pt-6">
-              <SidebarItem icon={<Flame className="w-5 h-5" />} label="Best of WASL" />
+              <SidebarItem
+                icon={<Flame className="w-5 h-5" />}
+                label="Best of WASL"
+              />
             </div>
           </nav>
         </div>
