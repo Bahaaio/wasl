@@ -1,5 +1,6 @@
 package com.github.bahaaio.wasl.user.controller;
 
+import com.github.bahaaio.wasl.user.dto.UserMediaUpdateResponse;
 import com.github.bahaaio.wasl.user.service.UserMediaService;
 
 import org.springframework.http.HttpStatus;
@@ -19,10 +20,10 @@ public class UserMediaController {
 
     @SecurityRequirement(name = "bearerAuth")
     @PutMapping("/avatar")
-    public ResponseEntity<Void> updateCurrentUserAvatar(@RequestParam("file") MultipartFile file,
-                                                        Authentication authentication) {
-        userMediaService.updateAvatar(file, authentication.getName());
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+    public ResponseEntity<UserMediaUpdateResponse> updateCurrentUserAvatar(@RequestParam("file") MultipartFile file,
+                                                                           Authentication authentication) {
+        var dto = userMediaService.updateAvatar(file, authentication.getName());
+        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
     @SecurityRequirement(name = "bearerAuth")
@@ -34,10 +35,10 @@ public class UserMediaController {
 
     @SecurityRequirement(name = "bearerAuth")
     @PutMapping("/banner")
-    public ResponseEntity<Void> updateCurrentUserBanner(@RequestParam("file") MultipartFile file,
-                                                        Authentication authentication) {
-        userMediaService.updateBanner(file, authentication.getName());
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<UserMediaUpdateResponse> updateCurrentUserBanner(@RequestParam("file") MultipartFile file,
+                                                                           Authentication authentication) {
+        var dto = userMediaService.updateBanner(file, authentication.getName());
+        return ResponseEntity.ok(dto);
     }
 
     @SecurityRequirement(name = "bearerAuth")

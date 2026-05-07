@@ -2,6 +2,7 @@ package com.github.bahaaio.wasl.user.service;
 
 import com.github.bahaaio.wasl.media.model.MediaOwnerType;
 import com.github.bahaaio.wasl.media.service.MediaService;
+import com.github.bahaaio.wasl.user.dto.UserMediaUpdateResponse;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,17 +19,19 @@ public class UserMediaService {
     private final UserService userService;
 
     @Transactional
-    public void updateAvatar(MultipartFile file, String username) {
+    public UserMediaUpdateResponse updateAvatar(MultipartFile file, String username) {
         var user = userService.getEntityByUsername(username);
         UUID oldAvatarMediaId = user.getAvatarMediaId();
 
         var response = mediaService.uploadMedia(file, username);
-        mediaService.attachMedia(response.id(), MediaOwnerType.USER, user.getId(), username);
+        var mediaDto = mediaService.attachMedia(response.id(), MediaOwnerType.USER, user.getId(), username);
         user.setAvatarMediaId(response.id());
 
         if (oldAvatarMediaId != null) {
             mediaService.deleteMediaById(oldAvatarMediaId);
         }
+
+        return new UserMediaUpdateResponse(mediaDto.id());
     }
 
     @Transactional
@@ -42,17 +45,19 @@ public class UserMediaService {
     }
 
     @Transactional
-    public void updateBanner(MultipartFile file, String username) {
+    public UserMediaUpdateResponse updateBanner(MultipartFile file, String username) {
         var user = userService.getEntityByUsername(username);
         UUID oldBannerMediaId = user.getBannerMediaId();
 
         var response = mediaService.uploadMedia(file, username);
-        mediaService.attachMedia(response.id(), MediaOwnerType.USER, user.getId(), username);
+        var mediaDto = mediaService.attachMedia(response.id(), MediaOwnerType.USER, user.getId(), username);
         user.setBannerMediaId(response.id());
 
         if (oldBannerMediaId != null) {
             mediaService.deleteMediaById(oldBannerMediaId);
         }
+
+        return new UserMediaUpdateResponse(mediaDto.id());
     }
 
     @Transactional
