@@ -1,33 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, ImagePlus, Link2, BarChart3 } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
 import AuthModal from "../components/AuthModal.jsx";
 import { MOCK_COMMUNITIES } from "../data/mockData.js";
-import { getAccessToken, onAuthChange } from "../auth/store.js";
+import { useUser } from "../auth/useUser.jsx";
 
 export default function CreatePostPage() {
   const navigate = useNavigate();
-  const [showAuthModal, setShowAuthModal] = useState(() => !getAccessToken());
-
-  useEffect(() => {
-    // Subscribe to auth changes to close modal when user logs in
-    const unsubscribe = onAuthChange(({ token }) => {
-      if (token) {
-        // User logged in, close the modal
-        setShowAuthModal(false);
-      }
-    });
-
-    return unsubscribe;
-  }, []);
+  const { isLoggedIn } = useUser();
+  const showAuthModal = !isLoggedIn;
 
   const handleAuthModalClose = () => {
-    setShowAuthModal(false);
-    // Redirect to home if they close the modal without logging in
-    if (!getAccessToken()) {
-      navigate("/", { replace: true });
-    }
+    navigate("/", { replace: true });
   };
   const [isCreatingPost, setIsCreatingPost] = useState(false);
   const [createPostError, setCreatePostError] = useState(null);

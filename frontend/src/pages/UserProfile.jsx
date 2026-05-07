@@ -5,7 +5,7 @@ import Navbar from "../components/Navbar.jsx";
 import CommentsList from "../components/CommentsList.jsx";
 import PostCard from "../components/PostCard.jsx";
 import { usersApi } from "../api/users.js";
-import { getUser, getAccessToken } from "../auth/store.js";
+import { useUser } from "../auth/useUser.jsx";
 import {
   MOCK_PROFILE_COMMENTS,
   MOCK_POSTS,
@@ -38,12 +38,14 @@ export default function UserProfile() {
           .toUpperCase()
       : "U";
 
-  const loggedInUser = getUser();
+  const { user: loggedInUser } = useUser();
   const isOwnProfile = loggedInUser?.username === profileUsername;
-  const hasToken = !!getAccessToken();
 
   // Fetch user profile on mount
   useEffect(() => {
+    let avatarObjectUrl = "";
+    let bannerObjectUrl = "";
+
     const loadProfile = async () => {
       try {
         setIsLoadingProfile(true);
@@ -56,8 +58,8 @@ export default function UserProfile() {
             const blob = await usersApi.getCurrentUserFullAvatar(
               userData.avatarMediaId
             );
-            const url = URL.createObjectURL(blob);
-            setAvatarUrl(url);
+            avatarObjectUrl = URL.createObjectURL(blob);
+            setAvatarUrl(avatarObjectUrl);
           } catch (err) {
             console.error("Failed to load avatar:", err);
           }
@@ -69,8 +71,8 @@ export default function UserProfile() {
             const blob = await usersApi.getCurrentUserFullBanner(
               userData.bannerMediaId
             );
-            const url = URL.createObjectURL(blob);
-            setBannerUrl(url);
+            bannerObjectUrl = URL.createObjectURL(blob);
+            setBannerUrl(bannerObjectUrl);
           } catch (err) {
             console.error("Failed to load banner:", err);
           }
@@ -83,6 +85,14 @@ export default function UserProfile() {
     };
 
     loadProfile();
+    return () => {
+      if (avatarObjectUrl) {
+        URL.revokeObjectURL(avatarObjectUrl);
+      }
+      if (bannerObjectUrl) {
+        URL.revokeObjectURL(bannerObjectUrl);
+      }
+    };
   }, [profileUsername]);
 
   const updatePosts = updatePost => {
@@ -127,7 +137,7 @@ export default function UserProfile() {
       return;
     }
 
-    if (!isOwnProfile || !hasToken) {
+    if (!isOwnProfile) {
       alert("You can only upload your own avatar");
       event.target.value = "";
       return;
@@ -135,6 +145,9 @@ export default function UserProfile() {
 
     setIsUploadingAvatar(true);
     const previousAvatarUrl = avatarUrl;
+    if (previousAvatarUrl) {
+      URL.revokeObjectURL(previousAvatarUrl);
+    }
     const previewAvatarUrl = URL.createObjectURL(file);
     setAvatarUrl(previewAvatarUrl);
 
@@ -148,10 +161,12 @@ export default function UserProfile() {
           userData.avatarMediaId
         );
         const url = URL.createObjectURL(blob);
+        URL.revokeObjectURL(previewAvatarUrl);
         setAvatarUrl(url);
       }
     } catch (err) {
       console.error("Avatar upload failed:", err);
+      URL.revokeObjectURL(previewAvatarUrl);
       setAvatarUrl(previousAvatarUrl);
       alert(
         err.response?.data?.message || err.message || "Failed to upload avatar"
@@ -170,7 +185,7 @@ export default function UserProfile() {
       return;
     }
 
-    if (!isOwnProfile || !hasToken) {
+    if (!isOwnProfile) {
       alert("You can only upload your own banner");
       event.target.value = "";
       return;
@@ -178,6 +193,9 @@ export default function UserProfile() {
 
     setIsUploadingBanner(true);
     const previousBannerUrl = bannerUrl;
+    if (previousBannerUrl) {
+      URL.revokeObjectURL(previousBannerUrl);
+    }
     const previewBannerUrl = URL.createObjectURL(file);
     setBannerUrl(previewBannerUrl);
 
@@ -191,10 +209,12 @@ export default function UserProfile() {
           userData.bannerMediaId
         );
         const url = URL.createObjectURL(blob);
+        URL.revokeObjectURL(previewBannerUrl);
         setBannerUrl(url);
       }
     } catch (err) {
       console.error("Banner upload failed:", err);
+      URL.revokeObjectURL(previewBannerUrl);
       setBannerUrl(previousBannerUrl);
       alert(
         err.response?.data?.message || err.message || "Failed to upload banner"

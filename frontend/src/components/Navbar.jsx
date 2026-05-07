@@ -10,12 +10,7 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import AuthModal from "./AuthModal.jsx";
-import {
-  getAccessToken,
-  getUser,
-  clearAccessToken,
-  onAuthChange,
-} from "../auth/store.js";
+import { useUser } from "../auth/useUser.jsx";
 import { authApi } from "../api/auth.js";
 import { usersApi } from "../api/users.js";
 
@@ -25,16 +20,7 @@ export default function Navbar({ transparentMode = false }) {
   const [authInitialTab, setAuthInitialTab] = useState("login");
   const [isScrolled, setIsScrolled] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    const currentToken = getAccessToken();
-    const currentUser = getUser();
-    return !!(currentToken && currentUser);
-  });
-  const [user, setUser] = useState(() => {
-    const currentToken = getAccessToken();
-    const currentUser = getUser();
-    return currentToken && currentUser ? currentUser : null;
-  });
+  const { user, setUser, isLoggedIn } = useUser();
   const [avatarUrl, setAvatarUrl] = useState("");
   const profileRef = useRef(null);
 
@@ -60,43 +46,34 @@ export default function Navbar({ transparentMode = false }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Listen for auth state changes
-  useEffect(() => {
-    const unsubscribe = onAuthChange(authState => {
-      if (authState.token && authState.user) {
-        setIsLoggedIn(true);
-        setUser(authState.user);
-      } else {
-        setIsLoggedIn(false);
-        setUser(null);
-        setAvatarUrl("");
-      }
-    });
-
-    return unsubscribe;
-  }, []);
-
   // Load user avatar
   useEffect(() => {
+    let objectUrl = "";
     const loadUserAvatar = async () => {
       try {
-        const currentUser = getUser();
-        if (currentUser?.avatarMediaId) {
-          const blob = await usersApi.getCurrentUserFullAvatar(
-            currentUser.avatarMediaId
+        if (user?.avatarMediaId) {
+          const blob = await usersApi.getCurrentUserAvatarThumbnail(
+            user.avatarMediaId
           );
-          const url = URL.createObjectURL(blob);
-          setAvatarUrl(url);
+          objectUrl = URL.createObjectURL(blob);
+          setAvatarUrl(objectUrl);
+        } else {
+          setAvatarUrl("");
         }
       } catch (err) {
         console.error("Failed to load avatar:", err);
+        setAvatarUrl("");
       }
     };
 
-    if (isLoggedIn) {
-      loadUserAvatar();
-    }
-  }, [isLoggedIn]);
+    loadUserAvatar();
+
+    return () => {
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [user?.avatarMediaId]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -116,8 +93,6 @@ export default function Navbar({ transparentMode = false }) {
     } catch (err) {
       console.error("Logout error:", err);
     }
-    clearAccessToken();
-    setIsLoggedIn(false);
     setUser(null);
     setIsProfileOpen(false);
     window.location.reload();

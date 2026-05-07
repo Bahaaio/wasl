@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
 import AuthModal from "../components/AuthModal.jsx";
-import { getAccessToken, onAuthChange } from "../auth/store.js";
+import { useUser } from "../auth/useUser.jsx";
 
 const COMMUNITY_CATEGORIES = [
   "Technology",
@@ -71,7 +71,8 @@ function normalizeCommunityName(value) {
 
 export default function CreateCommunityPage() {
   const navigate = useNavigate();
-  const [showAuthModal, setShowAuthModal] = useState(() => !getAccessToken());
+  const { isLoggedIn } = useUser();
+  const showAuthModal = !isLoggedIn;
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdCommunity, setCreatedCommunity] = useState(null);
@@ -87,21 +88,8 @@ export default function CreateCommunityPage() {
     theme: THEME_SWATCHES[0],
   });
 
-  useEffect(() => {
-    const unsubscribe = onAuthChange(({ token }) => {
-      if (token) {
-        setShowAuthModal(false);
-      }
-    });
-
-    return unsubscribe;
-  }, []);
-
   const handleAuthModalClose = () => {
-    setShowAuthModal(false);
-    if (!getAccessToken()) {
-      navigate("/", { replace: true });
-    }
+    navigate("/", { replace: true });
   };
 
   const communitySlug = useMemo(
@@ -151,8 +139,7 @@ export default function CreateCommunityPage() {
   const handleSubmit = event => {
     event.preventDefault();
 
-    if (!getAccessToken()) {
-      setShowAuthModal(true);
+    if (!isLoggedIn) {
       return;
     }
 

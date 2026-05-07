@@ -19,7 +19,7 @@ import {
 import Navbar from "../components/Navbar.jsx";
 import PostCard from "../components/PostCard.jsx";
 import { MOCK_POSTS, MOCK_COMMUNITIES } from "../data/mockData.js";
-import { getUser } from "../auth/store.js";
+import { useUser } from "../auth/useUser.jsx";
 import { usersApi } from "../api/users.js";
 
 export default function PostsPage() {
@@ -30,6 +30,7 @@ export default function PostsPage() {
   const [resourcesOpen, setResourcesOpen] = useState(true);
   const [posts, setPosts] = useState(MOCK_POSTS);
   const [avatarUrl, setAvatarUrl] = useState("");
+  const { user } = useUser();
   const sidebarRef = useRef(null);
 
   const getAvatarFallback = user =>
@@ -57,23 +58,32 @@ export default function PostsPage() {
 
   // Load user avatar
   useEffect(() => {
+    let objectUrl = "";
     const loadUserAvatar = async () => {
       try {
-        const user = getUser();
         if (user?.avatarMediaId) {
           const blob = await usersApi.getCurrentUserFullAvatar(
             user.avatarMediaId
           );
-          const url = URL.createObjectURL(blob);
-          setAvatarUrl(url);
+          objectUrl = URL.createObjectURL(blob);
+          setAvatarUrl(objectUrl);
+        } else {
+          setAvatarUrl("");
         }
       } catch (err) {
         console.error("Failed to load avatar:", err);
+        setAvatarUrl("");
       }
     };
 
     loadUserAvatar();
-  }, []);
+
+    return () => {
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [user?.avatarMediaId]);
 
   useEffect(() => {
     const sidebar = sidebarRef.current;
@@ -302,7 +312,7 @@ export default function PostsPage() {
                   />
                 ) : (
                   <div className="w-10 h-10 rounded-full bg-linear-to-br from-orange-500 to-red-600 flex items-center justify-center text-white font-bold text-sm">
-                    {getAvatarFallback(getUser())}
+                    {getAvatarFallback(user)}
                   </div>
                 )}
                 <button
