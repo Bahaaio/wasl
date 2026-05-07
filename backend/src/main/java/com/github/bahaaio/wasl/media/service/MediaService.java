@@ -6,9 +6,12 @@ import com.github.bahaaio.wasl.media.dto.MediaFileResponse;
 import com.github.bahaaio.wasl.media.dto.MediaResponse;
 import com.github.bahaaio.wasl.media.exception.FileNotFoundException;
 import com.github.bahaaio.wasl.media.exception.MediaAlreadyAttachedException;
+import com.github.bahaaio.wasl.media.exception.StorageException;
 import com.github.bahaaio.wasl.media.exception.UnsupportedMediaTypeException;
 import com.github.bahaaio.wasl.media.model.*;
 import com.github.bahaaio.wasl.media.repository.MediaRepository;
+import com.github.bahaaio.wasl.media.service.processing.MediaProcessor;
+import com.github.bahaaio.wasl.media.service.processing.MediaProcessorFactory;
 import com.github.bahaaio.wasl.user.service.UserService;
 
 import org.apache.tika.Tika;
@@ -23,7 +26,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 // TODO: validation
-// TODO: compression & resizing
 @RequiredArgsConstructor
 @Service
 public class MediaService {
@@ -32,11 +34,14 @@ public class MediaService {
     private final MediaPathService mediaPathService;
     private final Tika tika;
     private final UserService userService;
+    private final MediaProcessorFactory mediaProcessorFactory;
 
     @Transactional
     public MediaResponse uploadMedia(MultipartFile file, String uploaderUsername) {
-        var uploader = userService.getEntityByUsername(uploaderUsername);
+        if (file.isEmpty()) throw new StorageException("File is empty");
 
+        var uploader = userService.getEntityByUsername(uploaderUsername);
+        // TODO: extract
         var mimeType = getMimeType(file);
         var mediaType = resolveMimeType(mimeType);
 
@@ -52,9 +57,18 @@ public class MediaService {
         var fullPath = mediaPathService.getFullPath(media);
         var thumbnailPath = mediaPathService.getThumbnailPath(media);
 
-        storageService.store(file, fullPath);
-        // TODO: generate thumbnail
-        storageService.store(file, thumbnailPath);
+        MediaProcessor processor = mediaProcessorFactory.getProcessor(mediaType);
+
+        try {
+            var processed = processor.process(file);
+
+            storageService.store(processed.fullStream(), fullPath);
+            storageService.store(processed.thumbnailStream(), thumbnailPath);
+        } catch (IOException e) {
+            // TODO: fragile
+            deleteMediaById(media.getId());
+            throw new StorageException("Failed to save media");
+        }
 
         return MediaResponse.builder()
             .id(media.getId())
