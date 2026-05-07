@@ -4,6 +4,7 @@ import com.github.bahaaio.wasl.media.dto.MediaResponse;
 import com.github.bahaaio.wasl.media.service.MediaService;
 
 import org.springframework.core.io.Resource;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.Duration;
 import java.util.UUID;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -29,6 +31,7 @@ public class MediaController {
 
         return ResponseEntity.ok()
             .contentType(MediaType.parseMediaType(response.mimeType()))
+            .cacheControl(getCacheControl())
             .body(response.file());
     }
 
@@ -38,6 +41,7 @@ public class MediaController {
 
         return ResponseEntity.ok()
             .contentType(MediaType.parseMediaType(response.mimeType()))
+            .cacheControl(getCacheControl())
             .body(response.file());
     }
 
@@ -48,5 +52,9 @@ public class MediaController {
         var uploaderUsername = authentication.getName();
         var dto = mediaService.uploadMedia(file, uploaderUsername);
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+    }
+
+    private CacheControl getCacheControl() {
+        return CacheControl.maxAge(Duration.ofDays(365)).immutable();
     }
 }
