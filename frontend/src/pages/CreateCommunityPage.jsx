@@ -6,7 +6,6 @@ import {
   ChevronRight,
   Globe,
   Lock,
- 
 } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
 import AuthModal from "../components/AuthModal.jsx";
@@ -47,12 +46,8 @@ const DEFAULT_RULES = [
   "Use clear titles and search before posting.",
 ];
 
-const THEME_SWATCHES = [
-  "from-orange-500 to-red-500",
-  "from-cyan-500 to-blue-500",
-  "from-emerald-500 to-teal-500",
-  "from-fuchsia-500 to-pink-500",
-];
+// default theme gradient string used for previews
+const DEFAULT_THEME = "from-orange-500 to-red-500";
 
 function normalizeCommunityName(value) {
   return value
@@ -79,7 +74,7 @@ export default function CreateCommunityPage() {
     visibility: "public",
     nsfw: false,
     allowChat: true,
-    theme: THEME_SWATCHES[0],
+    theme: DEFAULT_THEME,
   });
 
   const handleAuthModalClose = () => {
@@ -109,10 +104,6 @@ export default function CreateCommunityPage() {
   const handleTypeSelect = value => {
     setForm(previous => ({ ...previous, visibility: value }));
     setFormError("");
-  };
-
-  const handleThemeSelect = theme => {
-    setForm(previous => ({ ...previous, theme }));
   };
 
   const handleNext = () => {
@@ -281,7 +272,7 @@ export default function CreateCommunityPage() {
                                 visibility: "public",
                                 nsfw: false,
                                 allowChat: true,
-                                theme: THEME_SWATCHES[0],
+                                theme: DEFAULT_THEME,
                               });
                             }}
                             className="rounded-full border border-slate-700 px-5 py-2.5 font-semibold text-slate-200 transition-colors hover:bg-slate-800"
@@ -398,7 +389,7 @@ export default function CreateCommunityPage() {
                           </div>
                         </div>
 
-                        <div className="grid gap-6 sm:grid-cols-2">
+                        <div className="grid gap-6">
                           <div>
                             <label className="mb-2 block text-sm font-medium text-slate-300">
                               Category
@@ -416,11 +407,7 @@ export default function CreateCommunityPage() {
                               ))}
                             </select>
                           </div>
-
-                          
                         </div>
-
-                       
                       </div>
                     )}
 
@@ -463,7 +450,6 @@ export default function CreateCommunityPage() {
                                 18+ / NSFW
                               </span>
                             )}
-                            
                           </div>
                         </div>
 
