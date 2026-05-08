@@ -4,11 +4,13 @@ import com.github.bahaaio.wasl.post.model.Post;
 import com.github.bahaaio.wasl.user.model.User;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "post_vote")
 public class PostVote {
