@@ -46,6 +46,18 @@ public class UserService {
     }
 
     /**
+     * Verifies if a user exists in the repository based on the provided username.
+     *
+     * @param username the unique username to check for existence
+     * @throws UsernameNotFoundException if the user with the specified username does not exist
+     */
+    public void verifyUserExists(String username) {
+        if (!userRepository.existsByUsername(username)) {
+            throw new UsernameNotFoundException(username);
+        }
+    }
+
+    /**
      * Updates a user by username
      *
      * @param username unique username

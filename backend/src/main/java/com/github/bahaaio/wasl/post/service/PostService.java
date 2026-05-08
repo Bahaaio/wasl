@@ -8,6 +8,7 @@ import com.github.bahaaio.wasl.media.service.MediaService;
 import com.github.bahaaio.wasl.post.dto.PostCreateRequest;
 import com.github.bahaaio.wasl.post.dto.PostDto;
 import com.github.bahaaio.wasl.post.exception.PostNotFoundException;
+import com.github.bahaaio.wasl.post.mapper.PostMapper;
 import com.github.bahaaio.wasl.post.model.Post;
 import com.github.bahaaio.wasl.post.repository.PostRepository;
 import com.github.bahaaio.wasl.user.service.UserService;
@@ -25,17 +26,14 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class PostService {
     private final PostRepository postRepository;
+    private final PostMapper postMapper;
     private final MediaService mediaService;
     private final UserService userService;
 
     @Transactional
     public PostDto getById(Long id) {
         var post = getEntityById(id);
-
-        // TODO: join with media
-        var media = mediaService.getByOwnerId(post.getId(), MediaOwnerType.POST);
-
-        return toPostDto(post, media);
+        return postMapper.toDto(post, getMediaById(id));
     }
 
     public Post getEntityById(Long id) {
@@ -43,12 +41,14 @@ public class PostService {
             .orElseThrow(() -> new PostNotFoundException(id));
     }
 
+    public List<MediaDto> getMediaById(Long id) {
+        return mediaService.getByOwnerId(id, MediaOwnerType.POST);
+    }
+
     public PagedModel<PostDto> listByUsername(String username, Pageable pageable) {
         // TODO: n+1
-        var dtoPage = postRepository.findAllByAuthor_Username(username, pageable).map(post -> {
-            var media = mediaService.getByOwnerId(post.getId(), MediaOwnerType.POST);
-            return toPostDto(post, media);
-        });
+        var dtoPage = postRepository.findAllByAuthor_Username(username, pageable)
+            .map(post -> postMapper.toDto(post, getMediaById(post.getId())));
 
         return new PagedModel<>(dtoPage);
     }
@@ -72,7 +72,7 @@ public class PostService {
             .map(id -> mediaService.attachMedia(id, MediaOwnerType.POST, created.getId(), username))
             .toList();
 
-        return toPostDto(created, media);
+        return postMapper.toDto(created, media);
     }
 
     @Transactional
@@ -88,29 +88,5 @@ public class PostService {
         // TODO: soft delete
         mediaService.deleteMediaByOwnerId(id, MediaOwnerType.POST);
         postRepository.deleteById(id);
-    }
-
-    private PostDto toPostDto(Post post, List<MediaDto> media) {
-        var author = post.getAuthor();
-        var community = post.getCommunity();
-
-        return PostDto.builder()
-            .id(post.getId())
-            .title(post.getTitle())
-            .content(post.getContent())
-
-            .authorUsername(author.getUsername())
-            .authorAvatarMediaId(author.getAvatarMediaId())
-
-            .communityId(community.getId())
-            .communityName(community.getName())
-
-            .media(media)
-
-            .userVote(0) // TODO: fetch user vote
-            .score(post.getScore())
-            .commentCount(post.getCommentCount())
-            .createdAt(post.getCreatedAt())
-            .build();
     }
 }

@@ -1,5 +1,7 @@
 package com.github.bahaaio.wasl.vote.service;
 
+import com.github.bahaaio.wasl.post.dto.PostDto;
+import com.github.bahaaio.wasl.post.mapper.PostMapper;
 import com.github.bahaaio.wasl.post.repository.PostRepository;
 import com.github.bahaaio.wasl.post.service.PostService;
 import com.github.bahaaio.wasl.user.service.UserService;
@@ -8,6 +10,9 @@ import com.github.bahaaio.wasl.vote.model.PostVote;
 import com.github.bahaaio.wasl.vote.model.VoteAction;
 import com.github.bahaaio.wasl.vote.repository.PostVoteRepository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
@@ -21,6 +26,7 @@ public class VoteService {
     private final PostRepository postRepository;
     private final UserService userService;
     private final PostVoteRepository postVoteRepository;
+    private final PostMapper postMapper;
 
     @Transactional
     public void applyPostVote(Long postId, VoteRequest request, String username) {
@@ -59,6 +65,15 @@ public class VoteService {
         // change vote
         existingVote.setUpvote(requestIsUpvote);
         postRepository.adjustScore(postId, requestIsUpvote ? 2 : -2);
+    }
+
+    public PagedModel<PostDto> listVotedPostsByUsername(String username, boolean upvoted, Pageable pageable) {
+        userService.verifyUserExists(username);
+
+        Page<PostDto> postDtoPage = postVoteRepository.findPostsByUserNameAndVote(username, upvoted, pageable)
+            .map(post -> postMapper.toDto(post, postService.getMediaById(post.getId())));
+
+        return new PagedModel<>(postDtoPage);
     }
 
     public void deleteAllPostVotesByUsername(String username) {
