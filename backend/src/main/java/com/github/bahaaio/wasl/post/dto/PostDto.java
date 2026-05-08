@@ -1,6 +1,7 @@
 package com.github.bahaaio.wasl.post.dto;
 
 import com.github.bahaaio.wasl.media.dto.MediaDto;
+import com.github.bahaaio.wasl.vote.model.VoteAction;
 
 import java.time.Instant;
 import java.util.List;
@@ -21,8 +22,7 @@ public record PostDto(
     String communityName,
     List<MediaDto> media,
 
-    // -1, 0, 1
-    int userVote,
+    VoteAction vote,
     long score,
     long commentCount,
     boolean deleted,

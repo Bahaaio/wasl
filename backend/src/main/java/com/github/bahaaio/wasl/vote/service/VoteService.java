@@ -1,9 +1,11 @@
 package com.github.bahaaio.wasl.vote.service;
 
+import com.github.bahaaio.wasl.media.model.MediaOwnerType;
+import com.github.bahaaio.wasl.media.service.MediaService;
 import com.github.bahaaio.wasl.post.dto.PostDto;
+import com.github.bahaaio.wasl.post.exception.PostNotFoundException;
 import com.github.bahaaio.wasl.post.mapper.PostMapper;
 import com.github.bahaaio.wasl.post.repository.PostRepository;
-import com.github.bahaaio.wasl.post.service.PostService;
 import com.github.bahaaio.wasl.user.service.UserService;
 import com.github.bahaaio.wasl.vote.dto.VoteRequest;
 import com.github.bahaaio.wasl.vote.model.PostVote;
@@ -22,18 +24,29 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Service
 public class VoteService {
-    private final PostService postService;
     private final PostRepository postRepository;
     private final UserService userService;
     private final PostVoteRepository postVoteRepository;
     private final PostMapper postMapper;
+    private final MediaService mediaService;
+
+    public VoteAction getPostVoteByUsername(Long postId, String username) {
+        userService.verifyUserExists(username);
+
+        var postVote = postVoteRepository.findByUser_UsernameAndPost_Id(username, postId)
+            .orElseThrow(() -> new PostNotFoundException(postId));
+
+        return postVote.isUpvote() ? VoteAction.UPVOTE : VoteAction.DOWNVOTE;
+    }
 
     @Transactional
     public void applyPostVote(Long postId, VoteRequest request, String username) {
         var user = userService.getEntityByUsername(username);
-        var post = postService.getEntityById(postId);
+        var post = postRepository.findById(postId)
+            .orElseThrow(() -> new PostNotFoundException(postId));
 
-        var existingVote = postVoteRepository.findByUserAndPost(user, post).orElse(null);
+        var existingVote = postVoteRepository.findByUser_UsernameAndPost_Id(user.getUsername(), post.getId())
+            .orElse(null);
         var newAction = request.action();
         var requestIsUpvote = newAction.equals(VoteAction.UPVOTE);
 
@@ -70,8 +83,10 @@ public class VoteService {
     public PagedModel<PostDto> listVotedPostsByUsername(String username, boolean upvoted, Pageable pageable) {
         userService.verifyUserExists(username);
 
+        // TODO: n+1
         Page<PostDto> postDtoPage = postVoteRepository.findPostsByUserNameAndVote(username, upvoted, pageable)
-            .map(post -> postMapper.toDto(post, postService.getMediaById(post.getId())));
+            .map(post -> postMapper.toDto(post, mediaService.getByOwnerId(post.getId(), MediaOwnerType.POST),
+                getPostVoteByUsername(post.getId(), username)));
 
         return new PagedModel<>(postDtoPage);
     }

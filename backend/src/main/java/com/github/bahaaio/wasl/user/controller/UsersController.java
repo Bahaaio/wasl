@@ -9,6 +9,7 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,8 +31,13 @@ public class UsersController {
     }
 
     @GetMapping("/{username}/posts")
-    public ResponseEntity<PagedModel<PostDto>> listUserPosts(@PathVariable String username, @ParameterObject Pageable pageable) {
-        var postsDto = postService.listByUsername(username, pageable);
+    public ResponseEntity<PagedModel<PostDto>> listUserPosts(
+        @PathVariable String username,
+        @ParameterObject Pageable pageable,
+        Authentication authentication
+    ) {
+        var currentUsername = authentication != null ? authentication.getName() : null;
+        var postsDto = postService.listByUsername(username, pageable, currentUsername);
         return ResponseEntity.ok(postsDto);
     }
 }

@@ -3,6 +3,7 @@ package com.github.bahaaio.wasl.post.mapper;
 import com.github.bahaaio.wasl.media.dto.MediaDto;
 import com.github.bahaaio.wasl.post.dto.PostDto;
 import com.github.bahaaio.wasl.post.model.Post;
+import com.github.bahaaio.wasl.vote.model.VoteAction;
 
 import org.springframework.stereotype.Component;
 
@@ -10,7 +11,7 @@ import java.util.List;
 
 @Component
 public class PostMapper {
-    public PostDto toDto(Post post, List<MediaDto> media) {
+    public PostDto toDto(Post post, List<MediaDto> media, VoteAction vote) {
         var author = post.getAuthor();
         var community = post.getCommunity();
 
@@ -27,7 +28,7 @@ public class PostMapper {
 
             .media(media)
 
-            .userVote(0) // TODO: fetch user vote
+            .vote(vote)
             .score(post.getScore())
             .commentCount(post.getCommentCount())
             .createdAt(post.getCreatedAt())

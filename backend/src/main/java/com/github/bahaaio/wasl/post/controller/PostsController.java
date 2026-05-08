@@ -6,7 +6,6 @@ import com.github.bahaaio.wasl.post.service.PostService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -20,8 +19,9 @@ public class PostsController {
     private final PostService postService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<PostDto> getPostById(@PathVariable Long id) {
-        var postDto = postService.getById(id);
+    public ResponseEntity<PostDto> getPostById(@PathVariable Long id, Authentication authentication) {
+        var username = authentication != null ? authentication.getName() : null;
+        var postDto = postService.getById(id, username);
         return ResponseEntity.ok(postDto);
     }
 

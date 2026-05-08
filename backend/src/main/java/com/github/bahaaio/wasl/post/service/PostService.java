@@ -12,6 +12,8 @@ import com.github.bahaaio.wasl.post.mapper.PostMapper;
 import com.github.bahaaio.wasl.post.model.Post;
 import com.github.bahaaio.wasl.post.repository.PostRepository;
 import com.github.bahaaio.wasl.user.service.UserService;
+import com.github.bahaaio.wasl.vote.model.VoteAction;
+import com.github.bahaaio.wasl.vote.service.VoteService;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import jakarta.annotation.Nullable;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -29,11 +32,18 @@ public class PostService {
     private final PostMapper postMapper;
     private final MediaService mediaService;
     private final UserService userService;
+    private final VoteService voteService;
 
     @Transactional
-    public PostDto getById(Long id) {
+    public PostDto getById(Long id, @Nullable String currentUsername) {
         var post = getEntityById(id);
-        return postMapper.toDto(post, getMediaById(id));
+
+        var vote = VoteAction.NONE;
+        if (currentUsername != null) {
+            voteService.getPostVoteByUsername(id, currentUsername);
+        }
+
+        return postMapper.toDto(post, getMediaById(id), vote);
     }
 
     public Post getEntityById(Long id) {
@@ -45,10 +55,16 @@ public class PostService {
         return mediaService.getByOwnerId(id, MediaOwnerType.POST);
     }
 
-    public PagedModel<PostDto> listByUsername(String username, Pageable pageable) {
+    public PagedModel<PostDto> listByUsername(String username, Pageable pageable, @Nullable String currentUserName) {
+
         // TODO: n+1
         var dtoPage = postRepository.findAllByAuthor_Username(username, pageable)
-            .map(post -> postMapper.toDto(post, getMediaById(post.getId())));
+            .map(post -> {
+                var vote = VoteAction.NONE;
+                if (currentUserName != null) vote = voteService.getPostVoteByUsername(post.getId(), currentUserName);
+
+                return postMapper.toDto(post, getMediaById(post.getId()), vote);
+            });
 
         return new PagedModel<>(dtoPage);
     }
@@ -72,7 +88,7 @@ public class PostService {
             .map(id -> mediaService.attachMedia(id, MediaOwnerType.POST, created.getId(), username))
             .toList();
 
-        return postMapper.toDto(created, media);
+        return postMapper.toDto(created, media, VoteAction.NONE);
     }
 
     @Transactional
