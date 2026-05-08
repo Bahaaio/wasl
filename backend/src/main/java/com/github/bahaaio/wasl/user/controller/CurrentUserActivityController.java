@@ -7,8 +7,8 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,18 +22,18 @@ public class CurrentUserActivityController {
     private final VoteService voteService;
 
     @SecurityRequirement(name = "bearerAuth")
-    @GetMapping("/{username}/upvoted")
-    public ResponseEntity<PagedModel<PostDto>> listUpvotedPosts(@PathVariable String username,
+    @GetMapping("/upvoted")
+    public ResponseEntity<PagedModel<PostDto>> listUpvotedPosts(Authentication authentication,
                                                                 @ParameterObject Pageable pageable) {
-        var postDtoPagedModel = voteService.listVotedPostsByUsername(username, true, pageable);
+        var postDtoPagedModel = voteService.listVotedPostsByUsername(authentication.getName(), true, pageable);
         return ResponseEntity.ok(postDtoPagedModel);
     }
 
     @SecurityRequirement(name = "bearerAuth")
-    @GetMapping("/{username}/downvoted")
-    public ResponseEntity<PagedModel<PostDto>> listDownvotedPosts(@PathVariable String username,
+    @GetMapping("/downvoted")
+    public ResponseEntity<PagedModel<PostDto>> listDownvotedPosts(Authentication authentication,
                                                                   @ParameterObject Pageable pageable) {
-        var postDtoPagedModel = voteService.listVotedPostsByUsername(username, false, pageable);
+        var postDtoPagedModel = voteService.listVotedPostsByUsername(authentication.getName(), false, pageable);
         return ResponseEntity.ok(postDtoPagedModel);
     }
 }

@@ -80,8 +80,6 @@ public class VoteService {
     }
 
     public PagedModel<PostDto> listVotedPostsByUsername(String username, boolean upvoted, Pageable pageable) {
-        userService.verifyUserExists(username);
-
         // TODO: n+1
         Page<PostDto> postDtoPage = postVoteRepository.findPostsByUserNameAndVote(username, upvoted, pageable)
             .map(post -> postMapper.toDto(post, mediaService.getByOwnerId(post.getId(), MediaOwnerType.POST),
