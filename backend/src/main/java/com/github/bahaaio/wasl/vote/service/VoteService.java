@@ -33,10 +33,9 @@ public class VoteService {
     public VoteAction getPostVoteByUsername(Long postId, String username) {
         userService.verifyUserExists(username);
 
-        var postVote = postVoteRepository.findByUser_UsernameAndPost_Id(username, postId)
-            .orElseThrow(() -> new PostNotFoundException(postId));
-
-        return postVote.isUpvote() ? VoteAction.UPVOTE : VoteAction.DOWNVOTE;
+        return postVoteRepository.findByUser_UsernameAndPost_Id(username, postId)
+            .map(postVote -> postVote.isUpvote() ? VoteAction.UPVOTE : VoteAction.DOWNVOTE)
+            .orElse(VoteAction.NONE);
     }
 
     @Transactional
