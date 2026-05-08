@@ -19,6 +19,11 @@ spring:
       max-file-size: 105MB
       max-request-size: 110MB
 
+  data:
+    web:
+      pageable:
+        one-indexed-parameters: true
+
   docker:
     compose:
       enabled: true

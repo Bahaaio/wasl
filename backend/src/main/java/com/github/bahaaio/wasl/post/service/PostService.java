@@ -12,6 +12,8 @@ import com.github.bahaaio.wasl.post.model.Post;
 import com.github.bahaaio.wasl.post.repository.PostRepository;
 import com.github.bahaaio.wasl.user.service.UserService;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -39,6 +41,16 @@ public class PostService {
     public Post getEntityById(Long id) {
         return postRepository.findById(id)
             .orElseThrow(() -> new PostNotFoundException(id));
+    }
+
+    public PagedModel<PostDto> listByUsername(String username, Pageable pageable) {
+        // TODO: n+1
+        var dtoPage = postRepository.findAllByAuthor_Username(username, pageable).map(post -> {
+            var media = mediaService.getByOwnerId(post.getId(), MediaOwnerType.POST);
+            return toPostDto(post, media);
+        });
+
+        return new PagedModel<>(dtoPage);
     }
 
     @Transactional

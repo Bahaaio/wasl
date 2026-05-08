@@ -13,16 +13,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/users")
 @RestController
-public class UserController {
+@RequestMapping("/api/v1/users/me")
+public class CurrentUserController {
     private final UserService userService;
-
-    @GetMapping("/{username}")
-    public ResponseEntity<UserDto> getUserByUsername(@PathVariable String username) {
-        var dto = userService.getUserByUsername(username);
-        return ResponseEntity.ok(dto);
-    }
 
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/me")
