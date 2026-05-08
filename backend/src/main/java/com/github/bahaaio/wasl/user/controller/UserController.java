@@ -6,10 +6,10 @@ import com.github.bahaaio.wasl.user.service.UserService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -33,7 +33,7 @@ public class UserController {
 
     @SecurityRequirement(name = "bearerAuth")
     @PatchMapping("/me")
-    public ResponseEntity<UserDto> updateCurrentUser(@Validated @RequestBody UserPatchRequest request,
+    public ResponseEntity<UserDto> updateCurrentUser(@Valid @RequestBody UserPatchRequest request,
                                                      Authentication authentication) {
         var dto = userService.updateUserByUsername(authentication.getName(), request);
         return ResponseEntity.ok(dto);

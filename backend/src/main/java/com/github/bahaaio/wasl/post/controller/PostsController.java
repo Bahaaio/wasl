@@ -6,9 +6,11 @@ import com.github.bahaaio.wasl.post.service.PostService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -25,7 +27,8 @@ public class PostsController {
 
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping
-    public ResponseEntity<PostDto> createPost(@RequestBody PostCreateRequest request, Authentication authentication) {
+    public ResponseEntity<PostDto> createPost(@Valid @RequestBody PostCreateRequest request,
+                                              Authentication authentication) {
         var postDto = postService.create(request, authentication.getName());
         return ResponseEntity.ok(postDto);
     }

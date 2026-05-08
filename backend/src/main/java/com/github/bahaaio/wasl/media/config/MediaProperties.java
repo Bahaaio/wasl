@@ -5,6 +5,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.util.Set;
 
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,6 +15,7 @@ import lombok.Setter;
 @Validated
 @ConfigurationProperties(prefix = "media")
 public class MediaProperties {
+    @NotEmpty
     private Set<String> allowedTypes;
 
     @Positive
