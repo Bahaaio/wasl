@@ -19,14 +19,14 @@ public class CurrentUserController {
     private final UserService userService;
 
     @SecurityRequirement(name = "bearerAuth")
-    @GetMapping("/me")
+    @GetMapping
     public ResponseEntity<UserDto> getCurrentUser(Authentication authentication) {
         var dto = userService.getUserByUsername(authentication.getName());
         return ResponseEntity.ok(dto);
     }
 
     @SecurityRequirement(name = "bearerAuth")
-    @PatchMapping("/me")
+    @PatchMapping
     public ResponseEntity<UserDto> updateCurrentUser(@Valid @RequestBody UserPatchRequest request,
                                                      Authentication authentication) {
         var dto = userService.updateUserByUsername(authentication.getName(), request);
@@ -34,7 +34,7 @@ public class CurrentUserController {
     }
 
     @SecurityRequirement(name = "bearerAuth")
-    @DeleteMapping("/me")
+    @DeleteMapping
     public ResponseEntity<Void> deleteCurrentUser(Authentication authentication) {
         userService.deleteUserByUsername(authentication.getName());
         return ResponseEntity.noContent().build();
