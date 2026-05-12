@@ -19,16 +19,22 @@ public class VoteController {
 
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/posts/{id}/vote")
-    public ResponseEntity<Void> postVote(@PathVariable Long id, @Valid @RequestBody VoteRequest request,
-                                         Authentication authentication) {
+    public ResponseEntity<Void> postVote(
+        @PathVariable Long id,
+        @Valid @RequestBody VoteRequest request,
+        Authentication authentication
+    ) {
         voteService.applyPostVote(id, request, authentication.getName());
         return ResponseEntity.noContent().build();
     }
 
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/comments/{id}/vote")
-    public ResponseEntity<Void> commentVote(@PathVariable Long id, @Valid @RequestBody VoteRequest request,
-                                            Authentication authentication) {
+    public ResponseEntity<Void> commentVote(
+        @PathVariable Long id,
+        @Valid @RequestBody VoteRequest request,
+        Authentication authentication
+    ) {
         voteService.applyCommentVote(id, request, authentication.getName());
         return ResponseEntity.noContent().build();
     }

@@ -27,8 +27,10 @@ public class CurrentUserController {
 
     @SecurityRequirement(name = "bearerAuth")
     @PatchMapping
-    public ResponseEntity<UserDto> updateCurrentUser(@Valid @RequestBody UserPatchRequest request,
-                                                     Authentication authentication) {
+    public ResponseEntity<UserDto> updateCurrentUser(
+        @Valid @RequestBody UserPatchRequest request,
+        Authentication authentication
+    ) {
         var dto = userService.updateUserByUsername(authentication.getName(), request);
         return ResponseEntity.ok(dto);
     }

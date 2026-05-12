@@ -23,16 +23,20 @@ public class CurrentUserActivityController {
 
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/upvoted")
-    public ResponseEntity<PagedModel<PostDto>> listUpvotedPosts(Authentication authentication,
-                                                                @ParameterObject Pageable pageable) {
+    public ResponseEntity<PagedModel<PostDto>> listUpvotedPosts(
+        Authentication authentication,
+        @ParameterObject Pageable pageable
+    ) {
         var postDtoPagedModel = voteService.listVotedPostsByUsername(authentication.getName(), true, pageable);
         return ResponseEntity.ok(postDtoPagedModel);
     }
 
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/downvoted")
-    public ResponseEntity<PagedModel<PostDto>> listDownvotedPosts(Authentication authentication,
-                                                                  @ParameterObject Pageable pageable) {
+    public ResponseEntity<PagedModel<PostDto>> listDownvotedPosts(
+        Authentication authentication,
+        @ParameterObject Pageable pageable
+    ) {
         var postDtoPagedModel = voteService.listVotedPostsByUsername(authentication.getName(), false, pageable);
         return ResponseEntity.ok(postDtoPagedModel);
     }

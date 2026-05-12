@@ -20,8 +20,10 @@ public class UserMediaController {
 
     @SecurityRequirement(name = "bearerAuth")
     @PutMapping("/avatar")
-    public ResponseEntity<UserMediaUpdateResponse> updateCurrentUserAvatar(@RequestParam("file") MultipartFile file,
-                                                                           Authentication authentication) {
+    public ResponseEntity<UserMediaUpdateResponse> updateCurrentUserAvatar(
+        @RequestParam("file") MultipartFile file,
+        Authentication authentication
+    ) {
         var dto = userMediaService.updateAvatar(file, authentication.getName());
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
@@ -35,8 +37,10 @@ public class UserMediaController {
 
     @SecurityRequirement(name = "bearerAuth")
     @PutMapping("/banner")
-    public ResponseEntity<UserMediaUpdateResponse> updateCurrentUserBanner(@RequestParam("file") MultipartFile file,
-                                                                           Authentication authentication) {
+    public ResponseEntity<UserMediaUpdateResponse> updateCurrentUserBanner(
+        @RequestParam("file") MultipartFile file,
+        Authentication authentication
+    ) {
         var dto = userMediaService.updateBanner(file, authentication.getName());
         return ResponseEntity.ok(dto);
     }

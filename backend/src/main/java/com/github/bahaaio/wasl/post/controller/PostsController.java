@@ -28,16 +28,21 @@ public class PostsController {
 
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping
-    public ResponseEntity<PostDto> createPost(@Valid @RequestBody PostCreateRequest request,
-                                              Authentication authentication) {
+    public ResponseEntity<PostDto> createPost(
+        @Valid @RequestBody PostCreateRequest request,
+        Authentication authentication
+    ) {
         var postDto = postService.create(request, authentication.getName());
         return ResponseEntity.ok(postDto);
     }
 
     @SecurityRequirement(name = "bearerAuth")
     @PatchMapping("/{id}")
-    public ResponseEntity<PostDto> patchPost(@PathVariable Long id, @Valid @RequestBody PostPatchRequest request,
-                                             Authentication authentication) {
+    public ResponseEntity<PostDto> patchPost(
+        @PathVariable Long id,
+        @Valid @RequestBody PostPatchRequest request,
+        Authentication authentication
+    ) {
         var postDto = postService.patchById(id, request, authentication.getName());
         return ResponseEntity.ok(postDto);
     }

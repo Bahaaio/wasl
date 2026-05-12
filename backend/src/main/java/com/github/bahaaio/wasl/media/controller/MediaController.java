@@ -47,8 +47,10 @@ public class MediaController {
 
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping
-    public ResponseEntity<MediaResponse> uploadMedia(@RequestParam("file") MultipartFile file,
-                                                     Authentication authentication) {
+    public ResponseEntity<MediaResponse> uploadMedia(
+        @RequestParam("file") MultipartFile file,
+        Authentication authentication
+    ) {
         var uploaderUsername = authentication.getName();
         var dto = mediaService.uploadMedia(file, uploaderUsername);
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
