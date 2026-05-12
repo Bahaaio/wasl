@@ -33,20 +33,20 @@ spring:
 security:
   jwt:
     secret: "/7LHCo1fbM7W2tuxaFndwPddh9krWcGqPxCS92TYI/CYNoWwRHClMz4yuxCc3AJAb9HlS8wRmJSYNSD37OSYzw=="
-    expiration_ms: 900000 # 15 minutes
+    expires-in: 15m
   refresh:
-    size: 64
-    expiration_days: 7
+    expires-in: 7d
+    token-byte-length: 64
 
 storage:
   location: "upload"
 
 media:
-  max_gif_size_mb: 5
-  max_image_size_mb: 15
-  max_video_size_mb: 100
+  max-gif-size: 5MB
+  max-image-size: 15MB
+  max-video-size: 100MB
 
-  allowed_types:
+  allowed-types:
     # image
     - image/jpeg
     - image/png

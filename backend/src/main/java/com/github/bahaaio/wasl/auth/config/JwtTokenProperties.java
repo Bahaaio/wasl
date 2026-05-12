@@ -3,6 +3,8 @@ package com.github.bahaaio.wasl.auth.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
+import java.time.Duration;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import lombok.Getter;
@@ -17,5 +19,5 @@ public class JwtTokenProperties {
     private String secret;
 
     @Positive
-    private long expirationMs;
+    private Duration expiresIn;
 }

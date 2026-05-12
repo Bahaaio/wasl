@@ -5,8 +5,6 @@ import com.github.bahaaio.wasl.auth.config.RefreshTokenProperties;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
-
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -19,7 +17,7 @@ public class AuthCookieService {
         return ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, token)
             .httpOnly(true)
             .path("/api/v1/auth")
-            .maxAge(Duration.ofDays(refreshProperties.getExpirationDays()))
+            .maxAge(refreshProperties.getExpiresIn())
             .sameSite("Strict")
             .build();
     }

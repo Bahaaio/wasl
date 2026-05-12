@@ -54,10 +54,10 @@ public class MediaValidator {
 
     private void validateMediaSize(MultipartFile file, MediaType mediaType) {
         long maxAllowedSize = switch (mediaType) {
-            case GIF -> mediaProperties.getMaxGifSizeMb();
-            case IMAGE -> mediaProperties.getMaxImageSizeMb();
-            case VIDEO -> mediaProperties.getMaxVideoSizeMb();
-        } * 1024L * 1024L; // converted to bytes
+            case GIF -> mediaProperties.getMaxGifSize().toBytes();
+            case IMAGE -> mediaProperties.getMaxImageSize().toBytes();
+            case VIDEO -> mediaProperties.getMaxVideoSize().toBytes();
+        };
 
         if (file.getSize() > maxAllowedSize) {
             throw new MediaTooLargeException(maxAllowedSize, file.getSize(), mediaType);

@@ -10,7 +10,6 @@ import com.github.bahaaio.wasl.user.model.User;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
 
@@ -28,7 +27,7 @@ public class RefreshTokenService {
     private final RefreshTokenProperties refreshProperties;
 
     public String createToken(User user) {
-        byte[] tokenBytes = new byte[refreshProperties.getSize()];
+        byte[] tokenBytes = new byte[refreshProperties.getTokenByteLength()];
         secureRandom.nextBytes(tokenBytes);
 
         String encodedToken = encoder.encodeToString(tokenBytes);
@@ -38,7 +37,7 @@ public class RefreshTokenService {
             RefreshToken.builder()
                 .user(user)
                 .tokenHash(tokenHash)
-                .expiresAt(Instant.now().plus(Duration.ofDays(refreshProperties.getExpirationDays())))
+                .expiresAt(Instant.now().plus(refreshProperties.getExpiresIn()))
                 .revoked(false)
                 .build()
         );
