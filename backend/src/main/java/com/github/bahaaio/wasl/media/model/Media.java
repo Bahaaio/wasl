@@ -42,9 +42,8 @@ public class Media {
 
     /**
      * Order of media within its parent.
-     * Used for posts (0-based index). Always 0 for comments.
      */
-    private int position;
+    private Integer position;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

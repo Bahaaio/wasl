@@ -39,6 +39,19 @@ public class MediaService {
     private final MediaProcessorFactory mediaProcessorFactory;
     private final MediaValidator mediaValidator;
 
+    public List<MediaDto> getByOwnerId(Long ownerId, MediaOwnerType ownerType) {
+        var mediaList = mediaRepository.findAllByOwnerIdAndOwnerTypeOrderByPosition(ownerId, ownerType);
+
+        return mediaList.stream()
+            .map(media -> new MediaDto(media.getId(), media.getType()))
+            .toList();
+    }
+
+    private Media getEntityById(UUID id) {
+        return mediaRepository.findById(id)
+            .orElseThrow(() -> new FileNotFoundException("Media not found"));
+    }
+
     @Transactional
     public MediaResponse uploadMedia(MultipartFile file, String uploaderUsername) {
         var validationResult = mediaValidator.validate(file);
@@ -81,8 +94,7 @@ public class MediaService {
     }
 
     public MediaFileResponse getFullMedia(UUID id) {
-        var media = mediaRepository.findById(id)
-            .orElseThrow(() -> new FileNotFoundException("Media not found"));
+        var media = getEntityById(id);
 
         var path = mediaPathService.getFullPath(media);
         var file = storageService.load(path);
@@ -91,8 +103,7 @@ public class MediaService {
     }
 
     public MediaFileResponse getMediaThumbnail(UUID id) {
-        var media = mediaRepository.findById(id)
-            .orElseThrow(() -> new FileNotFoundException("Media not found"));
+        var media = getEntityById(id);
 
         var path = mediaPathService.getThumbnailPath(media);
         var file = storageService.load(path);
@@ -100,18 +111,14 @@ public class MediaService {
         return new MediaFileResponse(file, media.getMimeType());
     }
 
-    public List<MediaDto> getByOwnerId(Long ownerId, MediaOwnerType ownerType) {
-        var mediaList = mediaRepository.findAllByOwnerIdAndOwnerType(ownerId, ownerType);
-
-        return mediaList.stream()
-            .map(media -> new MediaDto(media.getId(), media.getType()))
-            .toList();
+    @Transactional
+    public MediaDto attachMedia(UUID mediaId, MediaOwnerType ownerType, Long ownerId, String username) {
+        return attachMedia(mediaId, ownerType, ownerId, username, null);
     }
 
     @Transactional
-    public MediaDto attachMedia(UUID mediaId, MediaOwnerType ownerType, Long ownerId, String username) {
-        var media = mediaRepository.findById(mediaId)
-            .orElseThrow(() -> new FileNotFoundException("Media not found"));
+    public MediaDto attachMedia(UUID mediaId, MediaOwnerType ownerType, Long ownerId, String username, Integer position) {
+        var media = getEntityById(mediaId);
 
         if (!media.getUploader().getUsername().equals(username)) {
             throw new ForbiddenException();
@@ -123,6 +130,7 @@ public class MediaService {
 
         media.setOwnerId(ownerId);
         media.setOwnerType(ownerType);
+        media.setPosition(position);
         media.setState(MediaState.ATTACHED);
 
         media = mediaRepository.save(media);
@@ -131,9 +139,17 @@ public class MediaService {
     }
 
     @Transactional
+    public MediaDto updatePosition(UUID id, int position) {
+        var media = getEntityById(id);
+        media.setPosition(position);
+        mediaRepository.save(media);
+
+        return new MediaDto(media.getId(), media.getType());
+    }
+
+    @Transactional
     public void deleteMediaById(UUID id) {
-        var media = mediaRepository.findById(id)
-            .orElseThrow(() -> new FileNotFoundException("Media not found"));
+        var media = getEntityById(id);
 
         storageService.delete(mediaPathService.getFullPath(media));
         storageService.delete(mediaPathService.getThumbnailPath(media));

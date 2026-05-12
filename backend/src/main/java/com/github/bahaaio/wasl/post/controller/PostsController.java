@@ -2,6 +2,7 @@ package com.github.bahaaio.wasl.post.controller;
 
 import com.github.bahaaio.wasl.post.dto.PostCreateRequest;
 import com.github.bahaaio.wasl.post.dto.PostDto;
+import com.github.bahaaio.wasl.post.dto.PostPatchRequest;
 import com.github.bahaaio.wasl.post.service.PostService;
 
 import org.springframework.http.ResponseEntity;
@@ -30,6 +31,14 @@ public class PostsController {
     public ResponseEntity<PostDto> createPost(@Valid @RequestBody PostCreateRequest request,
                                               Authentication authentication) {
         var postDto = postService.create(request, authentication.getName());
+        return ResponseEntity.ok(postDto);
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @PatchMapping("/{id}")
+    public ResponseEntity<PostDto> patchPost(@PathVariable Long id, @Valid @RequestBody PostPatchRequest request,
+                                             Authentication authentication) {
+        var postDto = postService.patchById(id, request, authentication.getName());
         return ResponseEntity.ok(postDto);
     }
 

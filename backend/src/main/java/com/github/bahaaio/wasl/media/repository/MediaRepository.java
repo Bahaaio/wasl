@@ -10,4 +10,6 @@ import java.util.UUID;
 
 public interface MediaRepository extends JpaRepository<Media, UUID> {
     List<Media> findAllByOwnerIdAndOwnerType(Long ownerId, MediaOwnerType ownerType);
+
+    List<Media> findAllByOwnerIdAndOwnerTypeOrderByPosition(Long ownerId, MediaOwnerType ownerType);
 }
