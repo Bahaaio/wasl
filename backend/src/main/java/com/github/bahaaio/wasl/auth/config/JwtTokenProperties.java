@@ -6,7 +6,6 @@ import org.springframework.validation.annotation.Validated;
 import java.time.Duration;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,6 +17,5 @@ public class JwtTokenProperties {
     @NotBlank
     private String secret;
 
-    @Positive
     private Duration expiresIn;
 }

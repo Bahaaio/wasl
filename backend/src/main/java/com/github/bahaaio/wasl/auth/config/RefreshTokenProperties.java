@@ -17,6 +17,5 @@ public class RefreshTokenProperties {
     @Positive
     private int tokenByteLength = 64;
 
-    @Positive
     private Duration expiresIn = Duration.ofDays(7);
 }
