@@ -49,7 +49,7 @@ public class CommunityMembershipService {
      * Bypasses standard membership checks as it is used during community creation.
      *
      * @param community the community entity
-     * @param username the username of the user to become owner
+     * @param username  the username of the user to become owner
      */
     @Transactional
     public void addOwner(Community community, String username) {

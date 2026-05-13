@@ -9,11 +9,16 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface CommunityMembershipRepository extends JpaRepository<CommunityMembership,Long> {
+public interface CommunityMembershipRepository extends JpaRepository<CommunityMembership, Long> {
     Optional<CommunityMembership> findByCommunityIdAndUserUsername(Long communityId, String username);
+
     List<CommunityMembership> findByCommunityId(Long communityId);
+
     boolean existsByCommunityIdAndUserUsername(Long communityId, String username);
+
     boolean existsByCommunityIdAndUserUsernameAndRoleIn(Long communityId, String username, List<CommunityRole> roles);
+
     boolean existsByUserUsernameAndRoleIn(String username, List<CommunityRole> roles);
+
     void deleteAllByCommunityId(Long communityId);
 }

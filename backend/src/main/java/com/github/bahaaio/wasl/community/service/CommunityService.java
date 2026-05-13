@@ -15,11 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-/**
- * Service handling core business logic for Communities.
- * Manages community lifecycle including creation, updates, deletion,
- * and maintaining subscriber counts.
- */
 @Service
 @RequiredArgsConstructor
 public class CommunityService {
@@ -67,7 +62,7 @@ public class CommunityService {
     /**
      * Creates a new community and assigns the creator as the OWNER.
      *
-     * @param request the community creation details
+     * @param request  the community creation details
      * @param username the username of the user creating the community
      * @return the created CommunityDto
      * @throws IllegalArgumentException if a community with the same name exists
