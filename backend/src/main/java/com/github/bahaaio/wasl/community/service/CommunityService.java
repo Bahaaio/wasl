@@ -143,27 +143,4 @@ public class CommunityService {
         membershipService.deleteAllByCommunityId(id);
         communityRepository.delete(community);
     }
-
-    /**
-     * Safely increments the subscriber count for a community.
-     * Called internally when a user joins the community.
-     *
-     * @param id the ID of the community
-     */
-    @Transactional
-    public void incrementSubscribers(Long id) {
-        communityRepository.incrementSubscribers(id);
-    }
-
-    /**
-     * Safely decrements the subscriber count for a community.
-     * Called internally when a user leaves or is removed from the community.
-     * Ensures the count never drops below 0.
-     *
-     * @param id the ID of the community
-     */
-    @Transactional
-    public void decrementSubscribers(Long id) {
-        communityRepository.decrementSubscribers(id);
-    }
 }

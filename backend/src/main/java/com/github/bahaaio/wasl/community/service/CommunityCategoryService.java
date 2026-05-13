@@ -1,7 +1,9 @@
 package com.github.bahaaio.wasl.community.service;
 
 import com.github.bahaaio.wasl.community.dto.response.CommunityCategoryDto;
+import com.github.bahaaio.wasl.community.exception.CommunityCategoryNotFoundException;
 import com.github.bahaaio.wasl.community.mapper.CommunityCategoryMapper;
+import com.github.bahaaio.wasl.community.model.CommunityCategory;
 import com.github.bahaaio.wasl.community.repository.CommunityCategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,18 @@ public class CommunityCategoryService {
         return categoryRepository.findAll().stream()
                 .map(categoryMapper::toDto)
                 .toList();
+    }
+
+    /**
+     * Retrieves a community category entity by its ID.
+     *
+     * @param id the ID of the category to retrieve
+     * @return the CommunityCategory entity
+     * @throws CommunityCategoryNotFoundException if no category with the given ID exists
+     */
+    public CommunityCategory getEntityById(Long id) {
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> new CommunityCategoryNotFoundException(id));
     }
 
 
