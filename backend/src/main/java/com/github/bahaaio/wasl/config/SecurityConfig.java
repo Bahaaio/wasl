@@ -40,7 +40,12 @@ public class SecurityConfig {
                     .requestMatchers("/api/v1/users/me/**").authenticated()
                     .requestMatchers("/api/v1/users/**").permitAll()
 
-                    .requestMatchers(HttpMethod.GET, "/api/v1/posts/{id}").permitAll()
+                    .requestMatchers("/api/v1/posts/**").authenticated()
+                    .requestMatchers(HttpMethod.GET,
+                        "/api/v1/posts/{id}",
+                        "/api/v1/posts/{postId}/comments",
+                        "/api/v1/comments/{id}"
+                    ).permitAll()
 
                     .requestMatchers(HttpMethod.POST, "/api/v1/media").authenticated()
                     .requestMatchers("/api/v1/media/**").permitAll()

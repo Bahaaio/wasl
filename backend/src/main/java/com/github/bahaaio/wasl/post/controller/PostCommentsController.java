@@ -5,6 +5,7 @@ import com.github.bahaaio.wasl.comment.dto.CommentDto;
 import com.github.bahaaio.wasl.comment.dto.CommentFeedResponse;
 import com.github.bahaaio.wasl.comment.service.CommentsService;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,10 +25,12 @@ public class PostCommentsController {
     @GetMapping
     public ResponseEntity<CommentFeedResponse> listPostComments(
         @PathVariable Long postId,
-        Pageable pageable,
+        @ParameterObject Pageable pageable,
         Authentication authentication
     ) {
-        var commentDtoPagedModel = commentsService.listByPostId(postId, pageable, authentication.getName());
+        var username = authentication != null ? authentication.getName() : null;
+        var commentDtoPagedModel = commentsService.listByPostId(postId, pageable, username);
+
         return ResponseEntity.ok(commentDtoPagedModel);
     }
 

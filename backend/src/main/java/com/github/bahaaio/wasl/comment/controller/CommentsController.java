@@ -18,27 +18,29 @@ import lombok.RequiredArgsConstructor;
 public class CommentsController {
     private final CommentsService commentsService;
 
-    @GetMapping("/{commentId}")
-    public ResponseEntity<CommentDto> getCommentById(@PathVariable Long commentId, Authentication authentication) {
-        var commentDto = commentsService.getById(commentId, authentication.getName());
+    @GetMapping("/{id}")
+    public ResponseEntity<CommentDto> getCommentById(@PathVariable Long id, Authentication authentication) {
+        var username = authentication != null ? authentication.getName() : null;
+        var commentDto = commentsService.getById(id, username);
+
         return ResponseEntity.ok(commentDto);
     }
 
     @SecurityRequirement(name = "bearerAuth")
-    @PatchMapping("/{commentId}")
+    @PatchMapping("/{id}")
     public ResponseEntity<CommentDto> patchCommentById(
-        @PathVariable Long commentId,
+        @PathVariable Long id,
         @Valid @RequestBody CommentPatchRequest request,
         Authentication authentication
     ) {
-        var commentDto = commentsService.patchById(commentId, request, authentication.getName());
+        var commentDto = commentsService.patchById(id, request, authentication.getName());
         return ResponseEntity.ok(commentDto);
     }
 
     @SecurityRequirement(name = "bearerAuth")
-    @DeleteMapping("/{commentId}")
-    public ResponseEntity<Void> deleteCommentById(@PathVariable Long commentId, Authentication authentication) {
-        commentsService.deleteById(commentId, authentication.getName());
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCommentById(@PathVariable Long id, Authentication authentication) {
+        commentsService.deleteById(id, authentication.getName());
         return ResponseEntity.noContent().build();
     }
 }
