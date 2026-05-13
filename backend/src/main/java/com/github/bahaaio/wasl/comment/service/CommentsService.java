@@ -60,13 +60,20 @@ public class CommentsService {
     @Transactional
     public CommentDto reply(Long postId, CommentCreateRequest request, String username) {
         var post = postService.getEntityById(postId);
+        // check is community member
         var commentAuthor = userService.getEntityByUsername(username);
+
+        Comment parent = null;
+        if (request.parentId() != null) {
+            parent = getEntityById(request.parentId());
+        }
 
         var comment = commentRepository.save(
             Comment.builder()
                 .content(request.content())
                 .author(commentAuthor)
                 .post(post)
+                .parent(parent)
                 .build()
         );
 
@@ -158,6 +165,7 @@ public class CommentsService {
 
     private CommentDto toDto(Comment comment, Long postId, MediaDto mediaDto, VoteAction vote) {
         var author = comment.getAuthor();
+        var parentId = comment.getParent() != null ? comment.getParent().getId() : null;
 
         return CommentDto.builder()
             .id(comment.getId())
@@ -166,7 +174,7 @@ public class CommentsService {
             .authorUsername(author.getUsername())
             .authorAvatarMediaId(author.getAvatarMediaId())
 
-            .parentId(comment.getParent().getId())
+            .parentId(parentId)
             .postId(postId)
             .media(mediaDto)
 
