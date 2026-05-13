@@ -46,7 +46,7 @@ public class PostService {
 
         var vote = VoteAction.NONE;
         if (currentUsername != null) {
-            voteService.getPostVoteByUsername(id, currentUsername);
+            vote = voteService.getPostVoteByUsername(id, currentUsername);
         }
 
         return postMapper.toDto(post, getMediaById(id), vote);

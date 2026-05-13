@@ -55,11 +55,8 @@ public class VoteService {
         if (existingVote == null) {
             if (newAction.equals(VoteAction.NONE)) return;
 
-            postVoteRepository.save(PostVote.builder()
-                .user(user)
-                .post(post)
-                .upvote(requestIsUpvote)
-                .build()
+            postVoteRepository.save(
+                PostVote.of(user, post, requestIsUpvote)
             );
 
             postRepository.adjustScore(postId, requestIsUpvote ? 1 : -1);
