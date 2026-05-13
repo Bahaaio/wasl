@@ -6,12 +6,12 @@ import java.time.Instant;
 
 @Builder
 public record CommunityDto(
-        Long id,
+        long id,
         String name,
         String description,
-        Long categoryId,
+        long categoryId,
         String categoryName,
-        Long subscribersCount,
+        long subscribersCount,
         boolean isPublic,
         Instant createdAt
 ) {

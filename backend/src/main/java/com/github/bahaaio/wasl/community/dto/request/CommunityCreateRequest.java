@@ -14,7 +14,7 @@ public record CommunityCreateRequest(
         String description,
 
         @NotNull
-        Long categoryId,
+        long categoryId,
 
         boolean isPublic
 ) {

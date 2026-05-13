@@ -4,7 +4,7 @@ import lombok.Builder;
 
 @Builder
 public record CommunityCategoryDto(
-        Long id,
+        long id,
         String name
 ) {
 }

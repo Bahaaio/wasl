@@ -10,7 +10,7 @@ public record CommunityPatchRequest(
         String description,
 
         @NotNull
-        Long categoryId,
+        long categoryId,
 
         boolean isPublic
 ) {

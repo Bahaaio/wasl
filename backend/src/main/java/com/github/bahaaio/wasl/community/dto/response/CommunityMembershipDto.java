@@ -7,8 +7,8 @@ import java.time.Instant;
 
 @Builder
 public record CommunityMembershipDto(
-        Long id,
-        Long communityId,
+        long id,
+        long communityId,
         String username,
         CommunityRole role,
         Instant createdAt
