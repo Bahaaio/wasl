@@ -31,7 +31,6 @@ public class CommunityMembershipService {
     private final CommunityMembershipMapper membershipMapper;
     private final UserService userService;
     private final CommunityRepository communityRepository;
-    private final CommunityManagementService subscriberManagementService;
 
     /**
      * Retrieves all memberships for a specific community.
@@ -90,7 +89,7 @@ public class CommunityMembershipService {
                 .build();
 
         membershipRepository.save(membership);
-        subscriberManagementService.incrementSubscribers(communityId);
+        communityRepository.incrementSubscribers(communityId);
     }
 
     /**
@@ -111,7 +110,7 @@ public class CommunityMembershipService {
         }
 
         membershipRepository.delete(membership);
-        subscriberManagementService.decrementSubscribers(communityId);
+        communityRepository.decrementSubscribers(communityId);
     }
 
     /**
@@ -138,7 +137,7 @@ public class CommunityMembershipService {
         }
 
         membershipRepository.delete(membership);
-        subscriberManagementService.decrementSubscribers(communityId);
+        communityRepository.decrementSubscribers(communityId);
     }
 
     /**

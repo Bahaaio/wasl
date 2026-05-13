@@ -28,7 +28,6 @@ public class CommunityService {
     private final CommunityMapper communityMapper;
     private final CommunityCategoryService categoryService;
     private final CommunityMembershipService membershipService;
-    private final CommunityManagementService subscriberManagementService;
 
     /**
      * Retrieves all communities available in the system.
@@ -153,7 +152,7 @@ public class CommunityService {
      */
     @Transactional
     public void incrementSubscribers(Long id) {
-        subscriberManagementService.incrementSubscribers(id);
+        communityRepository.incrementSubscribers(id);
     }
 
     /**
@@ -165,6 +164,6 @@ public class CommunityService {
      */
     @Transactional
     public void decrementSubscribers(Long id) {
-        subscriberManagementService.decrementSubscribers(id);
+        communityRepository.decrementSubscribers(id);
     }
 }
