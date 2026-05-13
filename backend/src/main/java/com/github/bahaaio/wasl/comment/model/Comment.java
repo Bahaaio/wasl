@@ -3,9 +3,11 @@ package com.github.bahaaio.wasl.comment.model;
 import com.github.bahaaio.wasl.post.model.Post;
 import com.github.bahaaio.wasl.user.model.User;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
+import java.util.List;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -38,6 +40,10 @@ public class Comment {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     private Comment parent;
+
+    @OneToMany(mappedBy = "parent")
+    @BatchSize(size = 50)
+    private List<Comment> replies;
 
     @Column(nullable = false)
     private String content;

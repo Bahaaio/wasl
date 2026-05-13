@@ -10,6 +10,7 @@ import com.github.bahaaio.wasl.user.service.UserService;
 import com.github.bahaaio.wasl.vote.dto.VoteRequest;
 import com.github.bahaaio.wasl.vote.model.PostVote;
 import com.github.bahaaio.wasl.vote.model.VoteAction;
+import com.github.bahaaio.wasl.vote.repository.CommentVoteRepository;
 import com.github.bahaaio.wasl.vote.repository.PostVoteRepository;
 
 import org.springframework.data.domain.Page;
@@ -29,6 +30,7 @@ public class VoteService {
     private final PostVoteRepository postVoteRepository;
     private final PostMapper postMapper;
     private final MediaService mediaService;
+    private final CommentVoteRepository commentVoteRepository;
 
     public VoteAction getPostVoteByUsername(Long postId, String username) {
         userService.verifyUserExists(username);
@@ -93,6 +95,14 @@ public class VoteService {
 
         postRepository.adjustAllScoresByUserId(user.getId());
         postVoteRepository.deleteAllByUserId(user.getId());
+    }
+
+    public VoteAction getCommentVoteByUsername(Long commentId, String username) {
+        userService.verifyUserExists(username);
+
+        return commentVoteRepository.findByUser_UsernameAndComment_Id(username, commentId)
+            .map(commentVote -> commentVote.isUpvote() ? VoteAction.UPVOTE : VoteAction.DOWNVOTE)
+            .orElse(VoteAction.NONE);
     }
 
     public void applyCommentVote(Long id, @Valid VoteRequest request, String username) {
