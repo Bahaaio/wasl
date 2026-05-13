@@ -89,15 +89,18 @@ public class PostService {
                 .build()
         );
 
-        var media = request.mediaIds().stream()
-            .map(id -> mediaService.attachMedia(
-                id,
-                MediaOwnerType.POST,
-                created.getId(),
-                username,
-                request.mediaIds().indexOf(id)
-            ))
-            .toList();
+        List<MediaDto> media = null;
+        if (request.mediaIds() != null && !request.mediaIds().isEmpty()) {
+            media = request.mediaIds().stream()
+                .map(id -> mediaService.attachMedia(
+                    id,
+                    MediaOwnerType.POST,
+                    created.getId(),
+                    username,
+                    request.mediaIds().indexOf(id)
+                ))
+                .toList();
+        }
 
         return postMapper.toDto(created, media, VoteAction.NONE);
     }
