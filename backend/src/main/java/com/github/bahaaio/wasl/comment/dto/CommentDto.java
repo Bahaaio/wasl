@@ -26,8 +26,8 @@ public class CommentDto {
 
     private VoteAction vote;
     private Long score;
-    private Boolean hasMoreReplies;
-    private Boolean deleted;
+    private boolean hasMoreReplies;
+    private boolean deleted;
 
     private Instant createdAt;
 }

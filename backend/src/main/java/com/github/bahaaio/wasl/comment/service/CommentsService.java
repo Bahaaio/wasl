@@ -86,7 +86,7 @@ public class CommentsService {
     }
 
     @Transactional
-    public CommentFeedResponse listByPostId(Long postId, Pageable pageable, String username) {
+    public CommentFeedResponse listByPostId(Long postId, Pageable pageable, @Nullable String username) {
         Page<Comment> rootComments = commentRepository.findAllByPost_IdAndParentIsNull(postId, pageable);
         List<CommentDto> allComments = new ArrayList<>();
 
@@ -110,7 +110,7 @@ public class CommentsService {
         MediaDto media = getMediaById(id);
 
         if (request.mediaId() != null) {
-            mediaService.deleteMediaById(media.id());
+            if (media != null) mediaService.deleteMediaById(media.id());
             media = mediaService.attachMedia(request.mediaId(), MediaOwnerType.COMMENT, id, username);
         }
 
@@ -134,8 +134,9 @@ public class CommentsService {
         commentRepository.deleteById(id);
     }
 
-    private MediaDto getMediaById(Long commentId) {
-        return mediaService.getByOwnerId(commentId, MediaOwnerType.COMMENT).getFirst();
+    private @Nullable MediaDto getMediaById(Long commentId) {
+        var mediaList = mediaService.getByOwnerId(commentId, MediaOwnerType.COMMENT);
+        return mediaList.isEmpty() ? null : mediaList.getFirst();
     }
 
     private void flattenAndMap(Comment comment, Long postId, String username, List<CommentDto> allComments, int depth) {
@@ -146,7 +147,7 @@ public class CommentsService {
         }
 
         // TODO: crazy N+1
-        MediaDto media = getMediaById(comment);
+        MediaDto media = getMediaById(comment.getId());
         var dto = toDto(comment, postId, media, vote);
         allComments.add(dto);
 
@@ -157,10 +158,6 @@ public class CommentsService {
         } else {
             dto.setHasMoreReplies(!comment.getReplies().isEmpty());
         }
-    }
-
-    private MediaDto getMediaById(Comment comment) {
-        return getMediaById(comment.getId());
     }
 
     private CommentDto toDto(Comment comment, Long postId, MediaDto mediaDto, VoteAction vote) {
