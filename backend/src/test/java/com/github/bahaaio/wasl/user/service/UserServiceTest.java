@@ -13,6 +13,7 @@ import com.github.bahaaio.wasl.user.exception.UsernameNotFoundException;
 import com.github.bahaaio.wasl.user.mapper.UserMapper;
 import com.github.bahaaio.wasl.user.model.User;
 import com.github.bahaaio.wasl.user.repository.UserRepository;
+import com.github.bahaaio.wasl.vote.service.VoteDeletionService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,9 @@ class UserServiceTest {
     @Mock
     RefreshTokenService refreshTokenService;
 
+    @Mock
+    VoteDeletionService voteDeletionService;
+
     @InjectMocks
     UserService userService;
 
@@ -44,7 +48,7 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        testUser = User.builder().username("test").build();
+        testUser = User.builder().id(1L).username("test").build();
     }
 
     @Test
@@ -107,9 +111,12 @@ class UserServiceTest {
 
     @Test
     void testDeleteUserByUsername() {
+        given(userRepository.findByUsername("test")).willReturn(Optional.of(testUser));
+
         userService.deleteUserByUsername("test");
 
-        then(userRepository).should().deleteByUsername("test");
-        then(refreshTokenService).should().deleteAllTokens("test");
+        then(userRepository).should().deleteById(1L);
+        then(refreshTokenService).should().deleteAllTokensByUserId(1L);
+        then(voteDeletionService).should().deleteAllVotesByUserId(1L);
     }
 }

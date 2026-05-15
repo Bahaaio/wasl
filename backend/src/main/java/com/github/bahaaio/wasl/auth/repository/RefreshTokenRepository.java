@@ -12,6 +12,7 @@ import java.util.Optional;
 import jakarta.transaction.Transactional;
 
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long> {
+
     Optional<RefreshToken> findByTokenHash(String tokenHash);
 
     @Transactional
@@ -19,8 +20,5 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
     @Query("UPDATE RefreshToken r SET r.revoked = true WHERE r.user.username = :username")
     void revokeAllTokensByUsername(@Param("username") String username);
 
-    @Transactional
-    @Modifying
-    @Query("DELETE RefreshToken r WHERE r.user.username = :username")
-    void deleteAllByUsername(String username);
+    void deleteAllByUser_Id(Long userId);
 }

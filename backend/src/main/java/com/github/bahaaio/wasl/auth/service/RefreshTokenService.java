@@ -65,8 +65,8 @@ public class RefreshTokenService {
         refreshTokenRepository.revokeAllTokensByUsername(username);
     }
 
-    public void deleteAllTokens(String username) {
-        refreshTokenRepository.deleteAllByUsername(username);
+    public void deleteAllTokensByUserId(Long userId) {
+        refreshTokenRepository.deleteAllByUser_Id(userId);
     }
 
     private RefreshToken getRefreshToken(String token) {

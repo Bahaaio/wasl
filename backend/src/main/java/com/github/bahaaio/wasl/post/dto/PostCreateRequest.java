@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record PostCreateRequest(
@@ -15,7 +16,8 @@ public record PostCreateRequest(
     @Size(min = 3, max = 10000)
     String content,
 
-    long communityId,
+    @NotNull
+    Long communityId,
 
     @Size(max = 10)
     List<UUID> mediaIds

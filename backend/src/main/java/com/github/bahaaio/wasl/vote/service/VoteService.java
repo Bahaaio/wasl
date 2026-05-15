@@ -91,13 +91,6 @@ public class VoteService {
         return new PagedModel<>(postDtoPage);
     }
 
-    public void deleteAllPostVotesByUsername(String username) {
-        var user = userService.getEntityByUsername(username);
-
-        postRepository.adjustAllScoresByUserId(user.getId());
-        postVoteRepository.deleteAllByUserId(user.getId());
-    }
-
     public VoteAction getCommentVoteByUsername(Long commentId, String username) {
         userService.verifyUserExists(username);
 
@@ -142,17 +135,5 @@ public class VoteService {
         // change vote
         existingVote.setUpvote(requestIsUpvote);
         commentRepository.adjustScore(id, requestIsUpvote ? 2 : -2);
-    }
-
-    public void deleteAllCommentVotesByUsername(String username) {
-        var user = userService.getEntityByUsername(username);
-
-        commentRepository.adjustAllScoresByUserId(user.getId());
-        commentVoteRepository.deleteAllByUserId(user.getId());
-    }
-
-    public void deleteAllVotesByUsername(String username) {
-        deleteAllPostVotesByUsername(username);
-        deleteAllCommentVotesByUsername(username);
     }
 }

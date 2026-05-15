@@ -7,6 +7,7 @@ import com.github.bahaaio.wasl.user.exception.UsernameNotFoundException;
 import com.github.bahaaio.wasl.user.mapper.UserMapper;
 import com.github.bahaaio.wasl.user.model.User;
 import com.github.bahaaio.wasl.user.repository.UserRepository;
+import com.github.bahaaio.wasl.vote.service.VoteDeletionService;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final RefreshTokenService refreshTokenService;
+    private final VoteDeletionService voteDeletionService;
 
     /**
      * Retrieves a user by username.
@@ -83,12 +85,15 @@ public class UserService {
      */
     @Transactional
     public void deleteUserByUsername(String username) {
-        refreshTokenService.deleteAllTokens(username);
+        var user = getEntityByUsername(username);
+
+        refreshTokenService.deleteAllTokensByUserId(user.getId());
+        voteDeletionService.deleteAllVotesByUserId(user.getId());
+
+        // TODO: delete media
+        // TODO: mark content as deleted
 
         // TODO: soft delete
-        userRepository.deleteByUsername(username);
-
-        // TODO: mark content as deleted
-        // TODO: delete media
+        userRepository.deleteById(user.getId());
     }
 }
