@@ -1,5 +1,12 @@
 import api from "./client";
 
+/** @typedef {import("./types").UploadResponse} UploadResponse */
+
+/**
+ * @param {string} url
+ * @param {File} file
+ * @returns {Promise<UploadResponse>}
+ */
 export const uploadFile = (url, file) => {
   const formData = new FormData();
   formData.append("file", file);

@@ -5,6 +5,12 @@ import {
 } from "../auth/store";
 import api from "./client";
 
+/**
+ * @typedef {Object} PendingRequest
+ * @property {(token: string) => void} resolve
+ * @property {(error: Error) => void} reject
+ */
+
 // add access token to the request header if it exists
 api.interceptors.request.use(config => {
   const token = getAccessToken();
@@ -17,6 +23,7 @@ api.interceptors.request.use(config => {
 });
 
 let isRefreshing = false;
+/** @type {PendingRequest[]} */
 let failedQueue = [];
 
 const processQueue = (error, token) => {
