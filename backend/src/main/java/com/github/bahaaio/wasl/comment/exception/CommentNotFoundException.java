@@ -5,6 +5,6 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class CommentNotFound extends RuntimeException {
+public class CommentNotFoundException extends RuntimeException {
     private final Long id;
 }

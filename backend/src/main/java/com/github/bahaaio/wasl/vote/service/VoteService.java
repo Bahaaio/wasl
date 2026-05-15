@@ -1,6 +1,6 @@
 package com.github.bahaaio.wasl.vote.service;
 
-import com.github.bahaaio.wasl.comment.exception.CommentNotFound;
+import com.github.bahaaio.wasl.comment.exception.CommentNotFoundException;
 import com.github.bahaaio.wasl.comment.repository.CommentRepository;
 import com.github.bahaaio.wasl.media.model.MediaOwnerType;
 import com.github.bahaaio.wasl.media.service.MediaService;
@@ -110,7 +110,7 @@ public class VoteService {
     public void applyCommentVote(Long id, @Valid VoteRequest request, String username) {
         var user = userService.getEntityByUsername(username);
         var comment = commentRepository.findById(id)
-            .orElseThrow(() -> new CommentNotFound(id));
+            .orElseThrow(() -> new CommentNotFoundException(id));
 
         var existingVote = commentVoteRepository.findByUser_UsernameAndComment_Id(user.getUsername(), comment.getId())
             .orElse(null);

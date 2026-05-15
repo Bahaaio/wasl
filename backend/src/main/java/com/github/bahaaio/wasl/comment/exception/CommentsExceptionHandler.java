@@ -9,11 +9,17 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class CommentsExceptionHandler {
-    // TODO: handle exceptions
-    @ExceptionHandler(CommentNotFound.class)
-    public ResponseEntity<ApiError<Void>> handleCommentNotFound(CommentNotFound ex) {
+    @ExceptionHandler(CommentNotFoundException.class)
+    public ResponseEntity<ApiError<Void>> handleCommentNotFound(CommentNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
             ApiError.of("COMMENT_NOT_FOUND", "Comment with id: " + ex.getId() + " not found")
+        );
+    }
+
+    @ExceptionHandler(CommentParentNotFoundException.class)
+    public ResponseEntity<ApiError<Void>> handleParentNotFound(CommentParentNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+            ApiError.of("COMMENT_PARENT_NOT_FOUND", "Comment parent with id: " + ex.getId() + " not found")
         );
     }
 }

@@ -5,7 +5,8 @@ import com.github.bahaaio.wasl.comment.dto.CommentCreateRequest;
 import com.github.bahaaio.wasl.comment.dto.CommentDto;
 import com.github.bahaaio.wasl.comment.dto.CommentFeedResponse;
 import com.github.bahaaio.wasl.comment.dto.CommentPatchRequest;
-import com.github.bahaaio.wasl.comment.exception.CommentNotFound;
+import com.github.bahaaio.wasl.comment.exception.CommentNotFoundException;
+import com.github.bahaaio.wasl.comment.exception.CommentParentNotFoundException;
 import com.github.bahaaio.wasl.comment.model.Comment;
 import com.github.bahaaio.wasl.comment.repository.CommentRepository;
 import com.github.bahaaio.wasl.media.dto.MediaDto;
@@ -56,7 +57,7 @@ public class CommentsService {
 
     public Comment getEntityById(Long id) {
         return commentRepository.findById(id)
-            .orElseThrow(() -> new CommentNotFound(id));
+            .orElseThrow(() -> new CommentNotFoundException(id));
     }
 
     @Transactional
@@ -67,7 +68,8 @@ public class CommentsService {
 
         Comment parent = null;
         if (request.parentId() != null) {
-            parent = getEntityById(request.parentId());
+            parent = commentRepository.findById(request.parentId())
+                .orElseThrow(() -> new CommentParentNotFoundException(request.parentId()));
         }
 
         var comment = commentRepository.save(
@@ -102,7 +104,7 @@ public class CommentsService {
     @Transactional
     public CommentDto patchById(Long id, CommentPatchRequest request, @Nullable String username) {
         var comment = commentRepository.findById(id)
-            .orElseThrow(() -> new CommentNotFound(id));
+            .orElseThrow(() -> new CommentNotFoundException(id));
 
         // TODO: check if moderator
         if (!comment.getAuthor().getUsername().equals(username)) {
