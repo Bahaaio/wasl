@@ -25,11 +25,6 @@ spring:
       pageable:
         one-indexed-parameters: true
 
-  docker:
-    compose:
-      enabled: true
-      file: docker-compose.db.yml
-
 security:
   jwt:
     secret: "/7LHCo1fbM7W2tuxaFndwPddh9krWcGqPxCS92TYI/CYNoWwRHClMz4yuxCc3AJAb9HlS8wRmJSYNSD37OSYzw=="
