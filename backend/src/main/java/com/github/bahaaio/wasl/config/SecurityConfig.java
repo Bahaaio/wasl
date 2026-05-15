@@ -50,6 +50,7 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.POST, "/api/v1/media").authenticated()
                     .requestMatchers("/api/v1/media/**").permitAll()
 
+                    .requestMatchers("/actuator/health").permitAll()
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                     .anyRequest().authenticated()
             )
