@@ -5,9 +5,34 @@ import com.github.bahaaio.wasl.comment.model.Comment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import jakarta.transaction.Transactional;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
     Page<Comment> findAllByPost_Id(Long postId, Pageable pageable);
 
     Page<Comment> findAllByPost_IdAndParentIsNull(Long postId, Pageable pageable);
+
+    @Transactional
+    @Modifying
+    @Query(value = """
+        UPDATE comments
+        SET score = score + (
+             SELECT CASE WHEN upvote THEN -1 ELSE 1 END
+             FROM comment_vote cv
+             WHERE comment_id = comments.id AND user_id = :userId
+        )
+        WHERE id IN (
+            SELECT comment_id FROM comment_vote WHERE user_id = :userId
+        )
+        """, nativeQuery = true)
+    void adjustAllScoresByUserId(@Param("userId") Long userId);
+
+    @Transactional
+    @Modifying
+    @Query("UPDATE Comment c SET c.score = c.score + :delta WHERE c.id = :id")
+    void adjustScore(@Param("id") Long id, @Param("delta") int delta);
 }

@@ -1,5 +1,7 @@
 package com.github.bahaaio.wasl.vote.service;
 
+import com.github.bahaaio.wasl.comment.exception.CommentNotFound;
+import com.github.bahaaio.wasl.comment.repository.CommentRepository;
 import com.github.bahaaio.wasl.media.model.MediaOwnerType;
 import com.github.bahaaio.wasl.media.service.MediaService;
 import com.github.bahaaio.wasl.post.dto.PostDto;
@@ -8,6 +10,7 @@ import com.github.bahaaio.wasl.post.mapper.PostMapper;
 import com.github.bahaaio.wasl.post.repository.PostRepository;
 import com.github.bahaaio.wasl.user.service.UserService;
 import com.github.bahaaio.wasl.vote.dto.VoteRequest;
+import com.github.bahaaio.wasl.vote.model.CommentVote;
 import com.github.bahaaio.wasl.vote.model.PostVote;
 import com.github.bahaaio.wasl.vote.model.VoteAction;
 import com.github.bahaaio.wasl.vote.repository.CommentVoteRepository;
@@ -31,6 +34,7 @@ public class VoteService {
     private final PostMapper postMapper;
     private final MediaService mediaService;
     private final CommentVoteRepository commentVoteRepository;
+    private final CommentRepository commentRepository;
 
     public VoteAction getPostVoteByUsername(Long postId, String username) {
         userService.verifyUserExists(username);
@@ -102,13 +106,53 @@ public class VoteService {
             .orElse(VoteAction.NONE);
     }
 
+    @Transactional
     public void applyCommentVote(Long id, @Valid VoteRequest request, String username) {
         var user = userService.getEntityByUsername(username);
-        // TODO
+        var comment = commentRepository.findById(id)
+            .orElseThrow(() -> new CommentNotFound(id));
+
+        var existingVote = commentVoteRepository.findByUser_UsernameAndComment_Id(user.getUsername(), comment.getId())
+            .orElse(null);
+        var newAction = request.action();
+        var requestIsUpvote = newAction.equals(VoteAction.UPVOTE);
+
+        // new vote
+        if (existingVote == null) {
+            if (newAction.equals(VoteAction.NONE)) return;
+
+            commentVoteRepository.save(
+                CommentVote.of(user, comment, requestIsUpvote)
+            );
+
+            commentRepository.adjustScore(id, requestIsUpvote ? 1 : -1);
+            return;
+        }
+
+        // remove existing vote
+        if (newAction.equals(VoteAction.NONE)) {
+            commentVoteRepository.delete(existingVote);
+            commentRepository.adjustScore(id, existingVote.isUpvote() ? -1 : 1);
+            return;
+        }
+
+        // same vote
+        if (requestIsUpvote == existingVote.isUpvote()) return;
+
+        // change vote
+        existingVote.setUpvote(requestIsUpvote);
+        commentRepository.adjustScore(id, requestIsUpvote ? 2 : -2);
     }
 
     public void deleteAllCommentVotesByUsername(String username) {
         var user = userService.getEntityByUsername(username);
-        // TODO
+
+        commentRepository.adjustAllScoresByUserId(user.getId());
+        commentVoteRepository.deleteAllByUserId(user.getId());
+    }
+
+    public void deleteAllVotesByUsername(String username) {
+        deleteAllPostVotesByUsername(username);
+        deleteAllCommentVotesByUsername(username);
     }
 }
