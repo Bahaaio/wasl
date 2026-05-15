@@ -11,6 +11,7 @@ import com.github.bahaaio.wasl.comment.repository.CommentRepository;
 import com.github.bahaaio.wasl.media.dto.MediaDto;
 import com.github.bahaaio.wasl.media.model.MediaOwnerType;
 import com.github.bahaaio.wasl.media.service.MediaService;
+import com.github.bahaaio.wasl.post.repository.PostRepository;
 import com.github.bahaaio.wasl.post.service.PostService;
 import com.github.bahaaio.wasl.user.service.UserService;
 import com.github.bahaaio.wasl.vote.model.VoteAction;
@@ -38,6 +39,7 @@ public class CommentsService {
     private final PostService postService;
     private final MediaService mediaService;
     private final VoteService voteService;
+    private final PostRepository postRepository;
 
     @Transactional
     public CommentDto getById(Long id, String username) {
@@ -76,6 +78,8 @@ public class CommentsService {
                 .parent(parent)
                 .build()
         );
+
+        postRepository.adjustCommentCount(post.getId(), 1);
 
         MediaDto media = null;
         if (request.mediaId() != null) {
@@ -128,6 +132,8 @@ public class CommentsService {
         if (!comment.getAuthor().getUsername().equals(username)) {
             throw new ForbiddenException();
         }
+
+        postRepository.adjustCommentCount(comment.getPost().getId(), -1);
 
         // TODO: soft delete
         mediaService.deleteMediaByOwnerId(id, MediaOwnerType.COMMENT);

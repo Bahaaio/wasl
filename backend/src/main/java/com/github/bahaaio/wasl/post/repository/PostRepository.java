@@ -33,4 +33,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Modifying
     @Query("UPDATE Post p SET p.score = p.score + :delta WHERE p.id = :id")
     void adjustScore(@Param("id") Long id, @Param("delta") int delta);
+
+    @Transactional
+    @Modifying
+    @Query("UPDATE Post p SET p.commentCount = p.commentCount + :delta WHERE p.id = :id")
+    void adjustCommentCount(@Param("id") Long id, @Param("delta") int delta);
 }
