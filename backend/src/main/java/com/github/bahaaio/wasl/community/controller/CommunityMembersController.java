@@ -21,7 +21,7 @@ public class CommunityMembersController {
     private final CommunityMembershipService communityMembershipService;
 
     @SecurityRequirement(name = "bearerAuth")
-    @GetMapping("/members")
+    @GetMapping
     public ResponseEntity<PagedModel<CommunityMembershipDto>> getCommunityMembers(
         @PathVariable String name,
         @ParameterObject Pageable pageable
@@ -30,7 +30,7 @@ public class CommunityMembersController {
     }
 
     @SecurityRequirement(name = "bearerAuth")
-    @DeleteMapping("/members/{username}")
+    @DeleteMapping("/{username}")
     public ResponseEntity<Void> removeMember(
         @PathVariable("name") String communityName,
         @PathVariable String username,
