@@ -17,7 +17,5 @@ public interface CommunityMembershipRepository extends JpaRepository<CommunityMe
 
     boolean existsByCommunityIdAndUserUsernameAndRoleIn(Long communityId, String username, List<CommunityRole> roles);
 
-    boolean existsByUserUsernameAndRoleIn(String username, List<CommunityRole> roles);
-
     void deleteAllByCommunityId(Long communityId);
 }
