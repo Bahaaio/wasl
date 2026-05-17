@@ -1,6 +1,7 @@
 package com.github.bahaaio.wasl.post.service;
 
 import com.github.bahaaio.wasl.auth.exception.ForbiddenException;
+import com.github.bahaaio.wasl.community.service.CommunityMembershipService;
 import com.github.bahaaio.wasl.community.service.CommunityService;
 import com.github.bahaaio.wasl.media.dto.MediaDto;
 import com.github.bahaaio.wasl.media.model.MediaOwnerType;
@@ -40,6 +41,7 @@ public class PostService {
     private final UserService userService;
     private final VoteService voteService;
     private final CommunityService communityService;
+    private final CommunityMembershipService communityMembershipService;
 
     @Transactional
     public PostDto getById(Long id, @Nullable String currentUsername) {
@@ -107,13 +109,9 @@ public class PostService {
 
     @Transactional
     public PostDto patchById(Long id, PostPatchRequest request, String username) {
-//        var user = userService.getEntityByUsername(username);
         var post = getEntityById(id);
 
-        // TODO: check if user is moderator from membership service
-        if (!post.getAuthor().getUsername().equals(username)) {
-            throw new ForbiddenException();
-        }
+        validateAuthorOrModerator(username, post);
 
         if (StringUtils.isNotBlank(request.title())) post.setTitle(request.title());
         if (StringUtils.isNotBlank(request.content())) post.setContent(request.content());
@@ -146,13 +144,8 @@ public class PostService {
 
     @Transactional
     public void deleteById(Long id, String username) {
-//        var user = userService.getEntityByUsername(username);
         var post = getEntityById(id);
-
-        // TODO: check if user is moderator from membership service
-        if (!post.getAuthor().getUsername().equals(username)) {
-            throw new ForbiddenException();
-        }
+        validateAuthorOrModerator(username, post);
 
         // TODO: soft delete
         mediaService.deleteMediaByOwnerId(id, MediaOwnerType.POST);
@@ -171,5 +164,13 @@ public class PostService {
         }
 
         return mediaService.attachMedia(mediaId, MediaOwnerType.POST, postId, username, position);
+    }
+
+    private void validateAuthorOrModerator(String username, Post post) {
+        if (!post.getAuthor().getUsername().equals(username) &&
+            !communityMembershipService.isOwnerOrModerator(post.getCommunity().getName(), username)
+        ) {
+            throw new ForbiddenException();
+        }
     }
 }

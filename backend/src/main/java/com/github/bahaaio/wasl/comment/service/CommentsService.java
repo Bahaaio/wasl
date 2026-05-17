@@ -9,6 +9,7 @@ import com.github.bahaaio.wasl.comment.exception.CommentNotFoundException;
 import com.github.bahaaio.wasl.comment.exception.CommentParentNotFoundException;
 import com.github.bahaaio.wasl.comment.model.Comment;
 import com.github.bahaaio.wasl.comment.repository.CommentRepository;
+import com.github.bahaaio.wasl.community.service.CommunityMembershipService;
 import com.github.bahaaio.wasl.media.dto.MediaDto;
 import com.github.bahaaio.wasl.media.model.MediaOwnerType;
 import com.github.bahaaio.wasl.media.service.MediaService;
@@ -41,6 +42,7 @@ public class CommentsService {
     private final MediaService mediaService;
     private final VoteService voteService;
     private final PostRepository postRepository;
+    private final CommunityMembershipService communityMembershipService;
 
     @Transactional
     public CommentDto getById(Long id, String username) {
@@ -106,10 +108,7 @@ public class CommentsService {
         var comment = commentRepository.findById(id)
             .orElseThrow(() -> new CommentNotFoundException(id));
 
-        // TODO: check if moderator
-        if (!comment.getAuthor().getUsername().equals(username)) {
-            throw new ForbiddenException();
-        }
+        validateAuthorOrModerator(username, comment);
 
         if (StringUtils.isNotBlank(request.content())) comment.setContent(request.content());
 
@@ -127,13 +126,8 @@ public class CommentsService {
 
     @Transactional
     public void deleteById(Long id, String username) {
-//        var user = userService.getEntityByUsername(username);
         var comment = getEntityById(id);
-
-        // TODO: check if user is moderator from membership service
-        if (!comment.getAuthor().getUsername().equals(username)) {
-            throw new ForbiddenException();
-        }
+        validateAuthorOrModerator(username, comment);
 
         postRepository.adjustCommentCount(comment.getPost().getId(), -1);
 
@@ -165,6 +159,15 @@ public class CommentsService {
             );
         } else {
             dto.setHasMoreReplies(!comment.getReplies().isEmpty());
+        }
+    }
+
+    private void validateAuthorOrModerator(String username, Comment comment) {
+        var communityName = comment.getPost().getCommunity().getName();
+
+        if (!comment.getAuthor().getUsername().equals(username) &&
+            !communityMembershipService.isOwnerOrModerator(communityName, username)) {
+            throw new ForbiddenException();
         }
     }
 
