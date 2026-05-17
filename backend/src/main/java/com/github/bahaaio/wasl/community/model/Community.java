@@ -32,7 +32,7 @@ public class Community {
 
     // denormalized counter
     @Builder.Default
-    private Long subscribersCount = 0L;
+    private Long subscribersCount = 1L;
 
     @Column(nullable = false)
     private boolean isPublic;
