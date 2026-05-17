@@ -27,8 +27,8 @@ import lombok.RequiredArgsConstructor;
  * Responsible for managing users joining, leaving, and being removed from communities,
  * as well as role verifications.
  */
-@Service
 @RequiredArgsConstructor
+@Service
 public class CommunityMembershipService {
 
     private final CommunityMembershipRepository membershipRepository;

@@ -10,6 +10,7 @@ import com.github.bahaaio.wasl.community.model.Community;
 import com.github.bahaaio.wasl.community.model.CommunityCategory;
 import com.github.bahaaio.wasl.community.repository.CommunityRepository;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
@@ -17,8 +18,8 @@ import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
-@Service
 @RequiredArgsConstructor
+@Service
 public class CommunityService {
     private final CommunityRepository communityRepository;
     private final CommunityMapper communityMapper;
@@ -113,9 +114,9 @@ public class CommunityService {
 
         CommunityCategory category = categoryService.getEntityById(request.categoryId());
 
-        community.setDescription(request.description());
-        community.setCategory(category);
-        community.setPublic(request.isPublic());
+        if (StringUtils.isNotBlank(request.description())) community.setDescription(request.description());
+        if (request.categoryId() != null) community.setCategory(category);
+        if (request.isPublic() != null) community.setPublic(request.isPublic());
 
         return communityMapper.toDto(communityRepository.save(community));
     }

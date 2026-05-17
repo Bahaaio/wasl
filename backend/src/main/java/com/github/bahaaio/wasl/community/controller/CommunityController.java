@@ -44,9 +44,8 @@ public class CommunityController {
         );
     }
 
-    // TODO: change to patch
     @SecurityRequirement(name = "bearerAuth")
-    @PutMapping("/{name}")
+    @PatchMapping("/{name}")
     public ResponseEntity<CommunityDto> updateCommunity(
         @PathVariable String name,
         @Valid @RequestBody CommunityPatchRequest request,
