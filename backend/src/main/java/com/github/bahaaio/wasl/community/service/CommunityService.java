@@ -131,6 +131,10 @@ public class CommunityService {
      */
     @Transactional
     public void deleteCommunity(String name, String username) {
+        if (!communityRepository.existsByNameIgnoreCase(name)) {
+            throw new CommunityNotFoundException(name);
+        }
+
         if (!membershipService.isOwner(name, username)) {
             throw new ForbiddenException();
         }

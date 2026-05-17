@@ -30,7 +30,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Service
 public class CommunityMembershipService {
-
     private final CommunityMembershipRepository membershipRepository;
     private final CommunityMembershipMapper membershipMapper;
     private final UserService userService;
