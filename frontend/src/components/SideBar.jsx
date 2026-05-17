@@ -72,7 +72,7 @@ export default function SideBar({ isOpen, setIsOpen }) {
       )}
 
       <div
-        className={`fixed inset-0 top-16 z-20 bg-slate-950/70 backdrop-blur-sm transition-opacity md:hidden ${
+        className={`fixed inset-0 top-16 z-30 bg-slate-950/70 backdrop-blur-sm transition-opacity md:hidden ${
           isOpen
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"
@@ -84,7 +84,7 @@ export default function SideBar({ isOpen, setIsOpen }) {
       <aside
         id="posts-sidebar"
         ref={sidebarRef}
-        className={`sidebar-scroll fixed left-0 top-16 z-30 h-[calc(100vh-4rem)] w-64 max-w-[80vw] shrink-0 border-r border-slate-800 bg-slate-950 overflow-y-auto transition-transform duration-300 ease-out md:sticky md:top-16 md:h-[calc(100vh-4rem)] xl:w-72 ${
+        className={`sidebar-scroll fixed left-0 top-16 z-35 h-[calc(100vh-4rem)] w-64 max-w-[80vw] shrink-0 border-r border-slate-800 bg-slate-950 overflow-y-auto transition-transform duration-300 ease-out md:sticky md:top-16 md:h-[calc(100vh-4rem)] xl:w-72 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         aria-hidden={!isOpen}
