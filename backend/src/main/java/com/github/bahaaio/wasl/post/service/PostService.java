@@ -1,7 +1,7 @@
 package com.github.bahaaio.wasl.post.service;
 
 import com.github.bahaaio.wasl.auth.exception.ForbiddenException;
-import com.github.bahaaio.wasl.community.model.Community;
+import com.github.bahaaio.wasl.community.service.CommunityService;
 import com.github.bahaaio.wasl.media.dto.MediaDto;
 import com.github.bahaaio.wasl.media.model.MediaOwnerType;
 import com.github.bahaaio.wasl.media.service.MediaService;
@@ -39,6 +39,7 @@ public class PostService {
     private final MediaService mediaService;
     private final UserService userService;
     private final VoteService voteService;
+    private final CommunityService communityService;
 
     @Transactional
     public PostDto getById(Long id, @Nullable String currentUsername) {
@@ -77,8 +78,7 @@ public class PostService {
     @Transactional
     public PostDto create(PostCreateRequest request, String username) {
         var author = userService.getEntityByUsername(username);
-        // TODO: use community service
-        Community community = null;
+        var community = communityService.getEntityByName(request.communityName());
 
         var created = postRepository.save(
             Post.builder()
