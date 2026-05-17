@@ -80,7 +80,7 @@ public class CommunityMembershipService {
     @Transactional
     public void joinCommunity(String communityName, String username) {
         if (membershipRepository.existsByCommunity_NameAndUser_Username(communityName, username)) {
-            throw new IllegalArgumentException("User is already a member of this community");
+            return;
         }
 
         User user = userService.getEntityByUsername(username);
