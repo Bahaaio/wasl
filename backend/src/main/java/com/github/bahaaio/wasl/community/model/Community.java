@@ -24,7 +24,7 @@ public class Community {
     @JoinColumn(name = "category_id", nullable = false)
     private CommunityCategory category;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String name;
 
     @Column(nullable = false)
@@ -32,7 +32,7 @@ public class Community {
 
     // denormalized counter
     @Builder.Default
-    private Long subscribersCount = 0L;
+    private Long subscribersCount = 1L;
 
     @Column(nullable = false)
     private boolean isPublic;
