@@ -1,11 +1,21 @@
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, ImagePlus, Link2, BarChart3, ArrowLeft } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
 import RichTextEditor from "../components/RichTextEditor.jsx";
 import AuthModal from "../components/AuthModal.jsx";
-import { MOCK_COMMUNITIES } from "../data/mockData.js";
+import { MediaApi } from "../api/media.js";
+import { PostsApi } from "../api/posts.js";
+import { CommunitiesApi } from "../api/communities.js";
 import { useUser } from "../auth/useUser.jsx";
+
+function stripCommunityPrefix(value) {
+  return value.replace(/^r\//i, "").trim();
+}
+
+function toDisplayCommunityName(value) {
+  return value.trim();
+}
 
 export default function CreatePostPage() {
   const navigate = useNavigate();
@@ -20,6 +30,10 @@ export default function CreatePostPage() {
   const [showImages, setShowImages] = useState(false);
   const [showLink, setShowLink] = useState(false);
   const [showPoll, setShowPoll] = useState(false);
+  const [communities, setCommunities] = useState([]);
+  const [communityQuery, setCommunityQuery] = useState("");
+  const [isCommunityMenuOpen, setIsCommunityMenuOpen] = useState(false);
+  const [isLoadingCommunities, setIsLoadingCommunities] = useState(false);
   const [createPostForm, setCreatePostForm] = useState({
     title: "",
     content: "",
@@ -28,6 +42,71 @@ export default function CreatePostPage() {
     link: "",
     pollOptions: ["", ""],
   });
+  const communityPickerRef = useRef(null);
+
+  useEffect(() => {
+    const loadCommunities = async () => {
+      setIsLoadingCommunities(true);
+
+      try {
+        const response = await CommunitiesApi.getAllCommunities({
+          page: 0,
+          size: 100,
+          sort: ["name,asc"],
+        });
+
+        const nextCommunities = response?.content ?? [];
+        setCommunities(nextCommunities);
+
+        if (nextCommunities.length > 0) {
+          const firstCommunity = nextCommunities[0];
+          setCreatePostForm(previous => ({
+            ...previous,
+            community: firstCommunity.name,
+          }));
+          setCommunityQuery(firstCommunity.name);
+        }
+      } catch (error) {
+        console.error("Failed to load communities:", error);
+        setCommunities([]);
+      } finally {
+        setIsLoadingCommunities(false);
+      }
+    };
+
+    loadCommunities();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = event => {
+      if (
+        communityPickerRef.current &&
+        !communityPickerRef.current.contains(event.target)
+      ) {
+        setIsCommunityMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredCommunities = useMemo(() => {
+    const query = communityQuery.trim().toLowerCase().replace(/^r\//, "");
+
+    if (!query) {
+      return communities.slice(0, 8);
+    }
+
+    return communities
+      .filter(community => {
+        const communityName = stripCommunityPrefix(
+          community.name
+        ).toLowerCase();
+        return communityName.includes(query);
+      })
+      .slice(0, 8);
+  }, [communities, communityQuery]);
 
   const handleCreatePostChange = event => {
     const { name, value } = event.target;
@@ -111,40 +190,66 @@ export default function CreatePostPage() {
     setCreatePostError(null);
 
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/v1/posts', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${accessToken}`,
-      //   },
-      //   body: JSON.stringify({
-      //     title: createPostForm.title,
-      //     content: createPostForm.content,
-      //     communityName: createPostForm.community,
-      //   }),
-      // });
+      const selectedCommunity =
+        communities.find(
+          community =>
+            community.name.toLowerCase() ===
+            createPostForm.community.trim().toLowerCase()
+        ) ||
+        communities.find(
+          community =>
+            stripCommunityPrefix(community.name).toLowerCase() ===
+            communityQuery.trim().toLowerCase().replace(/^r\//, "")
+        );
 
-      // if (!response.ok) {
-      //   const error = await response.json();
-      //   throw new Error(error.message || 'Failed to create post');
-      // }
+      if (!selectedCommunity) {
+        setCreatePostError("Choose a matching community from the list.");
+        setIsCreatingPost(false);
+        return;
+      }
 
-      // const newPost = await response.json();
-      // Navigate back to posts page after successful creation
-      // onNavigate('posts');
+      const uploadedMedia = await Promise.all(
+        createPostForm.images.map(file => MediaApi.uploadMedia(file))
+      );
 
-      console.log("Create post:", createPostForm);
+      const mediaIds = uploadedMedia
+        .map(result => result?.mediaId)
+        .filter(Boolean);
+
+      const contentParts = [createPostForm.content.trim()];
+
+      if (showLink && createPostForm.link.trim()) {
+        contentParts.push(`Link: ${createPostForm.link.trim()}`);
+      }
+
+      if (showPoll) {
+        const pollLines = createPostForm.pollOptions
+          .map(option => option.trim())
+          .filter(Boolean)
+          .map(option => `- ${option}`);
+
+        if (pollLines.length > 0) {
+          contentParts.push(`Poll options:\n${pollLines.join("\n")}`);
+        }
+      }
+
+      await PostsApi.createPost({
+        title: createPostForm.title.trim(),
+        content: contentParts.filter(Boolean).join("\n\n"),
+        communityName: selectedCommunity.name,
+        mediaIds: mediaIds.length > 0 ? mediaIds : undefined,
+      });
+
       setCreatePostForm({
         title: "",
         content: "",
-        community: "r/javascript",
+        community: communities[0]?.name || "",
         images: [],
         link: "",
         pollOptions: ["", ""],
       });
+      setCommunityQuery(communities[0]?.name || "");
       setComposerTab("post");
-      // Navigate back to posts after success
       navigate("/posts");
     } catch (error) {
       setCreatePostError(
@@ -166,7 +271,7 @@ export default function CreatePostPage() {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => navigate("/posts")}
+              onClick={() => navigate(-1)}
               className="p-2.5 rounded-full bg-slate-800/50 hover:bg-linear-to-br hover:from-orange-500/30 hover:to-red-600/30 text-slate-400 hover:text-orange-400 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/20 border border-slate-700/50 hover:border-orange-500/50"
               aria-label="Go back"
             >
@@ -185,44 +290,91 @@ export default function CreatePostPage() {
 
         <form onSubmit={handleCreatePostSubmit} className="space-y-4">
           {/* Community Selector */}
-          <button
-            type="button"
-            className="w-full sm:w-auto px-4 py-2.5 bg-slate-800/60 border border-slate-700 rounded-full text-slate-200 hover:bg-slate-700/60 transition-colors flex items-center gap-2 text-sm font-medium"
-            onClick={() => {
-              // Community selector dropdown would go here
-            }}
-          >
-            <span className="text-slate-400">r/</span>
-            <span>{createPostForm.community.replace("r/", "")}</span>
-            <svg
-              className="w-4 h-4 ml-auto"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 14l-7 7m0 0l-7-7m7 7V3"
+          <div className="relative" ref={communityPickerRef}>
+            <label className="mb-2 block text-sm font-medium text-slate-400">
+              Community
+            </label>
+            <div className="flex items-center gap-2 rounded-full border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-slate-200 transition-colors focus-within:border-orange-500/50 focus-within:ring-1 focus-within:ring-orange-500/30">
+              <span className="text-slate-400">r/</span>
+              <input
+                type="text"
+                value={communityQuery}
+                onChange={event => {
+                  const nextQuery = event.target.value;
+                  setCommunityQuery(nextQuery);
+                  setIsCommunityMenuOpen(true);
+                  setCreatePostForm(previous => ({
+                    ...previous,
+                    community: nextQuery,
+                  }));
+                  setCreatePostError(null);
+                }}
+                onFocus={() => setIsCommunityMenuOpen(true)}
+                placeholder="Search communities"
+                disabled={isCreatingPost || isLoadingCommunities}
+                className="w-full bg-transparent text-sm text-slate-100 placeholder-slate-500 outline-none disabled:cursor-not-allowed"
               />
-            </svg>
-          </button>
+              <svg
+                className={`h-4 w-4 shrink-0 transition-transform ${isCommunityMenuOpen ? "rotate-180" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                />
+              </svg>
+            </div>
 
-          {/* Hidden community selector for form submission */}
-          <select
-            name="community"
-            value={createPostForm.community}
-            onChange={handleCreatePostChange}
-            disabled={isCreatingPost}
-            className="hidden"
-          >
-            {MOCK_COMMUNITIES.map(community => (
-              <option key={community.name} value={community.name}>
-                {community.name}
-              </option>
-            ))}
-          </select>
+            {isCommunityMenuOpen && (
+              <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-2xl border border-slate-700 bg-slate-900/95 shadow-2xl shadow-black/30 backdrop-blur">
+                <div className="max-h-64 overflow-auto">
+                  {isLoadingCommunities ? (
+                    <div className="px-4 py-3 text-sm text-slate-400">
+                      Loading communities...
+                    </div>
+                  ) : filteredCommunities.length > 0 ? (
+                    filteredCommunities.map(community => {
+                      return (
+                        <button
+                          key={community.name}
+                          type="button"
+                          onMouseDown={event => event.preventDefault()}
+                          onClick={() => {
+                            setCreatePostForm(previous => ({
+                              ...previous,
+                              community: community.name,
+                            }));
+                            setCommunityQuery(community.name);
+                            setIsCommunityMenuOpen(false);
+                          }}
+                          className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm transition-colors hover:bg-slate-800 ${
+                            createPostForm.community === community.name
+                              ? "bg-slate-800 text-white"
+                              : "text-slate-200"
+                          }`}
+                        >
+                          <span>{toDisplayCommunityName(community.name)}</span>
+                          {community.description && (
+                            <span className="ml-4 max-w-[60%] truncate text-xs text-slate-500">
+                              {community.description}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })
+                  ) : (
+                    <div className="px-4 py-3 text-sm text-slate-400">
+                      No matching communities found.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Tabs */}
           <div className="border-b border-slate-800 flex items-center gap-0">

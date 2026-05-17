@@ -1,7 +1,7 @@
 import { MessageCircle, MoreHorizontal } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-export default function CommentsList({ comments }) {
+export default function CommentsList({ comments, onUpvote, onDownvote }) {
   const navigate = useNavigate();
 
   if (!comments?.length) {
@@ -21,7 +21,7 @@ export default function CommentsList({ comments }) {
         >
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-orange-500 to-red-600 text-sm font-bold text-white shadow-lg shadow-orange-500/10">
-              {comment.author
+              {getCommentAuthor(comment)
                 .split(" ")
                 .map(part => part[0])
                 .join("")
@@ -33,27 +33,39 @@ export default function CommentsList({ comments }) {
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-400">
                 <button
                   type="button"
-                  onClick={() => navigate(`/u/${comment.author}`)}
+                  onClick={() => navigate(`/u/${getCommentAuthor(comment)}`)}
                   className="font-semibold text-slate-200 hover:text-orange-400 transition-colors"
                 >
-                  u/{comment.author}
+                  u/{getCommentAuthor(comment)}
                 </button>
                 <span className="text-slate-600">•</span>
-                <span>{comment.time}</span>
-                <span className="text-slate-600">•</span>
-                <span>{comment.community}</span>
+                <span>{getCommentTime(comment)}</span>
+                {getCommentCommunity(comment) && (
+                  <>
+                    <span className="text-slate-600">•</span>
+                    <span>{getCommentCommunity(comment)}</span>
+                  </>
+                )}
               </div>
 
               <p className="mt-2 text-sm leading-6 text-slate-200">
-                {comment.body}
+                {getCommentBody(comment)}
               </p>
 
               <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-400">
-                <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/60 px-3 py-1.5 transition-colors hover:bg-slate-700 hover:text-orange-400">
+                <button
+                  type="button"
+                  onClick={() => onUpvote && onUpvote(comment.id)}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/60 px-3 py-1.5 transition-colors hover:bg-slate-700 hover:text-orange-400"
+                >
                   <MessageCircle className="h-3.5 w-3.5" />
-                  Reply
+                  {getCommentScore(comment)}
                 </button>
-                <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/60 px-3 py-1.5 transition-colors hover:bg-slate-700 hover:text-slate-200">
+                <button
+                  type="button"
+                  onClick={() => onDownvote && onDownvote(comment.id)}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/60 px-3 py-1.5 transition-colors hover:bg-slate-700 hover:text-slate-200"
+                >
                   <MoreHorizontal className="h-3.5 w-3.5" />
                   More
                 </button>
@@ -64,4 +76,43 @@ export default function CommentsList({ comments }) {
       ))}
     </div>
   );
+}
+
+function getCommentAuthor(comment) {
+  return comment.authorUsername ?? comment.author ?? "unknown";
+}
+
+function getCommentBody(comment) {
+  return comment.content ?? comment.body ?? "";
+}
+
+function getCommentTime(comment) {
+  if (comment.createdAt) {
+    const timestamp = new Date(comment.createdAt).getTime();
+
+    if (!Number.isNaN(timestamp)) {
+      const deltaMinutes = Math.max(
+        1,
+        Math.floor((Date.now() - timestamp) / 60000)
+      );
+
+      if (deltaMinutes < 60) return `${deltaMinutes}m ago`;
+
+      const deltaHours = Math.floor(deltaMinutes / 60);
+      if (deltaHours < 24) return `${deltaHours}h ago`;
+
+      const deltaDays = Math.floor(deltaHours / 24);
+      return `${deltaDays}d ago`;
+    }
+  }
+
+  return comment.time ?? "";
+}
+
+function getCommentCommunity(comment) {
+  return comment.community ?? "";
+}
+
+function getCommentScore(comment) {
+  return typeof comment.score === "number" ? comment.score : 0;
 }

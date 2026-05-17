@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowBigUp,
@@ -10,65 +10,81 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
-import {
-  MOCK_COMMUNITIES,
-  MOCK_POST_DETAIL_COMMENTS,
-  MOCK_POSTS,
-} from "../data/mockData.js";
+import CommentsList from "../components/CommentsList.jsx";
+import { CommentsApi } from "../api/comments.js";
+import { PostsApi } from "../api/posts.js";
 
 export default function PostDetailPage() {
   const navigate = useNavigate();
   const { postId } = useParams();
-  const [comments, setComments] = useState(() =>
-    MOCK_POST_DETAIL_COMMENTS.map(comment => ({
-      ...comment,
-      upvoted: false,
-      downvoted: false,
-    }))
-  );
+  const [post, setPost] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const post = useMemo(() => {
-    const found = MOCK_POSTS.find(entry => String(entry.id) === String(postId));
-    return found || MOCK_POSTS[0];
+  const loadPost = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const [postResponse, commentsResponse] = await Promise.all([
+        PostsApi.getPostById(postId),
+        PostsApi.listPostComments(postId, { page: 0, size: 20 }),
+      ]);
+
+      setPost(postResponse);
+      setComments(commentsResponse?.comments ?? []);
+    } catch (err) {
+      console.error("Failed to load post detail:", err);
+      setError("Failed to load post details.");
+      setPost(null);
+      setComments([]);
+    } finally {
+      setIsLoading(false);
+    }
   }, [postId]);
 
-  const community =
-    MOCK_COMMUNITIES.find(entry => entry.name === post.community) ||
-    MOCK_COMMUNITIES[0];
+  useEffect(() => {
+    if (!postId) {
+      return undefined;
+    }
 
-  const handleCommentVote = (commentId, direction) => {
-    setComments(currentComments =>
-      currentComments.map(comment => {
-        if (comment.id !== commentId) {
-          return comment;
-        }
+    const timerId = window.setTimeout(() => {
+      void loadPost();
+    }, 0);
 
-        const isUpvote = direction === "up";
-        const isDownvote = direction === "down";
+    return () => window.clearTimeout(timerId);
+  }, [loadPost, postId]);
 
-        const nextUpvoted = isUpvote ? !comment.upvoted : false;
-        const nextDownvoted = isDownvote ? !comment.downvoted : false;
-        const scoreDelta = isUpvote
-          ? comment.upvoted
-            ? -1
-            : comment.downvoted
-              ? 2
-              : 1
-          : comment.downvoted
-            ? -1
-            : comment.upvoted
-              ? -2
-              : 1;
+  const handlePostVote = async action => {
+    if (!post?.id) {
+      return;
+    }
 
-        return {
-          ...comment,
-          upvoted: nextUpvoted,
-          downvoted: nextDownvoted,
-          score: Math.max(0, comment.score + scoreDelta),
-        };
-      })
-    );
+    try {
+      await PostsApi.votePost(post.id, action);
+      await loadPost();
+    } catch (err) {
+      console.error("Failed to vote on post:", err);
+    }
   };
+
+  const handleCommentVote = async (commentId, action) => {
+    try {
+      await CommentsApi.voteComment(commentId, action);
+      const commentsResponse = await PostsApi.listPostComments(postId, {
+        page: 0,
+        size: 20,
+      });
+      setComments(commentsResponse?.comments ?? []);
+    } catch (err) {
+      console.error("Failed to vote on comment:", err);
+    }
+  };
+
+  const communityName = post?.communityName ?? "Community";
+  const authorUsername = post?.authorUsername ?? "unknown";
+  const createdAt = post?.createdAt ? formatRelativeTime(post.createdAt) : "";
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -86,46 +102,68 @@ export default function PostDetailPage() {
               Back
             </button>
 
-            <article className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg shadow-black/20">
-              <div className="flex items-center gap-2 text-xs text-slate-400">
-                <span className="font-semibold text-slate-200">
-                  {post.community}
-                </span>
-                <span>•</span>
-                <span>posted by u/{post.author}</span>
-                <span>•</span>
-                <span>{post.time}</span>
-              </div>
+            {isLoading ? (
+              <article className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg shadow-black/20 text-slate-400">
+                Loading post...
+              </article>
+            ) : error ? (
+              <article className="rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-red-200">
+                {error}
+              </article>
+            ) : post ? (
+              <article className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg shadow-black/20">
+                <div className="flex items-center gap-2 text-xs text-slate-400">
+                  <span className="font-semibold text-slate-200">
+                    {communityName}
+                  </span>
+                  <span>•</span>
+                  <span>posted by u/{authorUsername}</span>
+                  <span>•</span>
+                  <span>{createdAt}</span>
+                </div>
 
-              <h1 className="mt-3 text-2xl font-bold tracking-tight text-white sm:text-3xl">
-                {post.title}
-              </h1>
+                <h1 className="mt-3 text-2xl font-bold tracking-tight text-white sm:text-3xl">
+                  {post.title}
+                </h1>
 
-              <div className="mt-4 flex flex-wrap items-center gap-2">
-                <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/70 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-700">
-                  <ArrowBigUp className="h-4 w-4 text-orange-400" />
-                  {post.upvotes}
-                </button>
-                <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/70 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-700">
-                  <ArrowBigDown className="h-4 w-4 text-slate-400" />
-                </button>
-                <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/70 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-700">
-                  <MessageCircle className="h-4 w-4" />
-                  {post.comments}
-                </button>
-                <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/70 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-700">
-                  <Award className="h-4 w-4" />
-                  Award
-                </button>
-                <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/70 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-700">
-                  <Share2 className="h-4 w-4" />
-                  Share
-                </button>
-                <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/70 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-700">
-                  <MoreHorizontal className="h-4 w-4" />
-                </button>
-              </div>
-            </article>
+                <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-slate-200">
+                  {post.content}
+                </p>
+
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handlePostVote("UPVOTE")}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/70 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-700"
+                  >
+                    <ArrowBigUp className="h-4 w-4 text-orange-400" />
+                    {post.score}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handlePostVote("DOWNVOTE")}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/70 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-700"
+                  >
+                    <ArrowBigDown className="h-4 w-4 text-slate-400" />
+                  </button>
+                  <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/70 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-700">
+                    <MessageCircle className="h-4 w-4" />
+                    {post.commentCount}
+                  </button>
+                  <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/70 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-700">
+                    <Award className="h-4 w-4" />
+                    Award
+                  </button>
+                  <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/70 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-700">
+                    <Share2 className="h-4 w-4" />
+                    Share
+                  </button>
+                  <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/70 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-700">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </button>
+                </div>
+              </article>
+            ) : null}
 
             <section className="mt-5 rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-lg shadow-black/20">
               <div className="flex items-center gap-3">
@@ -138,76 +176,14 @@ export default function PostDetailPage() {
                 </div>
               </div>
 
-              <div className="mt-5 space-y-4">
-                {comments.map(comment => (
-                  <div
-                    key={comment.id}
-                    className={`rounded-2xl border border-slate-800 bg-slate-950/50 p-4 ${comment.sticky ? "ring-1 ring-orange-500/20" : ""}`}
-                  >
-                    <div className="flex items-center gap-2 text-sm text-slate-300">
-                      <span className="font-semibold text-white">
-                        {comment.author}
-                      </span>
-                      {comment.isOp && (
-                        <span className="rounded-full bg-orange-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-400">
-                          OP
-                        </span>
-                      )}
-                      {comment.sticky && (
-                        <span className="rounded-full bg-cyan-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-300">
-                          MOD
-                        </span>
-                      )}
-                      <span className="text-slate-500">•</span>
-                      <span className="text-slate-400">{comment.time}</span>
-                    </div>
-
-                    <p className="mt-3 text-sm leading-6 text-slate-200">
-                      {comment.body}
-                    </p>
-
-                    <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-400">
-                      <div className="inline-flex items-center gap-1 rounded-full bg-slate-800/70 px-3 py-1.5">
-                        <button
-                          type="button"
-                          onClick={() => handleCommentVote(comment.id, "up")}
-                          className={`rounded-full p-1 transition-colors ${
-                            comment.upvoted
-                              ? "text-orange-400"
-                              : "hover:text-orange-300"
-                          }`}
-                          aria-label="Upvote comment"
-                        >
-                          <ArrowBigUp className="h-4 w-4" />
-                        </button>
-                        <span className="min-w-5 text-center text-sm font-semibold text-slate-200">
-                          {comment.score}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleCommentVote(comment.id, "down")}
-                          className={`rounded-full p-1 transition-colors ${
-                            comment.downvoted
-                              ? "text-indigo-400"
-                              : "hover:text-indigo-300"
-                          }`}
-                          aria-label="Downvote comment"
-                        >
-                          <ArrowBigDown className="h-4 w-4" />
-                        </button>
-                      </div>
-                      <button className="rounded-full bg-slate-800/70 px-3 py-1.5 transition-colors hover:bg-slate-700 hover:text-orange-300">
-                        Reply
-                      </button>
-                      <button className="rounded-full bg-slate-800/70 px-3 py-1.5 transition-colors hover:bg-slate-700 hover:text-slate-200">
-                        Award
-                      </button>
-                      <button className="rounded-full bg-slate-800/70 px-3 py-1.5 transition-colors hover:bg-slate-700 hover:text-slate-200">
-                        Share
-                      </button>
-                    </div>
-                  </div>
-                ))}
+              <div className="mt-5">
+                <CommentsList
+                  comments={comments}
+                  onUpvote={commentId => handleCommentVote(commentId, "UPVOTE")}
+                  onDownvote={commentId =>
+                    handleCommentVote(commentId, "DOWNVOTE")
+                  }
+                />
               </div>
 
               <div className="mt-5 rounded-2xl border border-dashed border-slate-700 bg-slate-950/40 px-4 py-4 text-sm text-slate-400">
@@ -226,16 +202,13 @@ export default function PostDetailPage() {
                     Community
                   </p>
                   <h2 className="mt-2 text-xl font-bold text-white">
-                    {community.name.replace("r/", "r/")}
+                    {communityName}
                   </h2>
                 </div>
-                <div
-                  className={`h-12 w-12 rounded-full bg-linear-to-br ${community.accent}`}
-                />
               </div>
 
               <p className="mt-3 text-sm leading-6 text-slate-400">
-                {community.members} and counting.
+                API-backed post view.
               </p>
             </section>
 
@@ -244,8 +217,7 @@ export default function PostDetailPage() {
                 About this post
               </h3>
               <p className="mt-3 text-sm leading-6 text-slate-300">
-                This page now opens as its own comments screen, similar to
-                Reddit's post view.
+                This page now reads real post and comment data from the API.
               </p>
             </section>
           </div>
@@ -253,4 +225,29 @@ export default function PostDetailPage() {
       </div>
     </div>
   );
+}
+
+function formatRelativeTime(value) {
+  const timestamp = new Date(value).getTime();
+
+  if (Number.isNaN(timestamp)) {
+    return value;
+  }
+
+  const deltaMinutes = Math.max(
+    1,
+    Math.floor((Date.now() - timestamp) / 60000)
+  );
+
+  if (deltaMinutes < 60) {
+    return `${deltaMinutes}m ago`;
+  }
+
+  const deltaHours = Math.floor(deltaMinutes / 60);
+  if (deltaHours < 24) {
+    return `${deltaHours}h ago`;
+  }
+
+  const deltaDays = Math.floor(deltaHours / 24);
+  return `${deltaDays}d ago`;
 }

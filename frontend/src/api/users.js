@@ -3,6 +3,7 @@ import { MediaApi } from "./media";
 import { uploadFile } from "./util";
 
 /** @typedef {import("./types").UserDto} UserDto */
+/** @typedef {import("./types").PagedModelPostDto} PagedModelPostDto */
 /** @typedef {import("./types").UpdateCurrentUserRequest} UpdateCurrentUserRequest */
 
 export const UsersApi = {
@@ -18,6 +19,14 @@ export const UsersApi = {
    * @returns {Promise<UserDto>}
    */
   getCurrentUser: () => api.get("/users/me").then(res => res.data),
+
+  /**
+   * @param {string} username
+   * @param {{ page?: number, size?: number, sort?: string[] }} [params]
+   * @returns {Promise<PagedModelPostDto>}
+   */
+  listUserPosts: (username, params = {}) =>
+    api.get(`/users/${username}/posts`, { params }).then(res => res.data),
 
   /**
    * @param {UpdateCurrentUserRequest} params

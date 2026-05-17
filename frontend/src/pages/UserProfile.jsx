@@ -1,37 +1,40 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Share2,
   ChevronRight,
-  MessageSquare,
   Zap,
   ArrowLeft,
 } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
-import CommentsList from "../components/CommentsList.jsx";
 import PostCard from "../components/PostCard.jsx";
 import CameraButton from "../components/CameraButton.jsx";
 import { UsersApi } from "../api/users.js";
+import { PostsApi } from "../api/posts.js";
 import { useUser } from "../auth/useUser.jsx";
-import {
-  MOCK_PROFILE_COMMENTS,
-  MOCK_POSTS,
-  MOCK_PROFILE_TABS,
-  MOCK_PROFILE_USER,
-} from "../data/mockData.js";
+
+const PROFILE_TABS = ["Overview", "Posts"];
 
 export default function UserProfile() {
   const { username } = useParams();
   const navigate = useNavigate();
-  const profileUsername = username || "Dismal-Low1544";
+  const { user: loggedInUser, setUser: setAuthUser } = useUser();
+  const profileUsername = username || loggedInUser?.username || "";
   const [activeTab, setActiveTab] = useState("overview");
-  const [posts, setPosts] = useState(MOCK_POSTS);
+  const [posts, setPosts] = useState([]);
   const [profileUser, setProfileUser] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState("");
   const [bannerUrl, setBannerUrl] = useState("");
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [isLoadingPosts, setIsLoadingPosts] = useState(true);
+  const [postsError, setPostsError] = useState(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+  const [editingPostId, setEditingPostId] = useState(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editContent, setEditContent] = useState("");
+  const [isSavingPost, setIsSavingPost] = useState(false);
+  const [deletingPostId, setDeletingPostId] = useState(null);
   const avatarInputRef = useRef(null);
   const bannerInputRef = useRef(null);
 
@@ -46,8 +49,28 @@ export default function UserProfile() {
           .toUpperCase()
       : "U";
 
-  const { user: loggedInUser, setUser: setAuthUser } = useUser();
   const isOwnProfile = loggedInUser?.username === profileUsername;
+
+  const loadUserPosts = useCallback(async () => {
+    setIsLoadingPosts(true);
+    setPostsError(null);
+
+    try {
+      const response = await UsersApi.listUserPosts(profileUsername, {
+        page: 0,
+        size: 50,
+        sort: ["createdAt,desc"],
+      });
+
+      setPosts(response?.content ?? []);
+    } catch (err) {
+      console.error("Failed to load profile posts:", err);
+      setPosts([]);
+      setPostsError("Failed to load user posts.");
+    } finally {
+      setIsLoadingPosts(false);
+    }
+  }, [profileUsername]);
 
   // Fetch user profile on mount
   useEffect(() => {
@@ -78,39 +101,105 @@ export default function UserProfile() {
     loadProfile();
   }, [profileUsername]);
 
-  const updatePosts = updatePost => {
-    setPosts(currentPosts => currentPosts.map(post => updatePost(post)));
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      loadUserPosts();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [loadUserPosts]);
+
+  const handleVote = async (postId, action) => {
+    try {
+      await PostsApi.votePost(postId, action);
+      await loadUserPosts();
+    } catch (err) {
+      console.error("Failed to vote on post:", err);
+    }
   };
 
-  const handleUpvote = postId => {
-    updatePosts(post =>
-      post.id === postId
-        ? {
-            ...post,
-            upvoted: !post.upvoted,
-            downvoted: post.upvoted ? false : post.downvoted,
-          }
-        : post
-    );
-  };
+  const handleUpvote = postId => handleVote(postId, "UPVOTE");
 
-  const handleDownvote = postId => {
-    updatePosts(post =>
-      post.id === postId
-        ? {
-            ...post,
-            downvoted: !post.downvoted,
-            upvoted: post.downvoted ? false : post.upvoted,
-          }
-        : post
-    );
-  };
+  const handleDownvote = postId => handleVote(postId, "DOWNVOTE");
 
   const handleSave = postId => {
-    updatePosts(post =>
-      post.id === postId ? { ...post, saved: !post.saved } : post
+    setPosts(currentPosts =>
+      currentPosts.map(post =>
+        post.id === postId ? { ...post, saved: !post.saved } : post
+      )
     );
   };
+
+  const startEditingPost = post => {
+    setEditingPostId(post.id);
+    setEditTitle(post.title);
+    setEditContent(post.content);
+  };
+
+  const stopEditingPost = () => {
+    setEditingPostId(null);
+    setEditTitle("");
+    setEditContent("");
+  };
+
+  const handleEditPostSubmit = async event => {
+    event.preventDefault();
+
+    if (!editingPostId) {
+      return;
+    }
+
+    const nextTitle = editTitle.trim();
+    const nextContent = editContent.trim();
+
+    if (!nextTitle || !nextContent) {
+      return;
+    }
+
+    setIsSavingPost(true);
+
+    try {
+      await PostsApi.patchPost(editingPostId, {
+        title: nextTitle,
+        content: nextContent,
+      });
+
+      await loadUserPosts();
+      stopEditingPost();
+    } catch (err) {
+      console.error("Failed to update post:", err);
+    } finally {
+      setIsSavingPost(false);
+    }
+  };
+
+  const handleDeletePost = async postId => {
+    const isConfirmed = window.confirm(
+      "Are you sure you want to delete this post?"
+    );
+
+    if (!isConfirmed) {
+      return;
+    }
+
+    setDeletingPostId(postId);
+
+    try {
+      await PostsApi.deletePost(postId);
+      if (editingPostId === postId) {
+        stopEditingPost();
+      }
+      await loadUserPosts();
+    } catch (err) {
+      console.error("Failed to delete post:", err);
+    } finally {
+      setDeletingPostId(null);
+    }
+  };
+
+  const memberAgeLabel = profileUser?.createdAt
+    ? formatMemberAge(profileUser.createdAt)
+    : "0 d";
 
   // Handle avatar upload to backend
   const handleAvatarUpload = async event => {
@@ -204,24 +293,6 @@ export default function UserProfile() {
     }
   };
 
-  const filteredPosts = useMemo(() => {
-    switch (activeTab) {
-      case "posts":
-      case "overview":
-        return posts;
-      case "comments":
-        return MOCK_PROFILE_COMMENTS;
-      case "saved":
-        return posts.filter(p => p.saved);
-      case "upvoted":
-        return posts.filter(p => p.upvoted);
-      case "downvoted":
-        return posts.filter(p => p.downvoted);
-      default:
-        return [];
-    }
-  }, [activeTab, posts]);
-
   if (isLoadingProfile) {
     return (
       <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -233,10 +304,16 @@ export default function UserProfile() {
     );
   }
 
-  const displayUser = profileUser || {
-    ...MOCK_PROFILE_USER,
-    username: profileUsername,
-  };
+  const displayUser =
+    profileUser ||
+    ({
+      username: profileUsername,
+      followers: 0,
+      karma: 0,
+      contributions: posts.length,
+      activeIn: "-",
+      goldEarned: 0,
+    });
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -324,7 +401,7 @@ export default function UserProfile() {
                 u/{displayUser.username}
               </h1>
               <p className="mt-1 text-slate-300 text-lg">
-                Member • {displayUser.redditAge || "0 d"}
+                Member • {memberAgeLabel}
               </p>
             </div>
 
@@ -342,7 +419,7 @@ export default function UserProfile() {
 
           {/* Tabs */}
           <div className="flex gap-1 overflow-x-auto pb-2 border-b border-slate-800">
-            {MOCK_PROFILE_TABS.map(tab => (
+            {PROFILE_TABS.map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab.toLowerCase())}
@@ -364,10 +441,9 @@ export default function UserProfile() {
           <div className="lg:col-span-2 space-y-6">
             {/* Content Filter */}
             <div className="flex items-center justify-between mb-6">
-              <button className="flex items-center gap-2 text-slate-300 hover:text-orange-400 transition-colors bg-slate-800/30 px-3 py-2 rounded-lg border border-slate-800 hover:border-orange-500/30 group">
-                <MessageSquare className="w-5 h-5 group-hover:text-orange-400" />
-                <span>Showing all content</span>
-                <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              <button className="flex items-center gap-2 text-slate-300 transition-colors bg-slate-800/30 px-3 py-2 rounded-lg border border-slate-800 group">
+                <span>Showing user posts</span>
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
 
@@ -386,7 +462,7 @@ export default function UserProfile() {
                   )}
                 </div>
                 <button
-                  onClick={() => setActiveTab("create")}
+                  onClick={() => navigate("/create-post")}
                   className="flex-1 text-left text-slate-400 px-3 py-2 rounded hover:bg-slate-800/50 transition-colors"
                 >
                   Create post in a community
@@ -406,9 +482,15 @@ export default function UserProfile() {
             </div>
 
             {/* Empty State / Posts List */}
-            {activeTab === "comments" ? (
-              <CommentsList comments={MOCK_PROFILE_COMMENTS} />
-            ) : filteredPosts.length === 0 ? (
+            {postsError ? (
+              <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-red-200">
+                {postsError}
+              </div>
+            ) : isLoadingPosts ? (
+              <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 text-slate-400">
+                Loading posts...
+              </div>
+            ) : posts.length === 0 ? (
               <div className="text-center py-20">
                 <div className="mb-6">
                   <Zap className="w-16 h-16 text-slate-600 mx-auto" />
@@ -417,20 +499,80 @@ export default function UserProfile() {
                   You don't have any posts yet
                 </h3>
                 <p className="text-slate-400 max-w-md mx-auto">
-                  Once you post to a community, it'll show up here. If you'd
-                  rather hide your posts, update your settings.
+                  Once you post to a community, it will show up here.
                 </p>
               </div>
             ) : (
               <div className="space-y-6">
-                {filteredPosts.map(post => (
-                  <PostCard
-                    key={post.id}
-                    post={post}
-                    onUpvote={handleUpvote}
-                    onDownvote={handleDownvote}
-                    onSave={handleSave}
-                  />
+                {posts.map(post => (
+                  <div key={post.id} className="space-y-3">
+                    <PostCard
+                      post={post}
+                      onUpvote={handleUpvote}
+                      onDownvote={handleDownvote}
+                      onSave={handleSave}
+                    />
+
+                    {isOwnProfile && (
+                      <div className="flex flex-wrap items-center justify-end gap-2 px-1">
+                        <button
+                          type="button"
+                          onClick={() => startEditingPost(post)}
+                          className="rounded-full border border-slate-700 bg-slate-800/70 px-4 py-1.5 text-sm text-slate-200 hover:border-orange-500/60 hover:text-orange-300 transition-colors"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeletePost(post.id)}
+                          disabled={deletingPostId === post.id}
+                          className="rounded-full border border-red-500/40 bg-red-500/10 px-4 py-1.5 text-sm text-red-200 hover:bg-red-500/20 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {deletingPostId === post.id ? "Deleting..." : "Delete"}
+                        </button>
+                      </div>
+                    )}
+
+                    {isOwnProfile && editingPostId === post.id && (
+                      <form
+                        onSubmit={handleEditPostSubmit}
+                        className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 space-y-3"
+                      >
+                        <input
+                          type="text"
+                          value={editTitle}
+                          onChange={event => setEditTitle(event.target.value)}
+                          placeholder="Post title"
+                          className="w-full rounded-lg border border-slate-700 bg-slate-950/80 px-3 py-2 text-slate-100 outline-none focus:border-orange-500/70"
+                        />
+                        <textarea
+                          value={editContent}
+                          onChange={event =>
+                            setEditContent(event.target.value)
+                          }
+                          rows={5}
+                          placeholder="Post content"
+                          className="w-full rounded-lg border border-slate-700 bg-slate-950/80 px-3 py-2 text-slate-100 outline-none focus:border-orange-500/70"
+                        />
+                        <div className="flex flex-wrap justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={stopEditingPost}
+                            className="rounded-full border border-slate-700 bg-slate-800/70 px-4 py-1.5 text-sm text-slate-200 hover:border-slate-500 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={isSavingPost}
+                            className="rounded-full bg-linear-to-r from-orange-500 to-red-600 px-4 py-1.5 text-sm font-semibold text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                          >
+                            {isSavingPost ? "Saving..." : "Save changes"}
+                          </button>
+                        </div>
+                      </form>
+                    )}
+                  </div>
                 ))}
               </div>
             )}
@@ -474,7 +616,7 @@ export default function UserProfile() {
                 <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-800">
                   <div>
                     <div className="text-lg font-bold text-slate-100">
-                      {displayUser.redditAge}
+                      {memberAgeLabel}
                     </div>
                     <div className="text-xs text-slate-400">Reddit Age</div>
                   </div>
@@ -554,4 +696,29 @@ export default function UserProfile() {
       </div>
     </div>
   );
+}
+
+function formatMemberAge(createdAt) {
+  const createdTimestamp = new Date(createdAt).getTime();
+
+  if (Number.isNaN(createdTimestamp)) {
+    return "0 d";
+  }
+
+  const days = Math.max(
+    1,
+    Math.floor((Date.now() - createdTimestamp) / (1000 * 60 * 60 * 24))
+  );
+
+  if (days < 30) {
+    return `${days} d`;
+  }
+
+  const months = Math.floor(days / 30);
+  if (months < 12) {
+    return `${months} mo`;
+  }
+
+  const years = Math.floor(months / 12);
+  return `${years} yr`;
 }

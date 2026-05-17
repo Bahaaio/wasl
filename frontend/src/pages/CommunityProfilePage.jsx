@@ -59,11 +59,7 @@ export default function CommunityProfilePage() {
   }, [communityName, slug]);
 
   const handleBack = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-      return;
-    }
-    navigate("/posts");
+    navigate(-1);
   };
 
   return (

@@ -75,6 +75,12 @@
  */
 
 /**
+ * @typedef {Object} PagedModelPostDto
+ * @property {PostDto[]} content
+ * @property {PageMetadata} page
+ */
+
+/**
  * @typedef {Object} CommentDto
  * @property {number} id
  * @property {string} content
@@ -100,7 +106,7 @@
  * @typedef {Object} PostCreateRequest
  * @property {string} title
  * @property {string} content
- * @property {number} communityId
+ * @property {string} communityName
  * @property {string[]?} mediaIds
  */
 
