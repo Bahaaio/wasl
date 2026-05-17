@@ -24,7 +24,7 @@ public class Community {
     @JoinColumn(name = "category_id", nullable = false)
     private CommunityCategory category;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String name;
 
     @Column(nullable = false)

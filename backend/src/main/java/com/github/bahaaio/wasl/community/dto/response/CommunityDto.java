@@ -9,10 +9,12 @@ public record CommunityDto(
         long id,
         String name,
         String description,
-        long categoryId,
+
+        Long categoryId,
         String categoryName,
+
         long subscribersCount,
-        boolean isPublic,
+        Boolean isPublic,
         Instant createdAt
 ) {
 }

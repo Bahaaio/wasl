@@ -18,7 +18,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class CommunityService {
-
     private final CommunityRepository communityRepository;
     private final CommunityMapper communityMapper;
     private final CommunityCategoryService categoryService;
@@ -80,7 +79,6 @@ public class CommunityService {
                 .description(request.description())
                 .category(category)
                 .isPublic(request.isPublic())
-                .subscribersCount(0L)
                 .build();
 
         Community saved = communityRepository.save(community);
