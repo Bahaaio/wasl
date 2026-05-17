@@ -134,4 +134,72 @@
  * @property {string} mediaId
  */
 
+/**
+ * @typedef {Object} CommunityCategoryDto
+ * @property {number} id
+ * @property {string} name
+ */
+
+/**
+ * @typedef {Object} CommunityDto
+ * @property {number} id
+ * @property {string} name
+ * @property {string} description
+ * @property {number} categoryId
+ * @property {string} categoryName
+ * @property {string?} iconMediaId
+ * @property {string?} bannerMediaId
+ * @property {number} subscribersCount
+ * @property {boolean} isPublic
+ * @property {string} createdAt
+ */
+
+/**
+ * @typedef {Object} CommunityCreateRequest
+ * @property {string} name
+ * @property {string} description
+ * @property {number} categoryId
+ * @property {boolean} isPublic
+ */
+
+/**
+ * @typedef {Object} CommunityPatchRequest
+ * @property {string?} description
+ * @property {number?} categoryId
+ * @property {boolean?} isPublic
+ */
+
+/**
+ * @typedef {"MEMBER" | "MODERATOR" | "OWNER"} CommunityRole
+ */
+
+/**
+ * @typedef {Object} CommunityMembershipDto
+ * @property {number} id
+ * @property {number} communityId
+ * @property {string} username
+ * @property {CommunityRole} role
+ * @property {string} createdAt
+ */
+
+/**
+ * @typedef {Object} PageMetadata
+ * @property {number} size
+ * @property {number} number
+ * @property {number} totalElements
+ * @property {number} totalPages
+ */
+
+/**
+ * @typedef {Object} PagedModelCommunityDto
+ * @property {CommunityDto[]} content
+ * @property {PageMetadata} page
+ */
+
+/**
+ * @typedef {Object} PagedModelCommunityMembershipDto
+ * @property {CommunityMembershipDto[]} content
+ * @property {PageMetadata} page
+ */
+
 export {};
