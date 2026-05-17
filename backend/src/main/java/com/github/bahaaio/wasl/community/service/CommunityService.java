@@ -120,26 +120,4 @@ public class CommunityService {
 
         return communityMapper.toDto(communityRepository.save(community));
     }
-
-    /**
-     * Deletes a community and all its associated memberships.
-     * Only the OWNER can perform this action.
-     *
-     * @param name     the name of the community to delete
-     * @param username the username of the user requesting the deletion
-     * @throws ForbiddenException if the user is not the owner
-     */
-    @Transactional
-    public void deleteCommunity(String name, String username) {
-        if (!communityRepository.existsByNameIgnoreCase(name)) {
-            throw new CommunityNotFoundException(name);
-        }
-
-        if (!membershipService.isOwner(name, username)) {
-            throw new ForbiddenException();
-        }
-
-        membershipService.deleteAllByCommunityName(name);
-        communityRepository.deleteByName(name);
-    }
 }

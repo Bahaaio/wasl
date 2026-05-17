@@ -54,14 +54,4 @@ public class CommunityController {
     ) {
         return ResponseEntity.ok(communityService.updateCommunity(name, request, userDetails.getUsername()));
     }
-
-    @SecurityRequirement(name = "bearerAuth")
-    @DeleteMapping("/{name}")
-    public ResponseEntity<Void> deleteCommunity(
-        @PathVariable String name,
-        @AuthenticationPrincipal UserDetails userDetails
-    ) {
-        communityService.deleteCommunity(name, userDetails.getUsername());
-        return ResponseEntity.noContent().build();
-    }
 }

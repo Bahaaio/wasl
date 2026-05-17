@@ -110,7 +110,7 @@ public class CommunityMembershipService {
     @Transactional
     public void leaveCommunity(String communityName, String username) {
         if (isOwner(communityName, username)) {
-            throw new IllegalArgumentException("Owner cannot leave the community. Transfer ownership or delete community.");
+            throw new IllegalArgumentException("Owner cannot leave the community.");
         }
 
         if (membershipRepository.deleteByCommunity_NameAndUser_Username(communityName, username) != 0) {
@@ -168,16 +168,5 @@ public class CommunityMembershipService {
         return membershipRepository.existsByCommunity_NameAndUser_UsernameAndRoleIn(
             communityName, username, Set.of(CommunityRole.OWNER)
         );
-    }
-
-    /**
-     * Internal method to delete all memberships associated with a community.
-     * Typically used when a community is being deleted.
-     *
-     * @param name the name of the community
-     */
-    @Transactional
-    public void deleteAllByCommunityName(String name) {
-        membershipRepository.deleteAllByCommunity_Name(name);
     }
 }

@@ -7,12 +7,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.Optional;
 import java.util.Set;
 
 public interface CommunityMembershipRepository extends JpaRepository<CommunityMembership, Long> {
-    Optional<CommunityMembership> findByCommunityIdAndUserUsername(Long communityId, String username);
-
     Page<CommunityMembership> findAllByCommunity_Name(String communityName, Pageable pageable);
 
     boolean existsByCommunity_NameAndUser_Username(String communityName, String userUsername);
@@ -22,8 +19,6 @@ public interface CommunityMembershipRepository extends JpaRepository<CommunityMe
         String userUsername,
         Set<CommunityRole> roles
     );
-
-    void deleteAllByCommunity_Name(String communityName);
 
     long deleteByCommunity_NameAndUser_Username(String communityName, String userUsername);
 }

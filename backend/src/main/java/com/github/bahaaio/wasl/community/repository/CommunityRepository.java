@@ -35,6 +35,4 @@ public interface CommunityRepository extends JpaRepository<Community, Long> {
             WHERE c.name = :communityName
         """)
     void decrementSubscribers(String communityName);
-
-    void deleteByName(String name);
 }
