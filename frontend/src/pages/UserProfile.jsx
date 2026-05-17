@@ -1,11 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import {
-  Share2,
-  ChevronRight,
-  Zap,
-  ArrowLeft,
-} from "lucide-react";
+import { Share2, ChevronRight, Zap, ArrowLeft } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
 import PostCard from "../components/PostCard.jsx";
 import CameraButton from "../components/CameraButton.jsx";
@@ -304,16 +299,14 @@ export default function UserProfile() {
     );
   }
 
-  const displayUser =
-    profileUser ||
-    ({
-      username: profileUsername,
-      followers: 0,
-      karma: 0,
-      contributions: posts.length,
-      activeIn: "-",
-      goldEarned: 0,
-    });
+  const displayUser = profileUser || {
+    username: profileUsername,
+    followers: 0,
+    karma: 0,
+    contributions: posts.length,
+    activeIn: "-",
+    goldEarned: 0,
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -528,7 +521,9 @@ export default function UserProfile() {
                           disabled={deletingPostId === post.id}
                           className="rounded-full border border-red-500/40 bg-red-500/10 px-4 py-1.5 text-sm text-red-200 hover:bg-red-500/20 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                         >
-                          {deletingPostId === post.id ? "Deleting..." : "Delete"}
+                          {deletingPostId === post.id
+                            ? "Deleting..."
+                            : "Delete"}
                         </button>
                       </div>
                     )}
@@ -547,9 +542,7 @@ export default function UserProfile() {
                         />
                         <textarea
                           value={editContent}
-                          onChange={event =>
-                            setEditContent(event.target.value)
-                          }
+                          onChange={event => setEditContent(event.target.value)}
                           rows={5}
                           placeholder="Post content"
                           className="w-full rounded-lg border border-slate-700 bg-slate-950/80 px-3 py-2 text-slate-100 outline-none focus:border-orange-500/70"
