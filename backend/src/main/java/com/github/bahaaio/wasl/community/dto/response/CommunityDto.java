@@ -14,7 +14,7 @@ public record CommunityDto(
         String categoryName,
 
         long subscribersCount,
-        Boolean isPublic,
+        boolean isPublic,
         Instant createdAt
 ) {
 }

@@ -10,5 +10,6 @@ import org.mapstruct.Mapping;
 public interface CommunityMapper {
     @Mapping(target = "categoryId", source = "category.id")
     @Mapping(target = "categoryName", source = "category.name")
+    @Mapping(target = "isPublic", source = "public")
     CommunityDto toDto(Community community);
 }
