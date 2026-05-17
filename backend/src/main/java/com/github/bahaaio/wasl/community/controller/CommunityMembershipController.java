@@ -1,36 +1,41 @@
 package com.github.bahaaio.wasl.community.controller;
 
-import com.github.bahaaio.wasl.community.dto.response.CommunityMembershipDto;
 import com.github.bahaaio.wasl.community.service.CommunityMembershipService;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/v1/community-memberships")
+@RequestMapping("/api/v1/communities/{name}")
 @RequiredArgsConstructor
 public class CommunityMembershipController {
-
     private final CommunityMembershipService membershipService;
 
-    @GetMapping("/community/{communityId}")
-    public ResponseEntity<List<CommunityMembershipDto>> getCommunityMembers(
-            @PathVariable Long communityId
+    @SecurityRequirement(name = "bearerAuth")
+    @PostMapping("/join")
+    public ResponseEntity<Void> joinCommunity(
+        @PathVariable String name,
+        @AuthenticationPrincipal UserDetails userDetails
     ) {
-        return ResponseEntity.ok(membershipService.getMembersByCommunityId(communityId));
+        membershipService.joinCommunity(name, userDetails.getUsername());
+        return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/community/{communityId}/member/{membershipId}")
-    public ResponseEntity<Void> removeMember(
-            @PathVariable Long communityId,
-            @PathVariable Long membershipId,
-            @AuthenticationPrincipal UserDetails userDetails
+    @SecurityRequirement(name = "bearerAuth")
+    @PostMapping("/leave")
+    public ResponseEntity<Void> leaveCommunity(
+        @PathVariable String name,
+        @AuthenticationPrincipal UserDetails userDetails
     ) {
-        membershipService.removeMember(communityId, membershipId, userDetails.getUsername());
+        membershipService.leaveCommunity(name, userDetails.getUsername());
         return ResponseEntity.noContent().build();
     }
 }

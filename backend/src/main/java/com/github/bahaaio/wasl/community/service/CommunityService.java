@@ -9,11 +9,13 @@ import com.github.bahaaio.wasl.community.mapper.CommunityMapper;
 import com.github.bahaaio.wasl.community.model.Community;
 import com.github.bahaaio.wasl.community.model.CommunityCategory;
 import com.github.bahaaio.wasl.community.repository.CommunityRepository;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -28,34 +30,35 @@ public class CommunityService {
      *
      * @return a list of all communities mapped to DTOs
      */
-    public List<CommunityDto> getAllCommunities() {
-        return communityRepository.findAll().stream()
-                .map(communityMapper::toDto)
-                .toList();
+    public PagedModel<CommunityDto> getAllCommunities(Pageable pageable) {
+        var communities = communityRepository.findAll(pageable)
+            .map(communityMapper::toDto);
+
+        return new PagedModel<>(communities);
     }
 
     /**
      * Retrieves a specific community by its ID and returns it as a DTO.
      *
-     * @param id the ID of the community
+     * @param name the name of the community
      * @return the mapped CommunityDto
      * @throws CommunityNotFoundException if the community does not exist
      */
-    public CommunityDto getById(Long id) {
-        Community community = getEntityById(id);
+    public CommunityDto getByName(String name) {
+        Community community = getEntityByName(name);
         return communityMapper.toDto(community);
     }
 
     /**
-     * Retrieves the raw Community entity by its ID for internal module usage.
+     * Retrieves the raw Community entity by its name for internal module usage.
      *
-     * @param id the ID of the community
+     * @param name the name of the community
      * @return the Community entity
      * @throws CommunityNotFoundException if the community does not exist
      */
-    public Community getEntityById(Long id) {
-        return communityRepository.findById(id)
-                .orElseThrow(() -> new CommunityNotFoundException(id));
+    public Community getEntityByName(String name) {
+        return communityRepository.findByName(name)
+            .orElseThrow(() -> new CommunityNotFoundException(name));
     }
 
     /**
@@ -75,11 +78,11 @@ public class CommunityService {
         CommunityCategory category = categoryService.getEntityById(request.categoryId());
 
         Community community = Community.builder()
-                .name(request.name())
-                .description(request.description())
-                .category(category)
-                .isPublic(request.isPublic())
-                .build();
+            .name(request.name())
+            .description(request.description())
+            .category(category)
+            .isPublic(request.isPublic())
+            .build();
 
         Community saved = communityRepository.save(community);
 
@@ -93,18 +96,18 @@ public class CommunityService {
      * Updates an existing community's details.
      * Only users with OWNER or MODERATOR roles can perform this action.
      *
-     * @param id the ID of the community to update
-     * @param request the updated community details
-     * @param username the username of the user requesting the update
+     * @param communityName the name of the community to update
+     * @param request       the updated community details
+     * @param username      the username of the user requesting the update
      * @return the updated CommunityDto
      * @throws ForbiddenException if the user does not have sufficient permissions
      */
     @Transactional
-    public CommunityDto updateCommunity(Long id, CommunityPatchRequest request, String username) {
-        Community community = getEntityById(id);
+    public CommunityDto updateCommunity(String communityName, CommunityPatchRequest request, String username) {
+        Community community = getEntityByName(communityName);
 
         // Check if user is owner/moderator
-        if (!membershipService.isOwnerOrModerator(id, username)) {
+        if (!membershipService.isOwnerOrModerator(communityName, username)) {
             throw new ForbiddenException();
         }
 
@@ -121,19 +124,17 @@ public class CommunityService {
      * Deletes a community and all its associated memberships.
      * Only the OWNER can perform this action.
      *
-     * @param id the ID of the community to delete
+     * @param name     the name of the community to delete
      * @param username the username of the user requesting the deletion
      * @throws ForbiddenException if the user is not the owner
      */
     @Transactional
-    public void deleteCommunity(Long id, String username) {
-        Community community = getEntityById(id);
-
-        if (!membershipService.isOwner(id, username)) {
+    public void deleteCommunity(String name, String username) {
+        if (!membershipService.isOwner(name, username)) {
             throw new ForbiddenException();
         }
 
-        membershipService.deleteAllByCommunityId(id);
-        communityRepository.delete(community);
+        membershipService.deleteAllByCommunityName(name);
+        communityRepository.deleteByName(name);
     }
 }

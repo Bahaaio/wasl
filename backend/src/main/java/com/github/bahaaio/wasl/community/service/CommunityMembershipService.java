@@ -2,7 +2,6 @@ package com.github.bahaaio.wasl.community.service;
 
 import com.github.bahaaio.wasl.auth.exception.ForbiddenException;
 import com.github.bahaaio.wasl.community.dto.response.CommunityMembershipDto;
-import com.github.bahaaio.wasl.community.exception.CommunityMembershipNotFoundException;
 import com.github.bahaaio.wasl.community.exception.CommunityNotFoundException;
 import com.github.bahaaio.wasl.community.mapper.CommunityMembershipMapper;
 import com.github.bahaaio.wasl.community.model.Community;
@@ -12,11 +11,16 @@ import com.github.bahaaio.wasl.community.repository.CommunityMembershipRepositor
 import com.github.bahaaio.wasl.community.repository.CommunityRepository;
 import com.github.bahaaio.wasl.user.model.User;
 import com.github.bahaaio.wasl.user.service.UserService;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.Set;
+
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Service handling business logic for Community Memberships.
@@ -35,13 +39,15 @@ public class CommunityMembershipService {
     /**
      * Retrieves all memberships for a specific community.
      *
-     * @param communityId the ID of the community
+     * @param communityName the name of the community
      * @return a list of community memberships mapped to DTOs
      */
-    public List<CommunityMembershipDto> getMembersByCommunityId(Long communityId) {
-        return membershipRepository.findByCommunityId(communityId).stream()
-                .map(membershipMapper::toDto)
-                .toList();
+    public PagedModel<CommunityMembershipDto> getMembersByCommunityName(String communityName, Pageable pageable) {
+        Page<CommunityMembershipDto> membershipDtoList =
+            membershipRepository.findAllByCommunity_Name(communityName, pageable)
+                .map(membershipMapper::toDto);
+
+        return new PagedModel<>(membershipDtoList);
     }
 
     /**
@@ -56,10 +62,10 @@ public class CommunityMembershipService {
         User user = userService.getEntityByUsername(username);
 
         CommunityMembership membership = CommunityMembership.builder()
-                .community(community)
-                .user(user)
-                .role(CommunityRole.OWNER)
-                .build();
+            .community(community)
+            .user(user)
+            .role(CommunityRole.OWNER)
+            .build();
 
         membershipRepository.save(membership);
     }
@@ -68,101 +74,100 @@ public class CommunityMembershipService {
      * Allows a user to join a community as a standard MEMBER.
      * Increments the community's subscriber count upon success.
      *
-     * @param communityId the ID of the community to join
-     * @param username the username of the user joining
+     * @param communityName the name of the community to join
+     * @param username      the username of the user joining
      * @throws IllegalArgumentException if the user is already a member
      */
     @Transactional
-    public void joinCommunity(Long communityId, String username) {
-        if (membershipRepository.existsByCommunityIdAndUserUsername(communityId, username)) {
+    public void joinCommunity(String communityName, String username) {
+        if (membershipRepository.existsByCommunity_NameAndUser_Username(communityName, username)) {
             throw new IllegalArgumentException("User is already a member of this community");
         }
 
-        Community community = communityRepository.findById(communityId)
-                .orElseThrow(() -> new CommunityNotFoundException(communityId));
         User user = userService.getEntityByUsername(username);
 
-        CommunityMembership membership = CommunityMembership.builder()
+        Community community = communityRepository.findByName(communityName)
+            .orElseThrow(() -> new CommunityNotFoundException(communityName));
+
+        membershipRepository.save(
+            CommunityMembership.builder()
                 .community(community)
                 .user(user)
                 .role(CommunityRole.MEMBER)
-                .build();
+                .build()
+        );
 
-        membershipRepository.save(membership);
-        communityRepository.incrementSubscribers(communityId);
+        communityRepository.incrementSubscribers(communityName);
     }
 
     /**
      * Allows a user to voluntarily leave a community.
      * Decrements the community's subscriber count upon success.
      *
-     * @param communityId the ID of the community to leave
-     * @param username the username of the user leaving
+     * @param communityName the name of the community to leave
+     * @param username      the username of the user leaving
      * @throws IllegalArgumentException if the user is not a member or is the OWNER
      */
     @Transactional
-    public void leaveCommunity(Long communityId, String username) {
-        CommunityMembership membership = membershipRepository.findByCommunityIdAndUserUsername(communityId, username)
-                .orElseThrow(() -> new IllegalArgumentException("User is not a member of this community"));
-
-        if (membership.getRole() == CommunityRole.OWNER) {
+    public void leaveCommunity(String communityName, String username) {
+        if (isOwner(communityName, username)) {
             throw new IllegalArgumentException("Owner cannot leave the community. Transfer ownership or delete community.");
         }
 
-        membershipRepository.delete(membership);
-        communityRepository.decrementSubscribers(communityId);
+        if (membershipRepository.deleteByCommunity_NameAndUser_Username(communityName, username) != 0) {
+            // decrement subs only if user was removed
+            communityRepository.decrementSubscribers(communityName);
+        }
     }
 
     /**
      * Forcefully removes a member from a community.
      * Only users with OWNER or MODERATOR roles can remove other members.
      *
-     * @param communityId the ID of the community
-     * @param membershipId the ID of the membership to remove
+     * @param communityName      the name of the community
+     * @param username           the username of the user to remove
      * @param requestingUsername the username of the user attempting the removal
-     * @throws ForbiddenException if the requester lacks permission
+     * @throws ForbiddenException       if the requester lacks permission
      * @throws IllegalArgumentException if attempting to remove the OWNER
      */
     @Transactional
-    public void removeMember(Long communityId, Long membershipId, String requestingUsername) {
-        if (!isOwnerOrModerator(communityId, requestingUsername)) {
+    public void removeMember(String communityName, String username, String requestingUsername) {
+        if (!isOwnerOrModerator(communityName, requestingUsername)) {
             throw new ForbiddenException();
         }
 
-        CommunityMembership membership = membershipRepository.findById(membershipId)
-                .orElseThrow(() -> new CommunityMembershipNotFoundException(membershipId));
-
-        if (membership.getRole() == CommunityRole.OWNER) {
+        if (isOwner(communityName, username)) {
             throw new IllegalArgumentException("Cannot remove the owner of the community");
         }
 
-        membershipRepository.delete(membership);
-        communityRepository.decrementSubscribers(communityId);
+        if (membershipRepository.deleteByCommunity_NameAndUser_Username(communityName, username) != 0) {
+            communityRepository.decrementSubscribers(communityName);
+        }
     }
 
     /**
      * Checks if a user has either OWNER or MODERATOR privileges in a community.
      *
-     * @param communityId the ID of the community
-     * @param username the username of the user
+     * @param communityName the name of the community
+     * @param username      the username of the user
      * @return true if the user is an owner or moderator, false otherwise
      */
-    public boolean isOwnerOrModerator(Long communityId, String username) {
-        return membershipRepository.existsByCommunityIdAndUserUsernameAndRoleIn(
-                communityId, username, List.of(CommunityRole.OWNER, CommunityRole.MODERATOR)
+    public boolean isOwnerOrModerator(String communityName, String username) {
+        return membershipRepository.existsByCommunity_NameAndUser_UsernameAndRoleIn(
+            communityName, username, Set.of(CommunityRole.OWNER, CommunityRole.MODERATOR)
         );
     }
 
     /**
      * Checks if a user has the OWNER privilege in a community.
      *
-     * @param communityId the ID of the community
-     * @param username the username of the user
+     * @param communityName the name of the community
+     * @param username      the username of the user
      * @return true if the user is the owner, false otherwise
      */
-    public boolean isOwner(Long communityId, String username) {
-        return membershipRepository.existsByCommunityIdAndUserUsernameAndRoleIn(
-                communityId, username, List.of(CommunityRole.OWNER)
+    public boolean isOwner(String communityName, String username) {
+        return membershipRepository.existsByCommunity_NameAndUser_UsernameAndRoleIn(
+            communityName, username, Set.of(CommunityRole.OWNER)
         );
     }
 
@@ -170,11 +175,10 @@ public class CommunityMembershipService {
      * Internal method to delete all memberships associated with a community.
      * Typically used when a community is being deleted.
      *
-     * @param communityId the ID of the community
+     * @param name the name of the community
      */
     @Transactional
-    public void deleteAllByCommunityId(Long communityId) {
-        membershipRepository.deleteAllByCommunityId(communityId);
+    public void deleteAllByCommunityName(String name) {
+        membershipRepository.deleteAllByCommunity_Name(name);
     }
-
 }

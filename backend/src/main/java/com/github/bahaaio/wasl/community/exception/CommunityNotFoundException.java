@@ -6,5 +6,5 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public class CommunityNotFoundException extends RuntimeException {
-    private final Long id;
+    private final String name;
 }
