@@ -3,6 +3,7 @@ package com.github.bahaaio.wasl.community.controller;
 import com.github.bahaaio.wasl.community.dto.response.CommunityMembershipDto;
 import com.github.bahaaio.wasl.community.service.CommunityMembershipService;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +24,7 @@ public class CommunityMembersController {
     @GetMapping("/members")
     public ResponseEntity<PagedModel<CommunityMembershipDto>> getCommunityMembers(
         @PathVariable String name,
-        Pageable pageable
+        @ParameterObject Pageable pageable
     ) {
         return ResponseEntity.ok(communityMembershipService.getMembersByCommunityName(name, pageable));
     }

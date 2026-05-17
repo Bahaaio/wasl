@@ -5,6 +5,7 @@ import com.github.bahaaio.wasl.community.dto.request.CommunityPatchRequest;
 import com.github.bahaaio.wasl.community.dto.response.CommunityDto;
 import com.github.bahaaio.wasl.community.service.CommunityService;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
@@ -24,7 +25,7 @@ public class CommunityController {
     private final CommunityService communityService;
 
     @GetMapping
-    public ResponseEntity<PagedModel<CommunityDto>> getAllCommunities(Pageable pageable) {
+    public ResponseEntity<PagedModel<CommunityDto>> getAllCommunities(@ParameterObject Pageable pageable) {
         return ResponseEntity.ok(communityService.getAllCommunities(pageable));
     }
 
