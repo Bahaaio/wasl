@@ -3,6 +3,7 @@ package com.github.bahaaio.wasl.community.model;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
+import java.util.UUID;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -29,6 +30,9 @@ public class Community {
 
     @Column(nullable = false)
     private String description;
+
+    private UUID iconMediaId;
+    private UUID bannerMediaId;
 
     // denormalized counter
     @Builder.Default
