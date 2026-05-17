@@ -26,7 +26,7 @@ public class CommunityMembershipController {
         @AuthenticationPrincipal UserDetails userDetails
     ) {
         membershipService.joinCommunity(name, userDetails.getUsername());
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     @SecurityRequirement(name = "bearerAuth")
