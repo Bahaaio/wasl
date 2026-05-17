@@ -1,10 +1,4 @@
-import {
-  MessageCircle,
-  MoreHorizontal,
-  ChevronDown,
-  ChevronRight,
-  Trash2,
-} from "lucide-react";
+import { MessageCircle, ChevronDown, ChevronRight, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { MediaApi } from "../api/media";
@@ -141,14 +135,6 @@ function CommentThread({
               >
                 <MessageCircle className="h-3.5 w-3.5" />
                 {getCommentScore(comment)}
-              </button>
-              <button
-                type="button"
-                onClick={() => onDownvote && onDownvote(comment.id)}
-                className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/60 px-3 py-1.5 transition-colors hover:bg-slate-700 hover:text-slate-200 text-slate-400"
-              >
-                <MoreHorizontal className="h-3.5 w-3.5" />
-                More
               </button>
               <button
                 type="button"

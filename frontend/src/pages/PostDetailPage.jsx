@@ -7,7 +7,6 @@ import {
   ChevronLeft,
   MessageCircle,
   Share2,
-  MoreHorizontal,
   Image,
   Type,
 } from "lucide-react";
@@ -228,9 +227,6 @@ export default function PostDetailPage() {
                   <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/70 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-700">
                     <Share2 className="h-4 w-4" />
                     Share
-                  </button>
-                  <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/70 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-700">
-                    <MoreHorizontal className="h-4 w-4" />
                   </button>
                 </div>
               </article>
