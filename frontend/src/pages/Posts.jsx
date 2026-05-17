@@ -1,34 +1,15 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Users, ImagePlus, Link2, BarChart3 } from "lucide-react";
+import { Users } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
 import PostCard from "../components/PostCard.jsx";
 import SideBar from "../components/SideBar.jsx";
 import { MOCK_POSTS, MOCK_COMMUNITIES } from "../data/mockData.js";
-import { useUser } from "../auth/useUser.jsx";
-import { UsersApi } from "../api/users.js";
 
 export default function PostsPage() {
-  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(
     () => window.innerWidth >= 768
   );
   const [posts, setPosts] = useState(MOCK_POSTS);
-  const { user } = useUser();
-  const avatarUrl = user?.avatarMediaId
-    ? UsersApi.getUserAvatarThumbnailUrl(user.avatarMediaId)
-    : "";
-
-  const getAvatarFallback = user =>
-    user?.username
-      ? user.username
-          .split(/[^a-zA-Z0-9]+/)
-          .filter(Boolean)
-          .map(part => part[0])
-          .join("")
-          .slice(0, 2)
-          .toUpperCase()
-      : "U";
 
   useEffect(() => {
     const body = document.body;
@@ -90,45 +71,6 @@ export default function PostsPage() {
 
         <main className="flex-1 px-4 sm:px-6 lg:px-8 pt-24 pb-0 xl:pr-96">
           <div className="max-w-3xl space-y-4">
-            {/* Create Post Section */}
-            <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-lg shadow-black/20">
-              <div className="flex items-center gap-4 mb-4">
-                {avatarUrl ? (
-                  <img
-                    src={avatarUrl}
-                    alt="User avatar"
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-linear-to-br from-orange-500 to-red-600 flex items-center justify-center text-white font-bold text-sm">
-                    {getAvatarFallback(user)}
-                  </div>
-                )}
-                <button
-                  type="button"
-                  onClick={() => navigate("/create-post")}
-                  className="flex-1 bg-slate-800/50 text-slate-400 px-4 py-2.5 rounded-full border border-slate-700 hover:bg-slate-800 hover:text-slate-300 transition-all text-left"
-                >
-                  What's on your mind?
-                </button>
-              </div>
-
-              <div className="flex gap-2 flex-wrap">
-                <button className="inline-flex items-center gap-2 text-slate-400 hover:text-orange-400 px-3 py-2 rounded-full hover:bg-slate-800/50 transition-colors text-sm">
-                  <ImagePlus className="w-4 h-4" />
-                  <span className="hidden sm:inline">Image</span>
-                </button>
-                <button className="inline-flex items-center gap-2 text-slate-400 hover:text-orange-400 px-3 py-2 rounded-full hover:bg-slate-800/50 transition-colors text-sm">
-                  <Link2 className="w-4 h-4" />
-                  <span className="hidden sm:inline">Link</span>
-                </button>
-                <button className="inline-flex items-center gap-2 text-slate-400 hover:text-orange-400 px-3 py-2 rounded-full hover:bg-slate-800/50 transition-colors text-sm">
-                  <BarChart3 className="w-4 h-4" />
-                  <span className="hidden sm:inline">Poll</span>
-                </button>
-              </div>
-            </div>
-
             {posts.map(post => (
               <PostCard
                 key={post.id}
