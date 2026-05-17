@@ -8,6 +8,8 @@ import {
   MessageCircle,
   Share2,
   MoreHorizontal,
+  Image,
+  Type,
 } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
 import CommentsList from "../components/CommentsList.jsx";
@@ -21,6 +23,12 @@ export default function PostDetailPage() {
   const [comments, setComments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [commentInput, setCommentInput] = useState("");
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState({
+    isOpen: false,
+    commentId: null,
+  });
 
   const loadPost = useCallback(async () => {
     setIsLoading(true);
@@ -82,6 +90,39 @@ export default function PostDetailPage() {
     }
   };
 
+  const handleAddComment = async () => {
+    if (!commentInput.trim()) return;
+
+    setIsSubmittingComment(true);
+    try {
+      await CommentsApi.reply(postId, {
+        content: commentInput,
+      });
+      setCommentInput("");
+      await loadPost();
+    } catch (err) {
+      console.error("Failed to add comment:", err);
+    } finally {
+      setIsSubmittingComment(false);
+    }
+  };
+
+  const handleDeleteComment = async commentId => {
+    setDeleteConfirm({ isOpen: true, commentId });
+  };
+
+  const confirmDeleteComment = async () => {
+    if (!deleteConfirm.commentId) return;
+    try {
+      await CommentsApi.deleteComment(deleteConfirm.commentId);
+      await loadPost();
+      setDeleteConfirm({ isOpen: false, commentId: null });
+    } catch (err) {
+      console.error("Failed to delete comment:", err);
+      setDeleteConfirm({ isOpen: false, commentId: null });
+    }
+  };
+
   const communityName = post?.communityName ?? "Community";
   const authorUsername = post?.authorUsername ?? "unknown";
   const createdAt = post?.createdAt ? formatRelativeTime(post.createdAt) : "";
@@ -89,6 +130,36 @@ export default function PostDetailPage() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <Navbar />
+
+      {deleteConfirm.isOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-6 max-w-sm w-full">
+            <h2 className="text-lg font-bold text-white mb-2">
+              Delete Comment?
+            </h2>
+            <p className="text-slate-400 mb-6 text-sm">
+              Are you sure you want to delete this comment? This action cannot
+              be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() =>
+                  setDeleteConfirm({ isOpen: false, commentId: null })
+                }
+                className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all font-medium text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteComment}
+                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white transition-all font-medium text-sm"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="mx-auto flex max-w-400 gap-6 px-4 pb-10 pt-20 sm:px-6 lg:px-8">
         <main className="min-w-0 flex-1">
@@ -165,17 +236,56 @@ export default function PostDetailPage() {
               </article>
             ) : null}
 
-            <section className="mt-5 rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-lg shadow-black/20">
-              <div className="flex items-center gap-3">
-                <div className="rounded-full border border-slate-800 bg-slate-950/70 px-4 py-2 text-sm text-slate-300">
-                  Sort by:{" "}
-                  <span className="font-semibold text-white">Best</span>
-                </div>
-                <div className="rounded-full border border-slate-800 bg-slate-950/70 px-4 py-2 text-sm text-slate-400">
-                  Search Comments
-                </div>
-              </div>
+            <div className="mt-5 rounded-full border-2 border-slate-700 bg-slate-900/50 p-4 flex items-center gap-3 transition-all hover:border-slate-600 focus-within:border-blue-500/50">
+              <button className="text-slate-400 hover:text-blue-400 transition-colors shrink-0">
+                <Image className="h-5 w-5" />
+              </button>
+              <button className="text-slate-400 hover:text-blue-400 transition-colors shrink-0">
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </button>
+              <button className="text-slate-400 hover:text-blue-400 transition-colors shrink-0">
+                <Type className="h-5 w-5" />
+              </button>
+              <input
+                type="text"
+                value={commentInput}
+                onChange={e => setCommentInput(e.target.value)}
+                placeholder="Join the conversation..."
+                className="flex-1 bg-transparent text-slate-100 placeholder-slate-500 focus:outline-none text-sm"
+                onKeyDown={e => {
+                  if (e.key === "Enter" && !e.shiftKey && commentInput.trim()) {
+                    handleAddComment();
+                  }
+                }}
+              />
+              <button
+                onClick={() => setCommentInput("")}
+                className="px-4 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-all text-sm font-medium shrink-0"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddComment}
+                disabled={!commentInput.trim() || isSubmittingComment}
+                className="px-5 py-2 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-all text-sm font-bold shrink-0"
+              >
+                {isSubmittingComment ? "..." : "Comment"}
+              </button>
+            </div>
 
+            <section className="mt-5 rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-lg shadow-black/20">
               <div className="mt-5">
                 <CommentsList
                   comments={comments}
@@ -183,11 +293,8 @@ export default function PostDetailPage() {
                   onDownvote={commentId =>
                     handleCommentVote(commentId, "DOWNVOTE")
                   }
+                  onDelete={handleDeleteComment}
                 />
-              </div>
-
-              <div className="mt-5 rounded-2xl border border-dashed border-slate-700 bg-slate-950/40 px-4 py-4 text-sm text-slate-400">
-                Add a comment
               </div>
             </section>
           </div>

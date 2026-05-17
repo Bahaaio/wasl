@@ -1,79 +1,204 @@
-import { MessageCircle, MoreHorizontal } from "lucide-react";
+import {
+  MessageCircle,
+  MoreHorizontal,
+  ChevronDown,
+  ChevronRight,
+  Trash2,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { MediaApi } from "../api/media";
 
-export default function CommentsList({ comments, onUpvote, onDownvote }) {
+export default function CommentsList({
+  comments,
+  onUpvote,
+  onDownvote,
+  onDelete,
+}) {
   const navigate = useNavigate();
 
   if (!comments?.length) {
     return (
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 text-center text-slate-400">
-        No comments yet.
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-8 text-center">
+        <div className="flex flex-col items-center gap-2">
+          <MessageCircle className="h-10 w-10 text-slate-600" />
+          <p className="text-slate-400 text-sm">
+            No comments yet. Be the first to share your thoughts!
+          </p>
+        </div>
       </div>
     );
   }
 
+  // Build tree structure from flat comments
+  const commentMap = new Map(comments.map(c => [c.id, { ...c, replies: [] }]));
+  const topLevelComments = [];
+
+  for (const comment of comments) {
+    const node = commentMap.get(comment.id);
+    if (comment.parentId) {
+      const parent = commentMap.get(comment.parentId);
+      if (parent) {
+        parent.replies.push(node);
+      }
+    } else {
+      topLevelComments.push(node);
+    }
+  }
+
   return (
     <div className="space-y-4">
-      {comments.map(comment => (
-        <article
+      {topLevelComments.map(comment => (
+        <CommentThread
           key={comment.id}
-          className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 transition-all hover:border-slate-700"
-        >
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-orange-500 to-red-600 text-sm font-bold text-white shadow-lg shadow-orange-500/10">
-              {getCommentAuthor(comment)
-                .split(" ")
-                .map(part => part[0])
-                .join("")
-                .slice(0, 2)
-                .toUpperCase()}
+          comment={comment}
+          onUpvote={onUpvote}
+          onDownvote={onDownvote}
+          onDelete={onDelete}
+          navigate={navigate}
+          depth={0}
+        />
+      ))}
+    </div>
+  );
+}
+
+function CommentThread({
+  comment,
+  onUpvote,
+  onDownvote,
+  onDelete,
+  navigate,
+  depth,
+}) {
+  const [isRepliesVisible, setIsRepliesVisible] = useState(true);
+
+  const getAvatarUrl = () => {
+    if (comment.authorAvatarMediaId) {
+      return MediaApi.getFullMediaUrl(comment.authorAvatarMediaId);
+    }
+    return null;
+  };
+
+  const getInitials = () => {
+    return getCommentAuthor(comment)
+      .split(" ")
+      .map(part => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+  };
+
+  const marginLeft = depth > 0 ? `${depth * 24}px` : "0";
+
+  return (
+    <div style={{ marginLeft }}>
+      <article className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 transition-all hover:border-slate-700 hover:bg-slate-900/80 shadow-sm hover:shadow-md">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full overflow-hidden bg-gradient-to-br from-orange-500 to-red-600 text-sm font-bold text-white shadow-lg shadow-orange-500/10 flex-shrink-0">
+            {getAvatarUrl() ? (
+              <img
+                src={getAvatarUrl()}
+                alt={getCommentAuthor(comment)}
+                className="h-full w-full object-cover"
+                onError={e => {
+                  e.target.style.display = "none";
+                }}
+              />
+            ) : (
+              <span>{getInitials()}</span>
+            )}
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
+              <button
+                type="button"
+                onClick={() => navigate(`/u/${getCommentAuthor(comment)}`)}
+                className="font-semibold text-slate-300 hover:text-orange-400 transition-colors"
+              >
+                u/{getCommentAuthor(comment)}
+              </button>
+              <span className="text-slate-600">•</span>
+              <span>{getCommentTime(comment)}</span>
+              {getCommentCommunity(comment) && (
+                <>
+                  <span className="text-slate-600">•</span>
+                  <span>{getCommentCommunity(comment)}</span>
+                </>
+              )}
             </div>
 
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-400">
-                <button
-                  type="button"
-                  onClick={() => navigate(`/u/${getCommentAuthor(comment)}`)}
-                  className="font-semibold text-slate-200 hover:text-orange-400 transition-colors"
-                >
-                  u/{getCommentAuthor(comment)}
-                </button>
-                <span className="text-slate-600">•</span>
-                <span>{getCommentTime(comment)}</span>
-                {getCommentCommunity(comment) && (
-                  <>
-                    <span className="text-slate-600">•</span>
-                    <span>{getCommentCommunity(comment)}</span>
-                  </>
-                )}
-              </div>
+            <p className="mt-2 text-sm leading-6 text-slate-200">
+              {getCommentBody(comment)}
+            </p>
 
-              <p className="mt-2 text-sm leading-6 text-slate-200">
-                {getCommentBody(comment)}
-              </p>
-
-              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+              <button
+                type="button"
+                onClick={() => onUpvote && onUpvote(comment.id)}
+                className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/60 px-3 py-1.5 transition-colors hover:bg-slate-700 hover:text-orange-400 text-slate-400 hover:text-orange-400"
+              >
+                <MessageCircle className="h-3.5 w-3.5" />
+                {getCommentScore(comment)}
+              </button>
+              <button
+                type="button"
+                onClick={() => onDownvote && onDownvote(comment.id)}
+                className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/60 px-3 py-1.5 transition-colors hover:bg-slate-700 hover:text-slate-200 text-slate-400"
+              >
+                <MoreHorizontal className="h-3.5 w-3.5" />
+                More
+              </button>
+              <button
+                type="button"
+                onClick={() => onDelete && onDelete(comment.id)}
+                className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/60 px-3 py-1.5 transition-colors hover:bg-red-900/30 hover:text-red-400 text-slate-400"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Delete
+              </button>
+              {comment.replies?.length > 0 && (
                 <button
                   type="button"
-                  onClick={() => onUpvote && onUpvote(comment.id)}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/60 px-3 py-1.5 transition-colors hover:bg-slate-700 hover:text-orange-400"
+                  onClick={() => setIsRepliesVisible(!isRepliesVisible)}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/60 px-3 py-1.5 transition-colors hover:bg-slate-700 hover:text-slate-200 text-slate-400 ml-auto"
                 >
-                  <MessageCircle className="h-3.5 w-3.5" />
-                  {getCommentScore(comment)}
+                  {isRepliesVisible ? (
+                    <>
+                      <ChevronDown className="h-3.5 w-3.5" />
+                      {comment.replies.length} repl
+                      {comment.replies.length === 1 ? "y" : "ies"}
+                    </>
+                  ) : (
+                    <>
+                      <ChevronRight className="h-3.5 w-3.5" />
+                      {comment.replies.length} repl
+                      {comment.replies.length === 1 ? "y" : "ies"}
+                    </>
+                  )}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => onDownvote && onDownvote(comment.id)}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/60 px-3 py-1.5 transition-colors hover:bg-slate-700 hover:text-slate-200"
-                >
-                  <MoreHorizontal className="h-3.5 w-3.5" />
-                  More
-                </button>
-              </div>
+              )}
             </div>
           </div>
-        </article>
-      ))}
+        </div>
+      </article>
+
+      {isRepliesVisible && comment.replies?.length > 0 && (
+        <div className="mt-2 space-y-2">
+          {comment.replies.map(reply => (
+            <CommentThread
+              key={reply.id}
+              comment={reply}
+              onUpvote={onUpvote}
+              onDownvote={onDownvote}
+              onDelete={onDelete}
+              navigate={navigate}
+              depth={depth + 1}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
