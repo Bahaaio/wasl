@@ -44,11 +44,11 @@ api.interceptors.response.use(
   async error => {
     const originalRequest = error.config;
 
-    // reject if not an auth error, or if the request has already been retried
-    const isAuthError = [401, 403].includes(error.response?.status);
+    // reject if not unauthorized error, or if the request has already been retried
+    const isUnauthorized = error.response?.status === 401;
 
     if (
-      !isAuthError ||
+      !isUnauthorized ||
       originalRequest._retry ||
       originalRequest.url === "/auth/refresh"
     ) {
