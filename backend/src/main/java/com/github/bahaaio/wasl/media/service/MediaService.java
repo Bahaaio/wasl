@@ -1,6 +1,7 @@
 package com.github.bahaaio.wasl.media.service;
 
 import com.github.bahaaio.wasl.auth.exception.ForbiddenException;
+import com.github.bahaaio.wasl.media.config.MediaCleanupProperties;
 import com.github.bahaaio.wasl.media.dto.MediaDto;
 import com.github.bahaaio.wasl.media.dto.MediaFileResponse;
 import com.github.bahaaio.wasl.media.dto.MediaResponse;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,6 +40,7 @@ public class MediaService {
     private final UserService userService;
     private final MediaProcessorFactory mediaProcessorFactory;
     private final MediaValidator mediaValidator;
+    private final MediaCleanupProperties mediaCleanupProperties;
 
     public List<MediaDto> getByOwnerId(Long ownerId, MediaOwnerType ownerType) {
         var mediaList = mediaRepository.findAllByOwnerIdAndOwnerTypeOrderByPosition(ownerId, ownerType);
@@ -150,17 +153,35 @@ public class MediaService {
     @Transactional
     public void deleteMediaById(UUID id) {
         var media = getEntityById(id);
+        deleteMedia(media);
+    }
 
+    public void deleteMedia(Media media) {
         storageService.delete(mediaPathService.getFullPath(media));
         storageService.delete(mediaPathService.getThumbnailPath(media));
         storageService.delete(mediaPathService.getStorageKey(media.getId()));
 
-        mediaRepository.deleteById(id);
+        mediaRepository.deleteById(media.getId());
     }
 
     @Transactional
     public void deleteMediaByOwnerId(Long ownerId, MediaOwnerType ownerType) {
         mediaRepository.findAllByOwnerIdAndOwnerType(ownerId, ownerType)
             .forEach(media -> deleteMediaById(media.getId()));
+    }
+
+    /**
+     * Deletes orphaned media files that are in a temporary state and have been created
+     * before a specified cutoff time.
+     * <p>
+     * The retention period used to calculate the cutoff
+     * time is obtained from the media cleanup properties.
+     */
+    @Transactional
+    public void deleteOrphanedMedia() {
+        var cutoffTime = Instant.now().minus(mediaCleanupProperties.getRetention());
+        var orphanedMedia = mediaRepository.findAllByStateAndCreatedAtBefore(MediaState.TEMP, cutoffTime);
+
+        orphanedMedia.forEach(this::deleteMedia);
     }
 }
