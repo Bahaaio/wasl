@@ -126,7 +126,7 @@ public class PostService {
             var mediaIdsToBeRemoved = new HashSet<>(oldMediaIds);
             mediaIdsToBeRemoved.removeAll(new HashSet<>(request.mediaIds()));
 
-            mediaIdsToBeRemoved.forEach(mediaService::deleteMediaById);
+            mediaService.deleteAllMediaById(mediaIdsToBeRemoved);
 
             postMedia = request.mediaIds().stream()
                 .map(mediaId -> attachOrRepositionPost(

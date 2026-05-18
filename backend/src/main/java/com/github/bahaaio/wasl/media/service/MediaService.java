@@ -25,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import jakarta.transaction.Transactional;
@@ -83,8 +84,7 @@ public class MediaService {
             storageService.store(processed.fullStream(), fullPath);
             storageService.store(processed.thumbnailStream(), thumbnailPath);
         } catch (IOException e) {
-            // TODO: fragile
-            deleteMediaById(media.getId());
+            deleteMedia(media);
             throw new StorageException("Failed to save media");
         }
 
@@ -150,24 +150,30 @@ public class MediaService {
         return new MediaDto(media.getId(), media.getType());
     }
 
-    @Transactional
     public void deleteMediaById(UUID id) {
         var media = getEntityById(id);
         deleteMedia(media);
     }
 
     public void deleteMedia(Media media) {
-        storageService.delete(mediaPathService.getFullPath(media));
-        storageService.delete(mediaPathService.getThumbnailPath(media));
-        storageService.delete(mediaPathService.getStorageKey(media.getId()));
+        mediaRepository.delete(media);
+        deleteMediaFiles(media);
+    }
 
-        mediaRepository.deleteById(media.getId());
+    public void deleteAllMediaById(Set<UUID> mediaIds) {
+        var mediaList = mediaRepository.findAllById(mediaIds);
+        deleteAllMedia(mediaList);
+    }
+
+    public void deleteAllMedia(List<Media> mediaList) {
+        mediaRepository.deleteAllInBatch(mediaList);
+        mediaList.forEach(this::deleteMediaFiles);
     }
 
     @Transactional
     public void deleteMediaByOwnerId(Long ownerId, MediaOwnerType ownerType) {
-        mediaRepository.findAllByOwnerIdAndOwnerType(ownerId, ownerType)
-            .forEach(media -> deleteMediaById(media.getId()));
+        var mediaList = mediaRepository.findAllByOwnerIdAndOwnerType(ownerId, ownerType);
+        deleteAllMedia(mediaList);
     }
 
     /**
@@ -182,6 +188,15 @@ public class MediaService {
         var cutoffTime = Instant.now().minus(mediaCleanupProperties.getRetention());
         var orphanedMedia = mediaRepository.findAllByStateAndCreatedAtBefore(MediaState.TEMP, cutoffTime);
 
-        orphanedMedia.forEach(this::deleteMedia);
+        deleteAllMedia(orphanedMedia);
+    }
+
+    private void deleteMediaFiles(Media media) {
+        try {
+            storageService.delete(mediaPathService.getFullPath(media));
+            storageService.delete(mediaPathService.getThumbnailPath(media));
+            storageService.delete(mediaPathService.getStorageKey(media.getId()));
+        } catch (FileNotFoundException ignored) {
+        }
     }
 }
