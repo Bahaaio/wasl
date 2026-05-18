@@ -14,7 +14,7 @@ export const uploadFile = async (url, file) => {
   // Ensure we don't send the instance default `application/json` header.
   // Setting Content-Type to `undefined` lets the browser set the correct
   // multipart/form-data boundary. Also increase timeout for larger files.
-  const res = await api.put(url, formData, {
+  const res = await api.post(url, formData, {
     headers: { "Content-Type": undefined },
     timeout: 30000,
   });
