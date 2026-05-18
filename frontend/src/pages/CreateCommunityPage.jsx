@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -10,6 +10,7 @@ import {
 import Navbar from "../components/Navbar.jsx";
 import AuthModal from "../components/AuthModal.jsx";
 import { useUser } from "../auth/useUser.jsx";
+import { CommunitiesApi } from "../api/communities.js";
 
 const COMMUNITY_CATEGORIES = [
   "Technology",
@@ -66,6 +67,22 @@ export default function CreateCommunityPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdCommunity, setCreatedCommunity] = useState(null);
   const [formError, setFormError] = useState("");
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    let mounted = true;
+    CommunitiesApi.getAllCategories()
+      .then(list => {
+        if (mounted && Array.isArray(list)) setCategories(list);
+      })
+      .catch(() => {
+        /* ignore - categories are optional fallback to local list */
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
   const [form, setForm] = useState({
     name: "",
     displayName: "",
@@ -137,22 +154,52 @@ export default function CreateCommunityPage() {
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      const nextCommunity = {
-        slug: communitySlug,
-        displayName: form.displayName.trim(),
-        description: form.description.trim(),
-        category: form.category,
-        visibility: form.visibility,
-        nsfw: form.nsfw,
-        allowChat: form.allowChat,
-      };
-      setCreatedCommunity(nextCommunity);
-      setIsSubmitting(false);
-      navigate(`/r/${nextCommunity.slug}`, {
-        state: { community: nextCommunity },
-      });
-    }, 700);
+
+    (async () => {
+      try {
+        // Resolve category id from server-provided categories, fallback to first
+        const categoryObj =
+          categories.find(c => c.name === form.category) || categories[0];
+        const categoryId = categoryObj ? categoryObj.id : undefined;
+
+        const request = {
+          name: communitySlug,
+          description: form.description.trim(),
+          categoryId: categoryId,
+          isPublic: form.visibility === "public",
+        };
+
+        const created = await CommunitiesApi.createCommunity(request);
+
+        // Map server response into local shape used by the UI
+        const nextCommunity = {
+          slug: created.name || communitySlug,
+          displayName: form.displayName.trim(),
+          description: created.description || form.description.trim(),
+          category: created.categoryName || form.category,
+          visibility: created.isPublic ? "public" : "private",
+          nsfw: form.nsfw,
+          allowChat: form.allowChat,
+          id: created.id,
+        };
+
+        setCreatedCommunity(nextCommunity);
+        setIsSubmitting(false);
+        navigate(`/r/${nextCommunity.slug}`, {
+          state: { community: nextCommunity },
+        });
+      } catch (err) {
+        setIsSubmitting(false);
+        const msg =
+          err?.response?.data?.message ||
+          err?.message ||
+          "Failed to create community";
+        setFormError(
+          msg.includes("exists") ? "Community name already taken." : msg
+        );
+        setStep(1);
+      }
+    })();
   };
 
   const submitLabel = isSubmitting

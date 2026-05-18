@@ -6,8 +6,8 @@ import RichTextEditor from "../components/RichTextEditor.jsx";
 import AuthModal from "../components/AuthModal.jsx";
 import { MediaApi } from "../api/media.js";
 import { PostsApi } from "../api/posts.js";
-import { CommunitiesApi } from "../api/communities.js";
 import { useUser } from "../auth/useUser.jsx";
+import { UsersApi } from "../api/users.js";
 
 function stripCommunityPrefix(value) {
   return value.replace(/^r\//i, "").trim();
@@ -31,13 +31,13 @@ export default function CreatePostPage() {
   const [showLink, setShowLink] = useState(false);
   const [showPoll, setShowPoll] = useState(false);
   const [communities, setCommunities] = useState([]);
-  const [communityQuery, setCommunityQuery] = useState("");
+  const [communitySearch, setCommunitySearch] = useState("");
   const [isCommunityMenuOpen, setIsCommunityMenuOpen] = useState(false);
   const [isLoadingCommunities, setIsLoadingCommunities] = useState(false);
   const [createPostForm, setCreatePostForm] = useState({
     title: "",
     content: "",
-    community: "r/javascript",
+    community: "",
     images: [],
     link: "",
     pollOptions: ["", ""],
@@ -45,17 +45,44 @@ export default function CreatePostPage() {
   const communityPickerRef = useRef(null);
 
   useEffect(() => {
-    const loadCommunities = async () => {
+    if (!isLoggedIn) {
+      return;
+    }
+
+    let isMounted = true;
+
+    const loadJoinedCommunities = async () => {
       setIsLoadingCommunities(true);
 
       try {
-        const response = await CommunitiesApi.getAllCommunities({
+        const firstPage = await UsersApi.listSubscribedCommunities({
           page: 0,
           size: 100,
           sort: ["name,asc"],
         });
 
-        const nextCommunities = response?.content ?? [];
+        let nextCommunities = firstPage?.content ?? [];
+        const totalPages = firstPage?.page?.totalPages ?? 1;
+
+        if (totalPages > 1) {
+          const pageRequests = [];
+
+          for (let pageNumber = 1; pageNumber < totalPages; pageNumber += 1) {
+            pageRequests.push(
+              UsersApi.listSubscribedCommunities({
+                page: pageNumber,
+                size: 100,
+                sort: ["name,asc"],
+              })
+            );
+          }
+
+          const otherPages = await Promise.all(pageRequests);
+          const additional = otherPages.flatMap(page => page?.content ?? []);
+          nextCommunities = [...nextCommunities, ...additional];
+        }
+
+        if (!isMounted) return;
         setCommunities(nextCommunities);
 
         if (nextCommunities.length > 0) {
@@ -64,18 +91,25 @@ export default function CreatePostPage() {
             ...previous,
             community: firstCommunity.name,
           }));
-          setCommunityQuery(firstCommunity.name);
+          setCommunitySearch("");
         }
       } catch (error) {
+        if (!isMounted) return;
         console.error("Failed to load communities:", error);
         setCommunities([]);
       } finally {
-        setIsLoadingCommunities(false);
+        if (isMounted) {
+          setIsLoadingCommunities(false);
+        }
       }
     };
 
-    loadCommunities();
-  }, []);
+    loadJoinedCommunities();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isLoggedIn]);
 
   useEffect(() => {
     const handleClickOutside = event => {
@@ -92,21 +126,17 @@ export default function CreatePostPage() {
   }, []);
 
   const filteredCommunities = useMemo(() => {
-    const query = communityQuery.trim().toLowerCase().replace(/^r\//, "");
+    const query = communitySearch.trim().toLowerCase().replace(/^r\//, "");
 
     if (!query) {
-      return communities.slice(0, 8);
+      return communities;
     }
 
-    return communities
-      .filter(community => {
-        const communityName = stripCommunityPrefix(
-          community.name
-        ).toLowerCase();
-        return communityName.includes(query);
-      })
-      .slice(0, 8);
-  }, [communities, communityQuery]);
+    return communities.filter(community => {
+      const communityName = stripCommunityPrefix(community.name).toLowerCase();
+      return communityName.includes(query);
+    });
+  }, [communities, communitySearch]);
 
   const handleCreatePostChange = event => {
     const { name, value } = event.target;
@@ -171,8 +201,8 @@ export default function CreatePostPage() {
     event.preventDefault();
 
     // Validation
-    if (!createPostForm.title.trim() || !createPostForm.content.trim()) {
-      setCreatePostError("Title and content are required");
+    if (!createPostForm.title.trim()) {
+      setCreatePostError("Title is required");
       return;
     }
 
@@ -181,7 +211,10 @@ export default function CreatePostPage() {
       return;
     }
 
-    if (createPostForm.content.length < 10) {
+    if (
+      createPostForm.content.trim().length > 0 &&
+      createPostForm.content.trim().length < 10
+    ) {
       setCreatePostError("Content must be at least 10 characters");
       return;
     }
@@ -199,7 +232,7 @@ export default function CreatePostPage() {
         communities.find(
           community =>
             stripCommunityPrefix(community.name).toLowerCase() ===
-            communityQuery.trim().toLowerCase().replace(/^r\//, "")
+            communitySearch.trim().toLowerCase().replace(/^r\//, "")
         );
 
       if (!selectedCommunity) {
@@ -216,7 +249,9 @@ export default function CreatePostPage() {
         .map(result => result?.mediaId)
         .filter(Boolean);
 
-      const contentParts = [createPostForm.content.trim()];
+      const baseContent =
+        createPostForm.content.trim() || createPostForm.title.trim();
+      const contentParts = [baseContent];
 
       if (showLink && createPostForm.link.trim()) {
         contentParts.push(`Link: ${createPostForm.link.trim()}`);
@@ -248,12 +283,15 @@ export default function CreatePostPage() {
         link: "",
         pollOptions: ["", ""],
       });
-      setCommunityQuery(communities[0]?.name || "");
+      setCommunitySearch("");
       setComposerTab("post");
       navigate("/posts");
     } catch (error) {
       setCreatePostError(
-        error.message || "Failed to create post. Please try again."
+        error?.response?.data?.message ||
+          error?.response?.data?.error ||
+          error.message ||
+          "Failed to create post. Please try again."
       );
       console.error("Error creating post:", error);
     } finally {
@@ -298,19 +336,22 @@ export default function CreatePostPage() {
               <span className="text-slate-400">r/</span>
               <input
                 type="text"
-                value={communityQuery}
+                value={
+                  isCommunityMenuOpen
+                    ? communitySearch
+                    : toDisplayCommunityName(createPostForm.community)
+                }
                 onChange={event => {
                   const nextQuery = event.target.value;
-                  setCommunityQuery(nextQuery);
+                  setCommunitySearch(nextQuery);
                   setIsCommunityMenuOpen(true);
-                  setCreatePostForm(previous => ({
-                    ...previous,
-                    community: nextQuery,
-                  }));
                   setCreatePostError(null);
                 }}
-                onFocus={() => setIsCommunityMenuOpen(true)}
-                placeholder="Search communities"
+                onFocus={() => {
+                  setIsCommunityMenuOpen(true);
+                  setCommunitySearch("");
+                }}
+                placeholder="Search your communities"
                 disabled={isCreatingPost || isLoadingCommunities}
                 className="w-full bg-transparent text-sm text-slate-100 placeholder-slate-500 outline-none disabled:cursor-not-allowed"
               />
@@ -348,7 +389,7 @@ export default function CreatePostPage() {
                               ...previous,
                               community: community.name,
                             }));
-                            setCommunityQuery(community.name);
+                            setCommunitySearch("");
                             setIsCommunityMenuOpen(false);
                           }}
                           className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm transition-colors hover:bg-slate-800 ${
@@ -368,7 +409,7 @@ export default function CreatePostPage() {
                     })
                   ) : (
                     <div className="px-4 py-3 text-sm text-slate-400">
-                      No matching communities found.
+                      No joined communities found.
                     </div>
                   )}
                 </div>
