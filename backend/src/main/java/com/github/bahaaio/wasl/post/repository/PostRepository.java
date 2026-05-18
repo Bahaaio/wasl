@@ -27,6 +27,106 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         """)
     Page<Post> searchPosts(String query, @Nullable String communityName, @Nullable Instant after, Pageable pageable);
 
+    @Query("""
+        SELECT p FROM Post p
+        WHERE p.community.isPublic = true
+            AND (
+                p.createdAt <= COALESCE(:cursorCreatedAt, p.createdAt)
+                OR (p.createdAt = :cursorCreatedAt AND p.id < :cursorId)
+            )
+        ORDER BY p.createdAt DESC, p.id DESC
+        """)
+    Page<Post> findPublicFeedLatest(
+        @Nullable Instant cursorCreatedAt,
+        @Nullable Long cursorId,
+        Pageable pageable
+    );
+
+    @Query("""
+        SELECT p FROM Post p
+        WHERE p.community.isPublic = true
+            AND (
+                p.score < COALESCE(:cursorScore, p.score)
+                OR (p.score = :cursorScore AND p.id < :cursorId)
+            )
+        ORDER BY p.score DESC, p.id DESC
+        """)
+    Page<Post> findPublicFeedTop(
+        @Nullable Long cursorScore,
+        @Nullable Long cursorId,
+        Pageable pageable
+    );
+
+    @Query("""
+        SELECT p FROM Post p
+        WHERE p.community.isPublic = true
+            AND (
+                p.score <= COALESCE(:cursorScore, p.score)
+                OR (p.score = :cursorScore AND p.createdAt < :cursorCreatedAt)
+                OR (p.score = :cursorScore AND p.createdAt = :cursorCreatedAt AND p.id < :cursorId)
+            )
+        ORDER BY p.score DESC, p.createdAt DESC, p.id DESC
+        """)
+    Page<Post> findPublicFeedHot(
+        @Nullable Long cursorScore,
+        @Nullable Instant cursorCreatedAt,
+        @Nullable Long cursorId,
+        Pageable pageable
+    );
+
+    @Query("""
+        SELECT p FROM Post p
+        JOIN CommunityMembership m ON m.community = p.community
+        WHERE m.user.username = :username
+            AND (
+                p.createdAt <= COALESCE(:cursorCreatedAt, p.createdAt)
+                OR (p.createdAt = :cursorCreatedAt AND p.id < :cursorId)
+            )
+        ORDER BY p.createdAt DESC, p.id DESC
+        """)
+    Page<Post> findSubscribedFeedLatest(
+        String username,
+        @Nullable Instant cursorCreatedAt,
+        @Nullable Long cursorId,
+        Pageable pageable
+    );
+
+    @Query("""
+        SELECT p FROM Post p
+        JOIN CommunityMembership m ON m.community = p.community
+        WHERE m.user.username = :username
+            AND (
+                p.score <= COALESCE(:cursorScore, p.score)
+                OR (p.score = :cursorScore AND p.id < :cursorId)
+            )
+        ORDER BY p.score DESC, p.id DESC
+        """)
+    Page<Post> findSubscribedFeedTop(
+        String username,
+        @Nullable Long cursorScore,
+        @Nullable Long cursorId,
+        Pageable pageable
+    );
+
+    @Query("""
+        SELECT p FROM Post p
+        JOIN CommunityMembership m ON m.community = p.community
+        WHERE m.user.username = :username
+            AND (
+                p.score <= COALESCE(:cursorScore, p.score)
+                OR (p.score = :cursorScore AND p.createdAt < :cursorCreatedAt)
+                OR (p.score = :cursorScore AND p.createdAt = :cursorCreatedAt AND p.id < :cursorId)
+            )
+        ORDER BY p.score DESC, p.createdAt DESC, p.id DESC
+        """)
+    Page<Post> findSubscribedFeedHot(
+        String username,
+        @Nullable Long cursorScore,
+        @Nullable Instant cursorCreatedAt,
+        @Nullable Long cursorId,
+        Pageable pageable
+    );
+
     Page<Post> findAllByAuthor_Username(String authorUsername, Pageable pageable);
 
     @Transactional

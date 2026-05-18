@@ -219,4 +219,23 @@
  * @property {PageMetadata} page
  */
 
+/**
+ * @typedef {"latest" | "top" | "hot"} FeedSort
+ */
+
+/**
+ * @typedef {Object} PostFeedPage
+ * @property {number} size
+ * @property {boolean} hasNext
+ * @property {string?} nextCursorCreatedAt
+ * @property {number?} nextCursorId
+ * @property {number?} nextCursorScore
+ */
+
+/**
+ * @typedef {Object} PostFeedResponse
+ * @property {PostDto[]} posts
+ * @property {PostFeedPage} page
+ */
+
 export {};
