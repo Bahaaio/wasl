@@ -1,7 +1,15 @@
-import { MessageCircle, ChevronDown, ChevronRight, Trash2 } from "lucide-react";
+import {
+  ArrowBigUp,
+  ArrowBigDown,
+  MessageCircle,
+  ChevronDown,
+  ChevronRight,
+  Trash2,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { MediaApi } from "../api/media";
+import { getNetVoteScore } from "../api/util.js";
 
 export default function CommentsList({
   comments,
@@ -66,6 +74,7 @@ function CommentThread({
   depth,
 }) {
   const [isRepliesVisible, setIsRepliesVisible] = useState(true);
+  const vote = comment.vote ?? "NONE";
 
   const getAvatarUrl = () => {
     if (comment.authorAvatarMediaId) {
@@ -89,7 +98,7 @@ function CommentThread({
     <div style={{ marginLeft }}>
       <article className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 transition-all hover:border-slate-700 hover:bg-slate-900/80 shadow-sm hover:shadow-md">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full overflow-hidden bg-gradient-to-br from-orange-500 to-red-600 text-sm font-bold text-white shadow-lg shadow-orange-500/10 flex-shrink-0">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full overflow-hidden bg-linear-to-br from-orange-500 to-red-600 text-sm font-bold text-white shadow-lg shadow-orange-500/10">
             {getAvatarUrl() ? (
               <img
                 src={getAvatarUrl()}
@@ -131,10 +140,37 @@ function CommentThread({
               <button
                 type="button"
                 onClick={() => onUpvote && onUpvote(comment.id)}
-                className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/60 px-3 py-1.5 transition-colors hover:bg-slate-700 hover:text-orange-400 text-slate-400 hover:text-orange-400"
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors ${
+                  vote === "UPVOTE"
+                    ? "bg-orange-500/15 text-orange-300"
+                    : "bg-slate-800/60 text-slate-400 hover:bg-slate-700 hover:text-orange-400"
+                }`}
+                aria-pressed={vote === "UPVOTE"}
+                aria-label="Upvote comment"
               >
-                <MessageCircle className="h-3.5 w-3.5" />
+                <ArrowBigUp
+                  className={`h-3.5 w-3.5 ${
+                    vote === "UPVOTE" ? "text-orange-300" : "text-orange-400"
+                  }`}
+                />
                 {getCommentScore(comment)}
+              </button>
+              <button
+                type="button"
+                onClick={() => onDownvote && onDownvote(comment.id)}
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors ${
+                  vote === "DOWNVOTE"
+                    ? "bg-indigo-500/15 text-indigo-300"
+                    : "bg-slate-800/60 text-slate-400 hover:bg-slate-700 hover:text-indigo-400"
+                }`}
+                aria-pressed={vote === "DOWNVOTE"}
+                aria-label="Downvote comment"
+              >
+                <ArrowBigDown
+                  className={`h-3.5 w-3.5 ${
+                    vote === "DOWNVOTE" ? "text-indigo-300" : "text-indigo-400"
+                  }`}
+                />
               </button>
               <button
                 type="button"
@@ -225,5 +261,5 @@ function getCommentCommunity(comment) {
 }
 
 function getCommentScore(comment) {
-  return typeof comment.score === "number" ? comment.score : 0;
+  return getNetVoteScore(comment);
 }

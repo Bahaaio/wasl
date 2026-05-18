@@ -1,19 +1,19 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowBigUp, MessageCircle, Award, Share2 } from "lucide-react";
+import { getNetVoteScore } from "../api/util.js";
 
 export default function PostCard({ post, onUpvote, onDownvote, onSave }) {
   const navigate = useNavigate();
 
   const author = post.authorUsername ?? post.author ?? "unknown";
   const community = post.communityName ?? post.community ?? "";
-  const score = post.score ?? post.upvotes ?? 0;
+  const score = getNetVoteScore(post);
   const commentCount = post.commentCount ?? post.comments ?? 0;
   const vote =
     post.vote ??
     (post.upvoted ? "UPVOTE" : post.downvoted ? "DOWNVOTE" : "NONE");
   const time = post.createdAt ? formatRelativeTime(post.createdAt) : post.time;
-  const scoreLabel =
-    typeof score === "number" ? formatCompactNumber(score) : String(score);
+  const scoreLabel = formatCompactNumber(score);
 
   const handleVote = direction => {
     if (direction === "up") {

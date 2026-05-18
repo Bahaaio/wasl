@@ -5,6 +5,7 @@ import PostCard from "../components/PostCard.jsx";
 import SideBar from "../components/SideBar.jsx";
 import { PostsApi } from "../api/posts.js";
 import { UsersApi } from "../api/users.js";
+import { sortPostsByCreatedAtDesc } from "../api/util.js";
 import { useUser } from "../auth/useUser.jsx";
 
 export default function PostsPage() {
@@ -60,7 +61,7 @@ export default function PostsPage() {
           sort: ["createdAt,desc"],
         });
 
-        setPosts(response?.content ?? []);
+        setPosts(sortPostsByCreatedAtDesc(response?.content ?? []));
       } catch (err) {
         console.error("Failed to fetch posts:", err);
         setError("Failed to load posts.");
@@ -84,7 +85,7 @@ export default function PostsPage() {
       sort: ["createdAt,desc"],
     });
 
-    setPosts(response?.content ?? []);
+    setPosts(sortPostsByCreatedAtDesc(response?.content ?? []));
   };
 
   const handleVote = async (postId, action) => {

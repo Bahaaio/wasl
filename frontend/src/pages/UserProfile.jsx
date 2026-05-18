@@ -6,6 +6,7 @@ import PostCard from "../components/PostCard.jsx";
 import CameraButton from "../components/CameraButton.jsx";
 import { UsersApi } from "../api/users.js";
 import { PostsApi } from "../api/posts.js";
+import { sortPostsByCreatedAtDesc } from "../api/util.js";
 import { useUser } from "../auth/useUser.jsx";
 
 const PROFILE_TABS = ["Overview", "Posts"];
@@ -57,7 +58,7 @@ export default function UserProfile() {
         sort: ["createdAt,desc"],
       });
 
-      setPosts(response?.content ?? []);
+      setPosts(sortPostsByCreatedAtDesc(response?.content ?? []));
     } catch (err) {
       console.error("Failed to load profile posts:", err);
       setPosts([]);

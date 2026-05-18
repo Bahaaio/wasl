@@ -14,6 +14,7 @@ import Navbar from "../components/Navbar.jsx";
 import CommentsList from "../components/CommentsList.jsx";
 import { CommentsApi } from "../api/comments.js";
 import { PostsApi } from "../api/posts.js";
+import { getNetVoteScore } from "../api/util.js";
 
 export default function PostDetailPage() {
   const navigate = useNavigate();
@@ -125,6 +126,26 @@ export default function PostDetailPage() {
   const communityName = post?.communityName ?? "Community";
   const authorUsername = post?.authorUsername ?? "unknown";
   const createdAt = post?.createdAt ? formatRelativeTime(post.createdAt) : "";
+  const postVote = post?.vote ?? "NONE";
+
+  const getVoteButtonClassName = direction => {
+    const baseClasses =
+      "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition-colors";
+
+    if (direction === "UPVOTE") {
+      return `${baseClasses} ${
+        postVote === "UPVOTE"
+          ? "bg-orange-500/15 text-orange-300"
+          : "bg-slate-800/70 text-slate-300 hover:bg-slate-700 hover:text-orange-300"
+      }`;
+    }
+
+    return `${baseClasses} ${
+      postVote === "DOWNVOTE"
+        ? "bg-indigo-500/15 text-indigo-300"
+        : "bg-slate-800/70 text-slate-300 hover:bg-slate-700 hover:text-indigo-300"
+    }`;
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -204,17 +225,33 @@ export default function PostDetailPage() {
                   <button
                     type="button"
                     onClick={() => handlePostVote("UPVOTE")}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/70 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-700"
+                    className={getVoteButtonClassName("UPVOTE")}
+                    aria-pressed={postVote === "UPVOTE"}
+                    aria-label="Upvote post"
                   >
-                    <ArrowBigUp className="h-4 w-4 text-orange-400" />
-                    {post.score}
+                    <ArrowBigUp
+                      className={`h-4 w-4 ${
+                        postVote === "UPVOTE"
+                          ? "text-orange-300"
+                          : "text-orange-400"
+                      }`}
+                    />
+                    {formatCompactNumber(getNetVoteScore(post))}
                   </button>
                   <button
                     type="button"
                     onClick={() => handlePostVote("DOWNVOTE")}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/70 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-700"
+                    className={getVoteButtonClassName("DOWNVOTE")}
+                    aria-pressed={postVote === "DOWNVOTE"}
+                    aria-label="Downvote post"
                   >
-                    <ArrowBigDown className="h-4 w-4 text-slate-400" />
+                    <ArrowBigDown
+                      className={`h-4 w-4 ${
+                        postVote === "DOWNVOTE"
+                          ? "text-indigo-300"
+                          : "text-slate-400"
+                      }`}
+                    />
                   </button>
                   <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/70 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-700">
                     <MessageCircle className="h-4 w-4" />
@@ -275,7 +312,7 @@ export default function PostDetailPage() {
               <button
                 onClick={handleAddComment}
                 disabled={!commentInput.trim() || isSubmittingComment}
-                className="px-5 py-2 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-all text-sm font-bold shrink-0"
+                className="px-5 py-2 rounded-full bg-linear-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-all text-sm font-bold shrink-0"
               >
                 {isSubmittingComment ? "..." : "Comment"}
               </button>
@@ -353,4 +390,11 @@ function formatRelativeTime(value) {
 
   const deltaDays = Math.floor(deltaHours / 24);
   return `${deltaDays}d ago`;
+}
+
+function formatCompactNumber(value) {
+  return new Intl.NumberFormat("en", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
 }
