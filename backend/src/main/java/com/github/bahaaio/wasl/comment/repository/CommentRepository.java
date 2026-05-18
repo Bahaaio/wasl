@@ -25,6 +25,8 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
         """)
     Page<Comment> searchComments(String query, String communityName, Instant after, Pageable pageable);
 
+    Page<Comment> findAllByAuthor_Username(String username, Pageable pageable);
+
     Page<Comment> findAllByPost_IdAndParentIsNull(Long postId, Pageable pageable);
 
     @Transactional

@@ -81,6 +81,21 @@ public class CommentsService {
     }
 
     @Transactional
+    public PagedModel<CommentDto> listByUsername(String username, Pageable pageable, String currentUsername) {
+        var comments = commentRepository.findAllByAuthor_Username(username, pageable)
+            .map(comment -> {
+                var vote = VoteAction.NONE;
+                if (currentUsername != null) {
+                    vote = voteService.getCommentVoteByUsername(comment.getId(), currentUsername);
+                }
+
+                return toDto(comment, comment.getPost().getId(), getMediaById(comment.getId()), vote);
+            });
+
+        return new PagedModel<>(comments);
+    }
+
+    @Transactional
     public CommentDto reply(Long postId, CommentCreateRequest request, String username) {
         var post = postService.getEntityById(postId);
         // check is community member

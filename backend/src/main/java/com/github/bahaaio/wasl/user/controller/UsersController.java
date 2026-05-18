@@ -1,5 +1,7 @@
 package com.github.bahaaio.wasl.user.controller;
 
+import com.github.bahaaio.wasl.comment.dto.CommentDto;
+import com.github.bahaaio.wasl.comment.service.CommentsService;
 import com.github.bahaaio.wasl.post.dto.PostDto;
 import com.github.bahaaio.wasl.post.service.PostService;
 import com.github.bahaaio.wasl.user.dto.UserDto;
@@ -23,13 +25,25 @@ import lombok.RequiredArgsConstructor;
 public class UsersController {
     private final UserService userService;
     private final PostService postService;
+    private final CommentsService commentsService;
 
     @GetMapping("/{username}")
     public ResponseEntity<UserDto> getUserByUsername(@PathVariable String username) {
         return ResponseEntity.ok(userService.getUserByUsername(username));
     }
 
-    // TODO: get user's communites
+    @GetMapping("/{username}/comments")
+    public ResponseEntity<PagedModel<CommentDto>> listUserComments(
+        @PathVariable String username,
+        @ParameterObject Pageable pageable,
+        Authentication authentication
+    ) {
+        var currentUsername = authentication != null ? authentication.getName() : null;
+
+        return ResponseEntity.ok(
+            commentsService.listByUsername(username, pageable, currentUsername)
+        );
+    }
 
     @GetMapping("/{username}/posts")
     public ResponseEntity<PagedModel<PostDto>> listUserPosts(
