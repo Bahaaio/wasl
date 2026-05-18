@@ -165,9 +165,10 @@ public class MediaService {
         deleteAllMedia(mediaList);
     }
 
-    public void deleteAllMedia(List<Media> mediaList) {
+    public long deleteAllMedia(List<Media> mediaList) {
         mediaRepository.deleteAllInBatch(mediaList);
         mediaList.forEach(this::deleteMediaFiles);
+        return mediaList.size();
     }
 
     @Transactional
@@ -184,11 +185,11 @@ public class MediaService {
      * time is obtained from the media cleanup properties.
      */
     @Transactional
-    public void deleteOrphanedMedia() {
+    public long deleteOrphanedMedia() {
         var cutoffTime = Instant.now().minus(mediaCleanupProperties.getRetention());
         var orphanedMedia = mediaRepository.findAllByStateAndCreatedAtBefore(MediaState.TEMP, cutoffTime);
 
-        deleteAllMedia(orphanedMedia);
+        return deleteAllMedia(orphanedMedia);
     }
 
     private void deleteMediaFiles(Media media) {

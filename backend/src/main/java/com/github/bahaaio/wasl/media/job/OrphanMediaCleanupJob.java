@@ -6,7 +6,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RequiredArgsConstructor
 @Component
 public class OrphanMediaCleanupJob {
@@ -14,6 +16,13 @@ public class OrphanMediaCleanupJob {
 
     @Scheduled(cron = "${media.cleanup.cron}")
     public void cleanup() {
-        mediaService.deleteOrphanedMedia();
+        log.info("Media cleanup job started");
+        long start = System.currentTimeMillis();
+
+        long deleted = mediaService.deleteOrphanedMedia();
+        log.info("Deleted {} media items", deleted);
+
+        long end = System.currentTimeMillis() - start;
+        log.info("Media cleanup finished in {} ms", end);
     }
 }
