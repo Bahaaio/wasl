@@ -14,6 +14,13 @@ public interface CommunityRepository extends JpaRepository<Community, Long> {
 
     Optional<Community> findByName(String name);
 
+    @Query("""
+            SELECT c FROM Community c
+            JOIN CommunityMembership cm ON c.id = cm.community.id
+            WHERE cm.user.username = :username
+        """)
+    Page<Community> listUserSubbedCommunities(String username, Pageable pageable);
+
     Page<Community> findAllByNameContainingIgnoreCase(String name, Pageable pageable);
 
     boolean existsByNameIgnoreCase(String name);

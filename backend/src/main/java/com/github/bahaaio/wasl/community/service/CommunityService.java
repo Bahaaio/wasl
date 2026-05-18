@@ -57,6 +57,13 @@ public class CommunityService {
             .orElseThrow(() -> new CommunityNotFoundException(name));
     }
 
+    public PagedModel<CommunityDto> listUserSubbed(String username, Pageable pageable) {
+        var communities = communityRepository.listUserSubbedCommunities(username, pageable)
+            .map(communityMapper::toDto);
+
+        return new PagedModel<>(communities);
+    }
+
     /**
      * Creates a new community and assigns the creator as the OWNER.
      *

@@ -1,5 +1,7 @@
 package com.github.bahaaio.wasl.user.controller;
 
+import com.github.bahaaio.wasl.community.dto.response.CommunityDto;
+import com.github.bahaaio.wasl.community.service.CommunityService;
 import com.github.bahaaio.wasl.post.dto.PostDto;
 import com.github.bahaaio.wasl.vote.service.VoteService;
 
@@ -20,12 +22,24 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/v1/users/me")
 public class CurrentUserActivityController {
     private final VoteService voteService;
+    private final CommunityService communityService;
+
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/communities")
+    public ResponseEntity<PagedModel<CommunityDto>> listSubbedCommunities(
+        @ParameterObject Pageable pageable,
+        Authentication authentication
+    ) {
+        return ResponseEntity.ok(
+            communityService.listUserSubbed(authentication.getName(), pageable)
+        );
+    }
 
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/upvoted")
     public ResponseEntity<PagedModel<PostDto>> listUpvotedPosts(
-        Authentication authentication,
-        @ParameterObject Pageable pageable
+        @ParameterObject Pageable pageable,
+        Authentication authentication
     ) {
         return ResponseEntity.ok(
             voteService.listVotedPostsByUsername(authentication.getName(), true, pageable)
@@ -35,8 +49,8 @@ public class CurrentUserActivityController {
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/downvoted")
     public ResponseEntity<PagedModel<PostDto>> listDownvotedPosts(
-        Authentication authentication,
-        @ParameterObject Pageable pageable
+        @ParameterObject Pageable pageable,
+        Authentication authentication
     ) {
         return ResponseEntity.ok(
             voteService.listVotedPostsByUsername(authentication.getName(), false, pageable)
