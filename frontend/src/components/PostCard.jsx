@@ -1,8 +1,16 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowBigUp, MessageCircle, Award, Share2 } from "lucide-react";
 import { getNetVoteScore } from "../api/util.js";
-
-export default function PostCard({ post, onUpvote, onDownvote, onSave }) {
+export default function PostCard({
+  post,
+  onUpvote,
+  onDownvote,
+  onSave,
+  onEdit,
+  onDelete,
+  isEditable = false,
+  isDeleting = false,
+}) {
   const navigate = useNavigate();
 
   const author = post.authorUsername ?? post.author ?? "unknown";
@@ -71,32 +79,54 @@ export default function PostCard({ post, onUpvote, onDownvote, onSave }) {
             <span>{time}</span>
           </div>
           <h2 className="text-lg font-semibold mb-3">{post.title}</h2>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              type="button"
-              onClick={() => navigate(`/posts/${post.id}`)}
-              className="inline-flex items-center gap-1.5 text-sm text-slate-300 bg-slate-800/50 px-3 py-1.5 rounded-full hover:bg-slate-700 transition-colors"
-            >
-              <MessageCircle className="w-4 h-4" />
-              {commentCount} comments
-            </button>
-            <button
-              type="button"
-              onClick={() => onSave(post.id)}
-              className={`inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-full transition-colors ${
-                post.saved
-                  ? "text-orange-400 bg-orange-500/10"
-                  : "text-slate-300 bg-slate-800/50 hover:bg-slate-700"
-              }`}
-              aria-label="Save post"
-            >
-              <Award className="w-4 h-4" />
-              Save
-            </button>
-            <button className="inline-flex items-center gap-1.5 text-sm text-slate-300 bg-slate-800/50 px-3 py-1.5 rounded-full hover:bg-slate-700 transition-colors">
-              <Share2 className="w-4 h-4" />
-              Share
-            </button>
+          <div className="flex flex-col gap-3 rounded-2xl bg-slate-950/30 p-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => navigate(`/posts/${post.id}`)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-slate-700/70 bg-slate-800/50 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:border-slate-600 hover:bg-slate-700"
+              >
+                <MessageCircle className="w-4 h-4" />
+                {commentCount} comments
+              </button>
+              <button
+                type="button"
+                onClick={() => onSave(post.id)}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors ${
+                  post.saved
+                    ? "border-orange-500/30 bg-orange-500/10 text-orange-300"
+                    : "border-slate-700/70 bg-slate-800/50 text-slate-300 hover:border-slate-600 hover:bg-slate-700"
+                }`}
+                aria-label="Save post"
+              >
+                <Award className="w-4 h-4" />
+                Save
+              </button>
+              <button className="inline-flex items-center gap-1.5 rounded-full border border-slate-700/70 bg-slate-800/50 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:border-slate-600 hover:bg-slate-700">
+                <Share2 className="w-4 h-4" />
+                Share
+              </button>
+            </div>
+
+            {isEditable && (
+              <div className="flex flex-wrap items-center gap-2 pt-3 sm:pt-0 sm:pl-3">
+                <button
+                  type="button"
+                  onClick={() => onEdit?.(post)}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-700/70 bg-slate-800/70 px-3 py-1.5 text-sm text-slate-100 transition-colors hover:border-orange-500/50 hover:bg-slate-700 hover:text-orange-200"
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDelete?.(post.id)}
+                  disabled={isDeleting}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-sm text-red-200 transition-colors hover:border-red-400/50 hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isDeleting ? "Deleting..." : "Delete"}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

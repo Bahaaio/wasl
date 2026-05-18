@@ -505,29 +505,11 @@ export default function UserProfile() {
                       onUpvote={handleUpvote}
                       onDownvote={handleDownvote}
                       onSave={handleSave}
+                      isEditable={isOwnProfile}
+                      onEdit={startEditingPost}
+                      onDelete={handleDeletePost}
+                      isDeleting={deletingPostId === post.id}
                     />
-
-                    {isOwnProfile && (
-                      <div className="flex flex-wrap items-center justify-end gap-2 px-1">
-                        <button
-                          type="button"
-                          onClick={() => startEditingPost(post)}
-                          className="rounded-full border border-slate-700 bg-slate-800/70 px-4 py-1.5 text-sm text-slate-200 hover:border-orange-500/60 hover:text-orange-300 transition-colors"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeletePost(post.id)}
-                          disabled={deletingPostId === post.id}
-                          className="rounded-full border border-red-500/40 bg-red-500/10 px-4 py-1.5 text-sm text-red-200 hover:bg-red-500/20 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-                        >
-                          {deletingPostId === post.id
-                            ? "Deleting..."
-                            : "Delete"}
-                        </button>
-                      </div>
-                    )}
 
                     {isOwnProfile && editingPostId === post.id && (
                       <form
@@ -627,61 +609,6 @@ export default function UserProfile() {
                     {displayUser.goldEarned}
                   </div>
                   <div className="text-xs text-slate-400">Gold earned</div>
-                </div>
-              </div>
-
-              {/* Achievements */}
-              <div className="bg-slate-900/40 border border-slate-800/60 rounded-lg p-6 backdrop-blur-sm hover:border-slate-700 transition-all">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold text-sm text-slate-300">
-                    ACHIEVEMENTS
-                  </h3>
-                  <button className="text-sm text-orange-400 hover:text-orange-300 transition-colors">
-                    View all
-                  </button>
-                </div>
-
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 rounded-full bg-linear-to-br from-orange-500 to-red-600 flex items-center justify-center text-lg shadow-lg hover:shadow-orange-500/50 transition-shadow">
-                    ✨
-                  </div>
-                  <div className="w-12 h-12 rounded-full bg-linear-to-br from-orange-600 to-red-700 flex items-center justify-center text-lg shadow-lg hover:shadow-red-600/50 transition-shadow">
-                    🏅
-                  </div>
-                  <div className="w-12 h-12 rounded-full bg-slate-700/50 border border-slate-600 flex items-center justify-center hover:border-slate-500 transition-colors">
-                    <span className="text-xs text-slate-400">+1</span>
-                  </div>
-                </div>
-
-                <div className="text-xs text-slate-400">2 unlocked</div>
-              </div>
-
-              {/* Settings */}
-              <div className="bg-slate-900/40 border border-slate-800/60 rounded-lg p-6 backdrop-blur-sm hover:border-slate-700 transition-all">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold text-sm text-slate-300">SETTINGS</h3>
-                  <button className="text-sm text-orange-400 hover:text-orange-300 transition-colors">
-                    Manage
-                  </button>
-                </div>
-
-                <div className="w-full flex items-center justify-between p-3 hover:bg-slate-800/50 rounded transition-colors group">
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded bg-linear-to-br from-orange-500 to-red-600 flex items-center justify-center text-white group-hover:shadow-orange-500/50 group-hover:shadow-lg transition-shadow">
-                      👤
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-slate-200">
-                        Profile
-                      </div>
-                      <div className="text-xs text-slate-400">
-                        Customize your profile
-                      </div>
-                    </div>
-                  </div>
-                  <button className="px-3 py-1 text-sm bg-orange-500/20 text-orange-300 rounded-lg border border-orange-500/30 hover:bg-orange-500/30 hover:border-orange-500/50 transition-all shrink-0">
-                    Update
-                  </button>
                 </div>
               </div>
             </div>
