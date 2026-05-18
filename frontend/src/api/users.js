@@ -4,6 +4,8 @@ import { uploadPut } from "./util";
 
 /** @typedef {import("./types").UserDto} UserDto */
 /** @typedef {import("./types").PagedModelPostDto} PagedModelPostDto */
+/** @typedef {import("./types").PagedModelCommentDto} PagedModelCommentDto */
+/** @typedef {import("./types").PagedModelCommunityDto} PagedModelCommunityDto */
 /** @typedef {import("./types").UpdateCurrentUserRequest} UpdateCurrentUserRequest */
 
 export const UsersApi = {
@@ -22,11 +24,40 @@ export const UsersApi = {
 
   /**
    * @param {string} username
-   * @param {{ page?: number, size?: number, sort?: string[] }} [params]
+   * @param {{ page?: number, size?: number, sort?: string[]? }} params?
    * @returns {Promise<PagedModelPostDto>}
    */
   listUserPosts: (username, params = {}) =>
     api.get(`/users/${username}/posts`, { params }).then(res => res.data),
+
+  /**
+   * @param {string} username
+   * @param {{ page?: number, size?: number, sort?: string[]? }} params?
+   * @returns {Promise<PagedModelCommentDto>}
+   */
+  listUserComments: (username, params = {}) =>
+    api.get(`/users/${username}/comments`, { params }).then(res => res.data),
+
+  /**
+   * @param {{ page?: number, size?: number, sort?: string[]? }} params?
+   * @returns {Promise<PagedModelCommunityDto>}
+   */
+  listSubscribedCommunities: (params = {}) =>
+    api.get("/users/me/communities", { params }).then(res => res.data),
+
+  /**
+   * @param {{ page?: number, size?: number, sort?: string[]? }} params?
+   * @returns {Promise<PagedModelPostDto>}
+   */
+  listUpvotedPosts: (params = {}) =>
+    api.get("/users/me/upvoted", { params }).then(res => res.data),
+
+  /**
+   * @param {{ page?: number, size?: number, sort?: string[]? }} params?
+   * @returns {Promise<PagedModelPostDto>}
+   */
+  listDownvotedPosts: (params = {}) =>
+    api.get("/users/me/downvoted", { params }).then(res => res.data),
 
   /**
    * @param {UpdateCurrentUserRequest} params
