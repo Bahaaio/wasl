@@ -211,6 +211,11 @@ export default function CreatePostPage() {
       return;
     }
 
+    if (!createPostForm.content.trim()) {
+      setCreatePostError("Text is required");
+      return;
+    }
+
     if (
       createPostForm.content.trim().length > 0 &&
       createPostForm.content.trim().length < 10
@@ -497,7 +502,7 @@ export default function CreatePostPage() {
                 onChange={val =>
                   setCreatePostForm(previous => ({ ...previous, content: val }))
                 }
-                placeholder="Text (optional)"
+                placeholder="Text (required)"
               />
               <p className="text-xs text-slate-500 text-right">
                 {createPostForm.content.length}/5000

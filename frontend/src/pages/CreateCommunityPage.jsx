@@ -378,7 +378,10 @@ export default function CreateCommunityPage() {
 
                         <div>
                           <label className="mb-2 block text-sm font-medium text-slate-300">
-                            Description
+                            Description{" "}
+                            <span className="text-xs text-slate-500">
+                              (min 20 characters)
+                            </span>
                           </label>
                           <textarea
                             name="description"
@@ -389,6 +392,12 @@ export default function CreateCommunityPage() {
                             className="w-full resize-none rounded-2xl border border-slate-700 bg-slate-950/80 px-4 py-4 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 transition-all"
                             maxLength="500"
                           />
+                          {form.description.trim().length > 0 &&
+                          form.description.trim().length < 20 ? (
+                            <p className="mt-2 text-xs text-red-400">
+                              Description must be at least 20 characters.
+                            </p>
+                          ) : null}
                           <p className="mt-2 text-xs text-slate-500 text-right">
                             {form.description.length}/500
                           </p>
