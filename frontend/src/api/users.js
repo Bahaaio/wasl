@@ -1,6 +1,6 @@
 import api from "./client";
 import { MediaApi } from "./media";
-import { uploadFile } from "./util";
+import { uploadPut } from "./util";
 
 /** @typedef {import("./types").UserDto} UserDto */
 /** @typedef {import("./types").PagedModelPostDto} PagedModelPostDto */
@@ -61,7 +61,7 @@ export const UsersApi = {
    * @returns {Promise<{ mediaId: string }>}
    */
   updateCurrentUserAvatar: avatarFile =>
-    uploadFile("/users/me/avatar", avatarFile),
+    uploadPut("/users/me/avatar", avatarFile),
 
   /**
    * @returns {Promise<void>}
@@ -89,7 +89,7 @@ export const UsersApi = {
    * @returns {Promise<{ mediaId: string }>}
    */
   updateCurrentUserBanner: bannerFile =>
-    uploadFile("/users/me/banner", bannerFile),
+    uploadPut("/users/me/banner", bannerFile),
 
   /**
    * @returns {Promise<void>}

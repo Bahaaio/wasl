@@ -1,5 +1,5 @@
 import api from "./client";
-import { uploadFile } from "./util";
+import { uploadPut } from "./util";
 
 /** @typedef {import("./types").CommunityDto} CommunityDto */
 /** @typedef {import("./types").CommunityCreateRequest} CommunityCreateRequest */
@@ -88,7 +88,7 @@ export const CommunitiesApi = {
    * @returns {Promise<{mediaId: string}>}
    */
   updateCommunityIcon: (name, file) =>
-    uploadFile(`/communities/${name}/icon`, file),
+    uploadPut(`/communities/${name}/icon`, file),
 
   /**
    * Delete community icon
@@ -105,7 +105,7 @@ export const CommunitiesApi = {
    * @returns {Promise<{mediaId: string}>}
    */
   updateCommunityBanner: (name, file) =>
-    uploadFile(`/communities/${name}/banner`, file),
+    uploadPut(`/communities/${name}/banner`, file),
 
   /**
    * Delete community banner

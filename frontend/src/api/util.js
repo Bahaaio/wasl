@@ -7,14 +7,32 @@ import api from "./client";
  * @param {File} file
  * @returns {Promise<UploadResponse>}
  */
-export const uploadFile = async (url, file) => {
+export const uploadPost = async (url, file) => upload("post", url, file);
+
+/**
+ * @param {string} url
+ * @param {File} file
+ * @returns {Promise<UploadResponse>}
+ */
+export const uploadPut = async (url, file) => upload("put", url, file);
+
+/**
+ * @param {"post" | "put"} method
+ * @param {string} url
+ * @param {File} file
+ * @returns {Promise<UploadResponse>}
+ */
+const upload = async (method, url, file) => {
   const formData = new FormData();
   formData.append("file", file);
 
   // Ensure we don't send the instance default `application/json` header.
   // Setting Content-Type to `undefined` lets the browser set the correct
   // multipart/form-data boundary. Also increase timeout for larger files.
-  const res = await api.post(url, formData, {
+  const res = await api.request({
+    url,
+    method,
+    data: formData,
     headers: { "Content-Type": undefined },
     timeout: 30000,
   });

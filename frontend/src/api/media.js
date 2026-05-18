@@ -1,5 +1,5 @@
 import { API_BASE_URL } from "./client";
-import { uploadFile } from "./util";
+import { uploadPost } from "./util";
 
 /** @typedef {import("./types").MediaUploadResponse} MediaUploadResponse */
 
@@ -20,5 +20,5 @@ export const MediaApi = {
    * @param {File} file
    * @returns {Promise<MediaUploadResponse>}
    */
-  uploadMedia: file => uploadFile("/media", file),
+  uploadMedia: file => uploadPost("/media", file),
 };
