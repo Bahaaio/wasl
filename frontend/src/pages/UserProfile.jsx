@@ -31,6 +31,15 @@ export default function UserProfile() {
   const [editContent, setEditContent] = useState("");
   const [isSavingPost, setIsSavingPost] = useState(false);
   const [deletingPostId, setDeletingPostId] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState({
+    isOpen: false,
+    postId: null,
+  });
+  const [noticeModal, setNoticeModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
   const avatarInputRef = useRef(null);
   const bannerInputRef = useRef(null);
 
@@ -169,15 +178,16 @@ export default function UserProfile() {
     }
   };
 
-  const handleDeletePost = async postId => {
-    const isConfirmed = window.confirm(
-      "Are you sure you want to delete this post?"
-    );
+  const handleDeletePost = postId => {
+    setDeleteConfirm({ isOpen: true, postId });
+  };
 
-    if (!isConfirmed) {
+  const confirmDeletePost = async () => {
+    if (!deleteConfirm.postId) {
       return;
     }
 
+    const postId = deleteConfirm.postId;
     setDeletingPostId(postId);
 
     try {
@@ -186,8 +196,17 @@ export default function UserProfile() {
         stopEditingPost();
       }
       await loadUserPosts();
+      setDeleteConfirm({ isOpen: false, postId: null });
     } catch (err) {
       console.error("Failed to delete post:", err);
+      setNoticeModal({
+        isOpen: true,
+        title: "Delete Failed",
+        message:
+          err.response?.data?.message ||
+          err.message ||
+          "Failed to delete this post.",
+      });
     } finally {
       setDeletingPostId(null);
     }
@@ -234,9 +253,14 @@ export default function UserProfile() {
       } else {
         setAvatarUrl("");
       }
-      alert(
-        err.response?.data?.message || err.message || "Failed to upload avatar"
-      );
+      setNoticeModal({
+        isOpen: true,
+        title: "Avatar Upload Failed",
+        message:
+          err.response?.data?.message ||
+          err.message ||
+          "Failed to upload avatar",
+      });
     } finally {
       setIsUploadingAvatar(false);
       event.target.value = "";
@@ -280,9 +304,14 @@ export default function UserProfile() {
       } else {
         setBannerUrl("");
       }
-      alert(
-        err.response?.data?.message || err.message || "Failed to upload banner"
-      );
+      setNoticeModal({
+        isOpen: true,
+        title: "Banner Upload Failed",
+        message:
+          err.response?.data?.message ||
+          err.message ||
+          "Failed to upload banner",
+      });
     } finally {
       setIsUploadingBanner(false);
       event.target.value = "";
@@ -312,6 +341,54 @@ export default function UserProfile() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <Navbar />
+
+      {deleteConfirm.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-red-500/30 bg-slate-900 p-6 shadow-2xl">
+            <h2 className="text-lg font-bold text-white">Delete Post?</h2>
+            <p className="mt-2 text-sm text-slate-300">
+              Are you sure you want to delete this post? This action cannot be
+              undone.
+            </p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirm({ isOpen: false, postId: null })}
+                className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-700"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeletePost}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-500"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {noticeModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-orange-500/30 bg-slate-900 p-6 shadow-2xl">
+            <h2 className="text-lg font-bold text-white">{noticeModal.title}</h2>
+            <p className="mt-2 text-sm text-slate-300">{noticeModal.message}</p>
+            <div className="mt-6 flex justify-end">
+              <button
+                type="button"
+                onClick={() =>
+                  setNoticeModal({ isOpen: false, title: "", message: "" })
+                }
+                className="rounded-lg bg-orange-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-500"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <input
         ref={bannerInputRef}
