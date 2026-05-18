@@ -12,7 +12,6 @@
  * @typedef {Object} UserDto
  * @property {number} id
  * @property {string} username
- * @property {string} email
  * @property {string?} about
  * @property {string?} avatarMediaId
  * @property {string?} bannerMediaId
@@ -20,19 +19,9 @@
  */
 
 /**
- * @typedef {Object} AuthUser
- * @property {number} id
- * @property {string} username
- * @property {string} email
- * @property {string?} about
- * @property {string?} avatarMediaId
- * @property {string?} bannerMediaId
- */
-
-/**
  * @typedef {Object} AuthResponse
  * @property {string} accessToken
- * @property {AuthUser} user
+ * @property {UserDto} user
  */
 
 /**

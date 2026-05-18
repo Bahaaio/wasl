@@ -8,7 +8,6 @@ import lombok.Builder;
 @Builder
 public record UserDto(
     String username,
-    String email,
     String about,
     UUID avatarMediaId,
     UUID bannerMediaId,
