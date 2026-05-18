@@ -4,6 +4,8 @@ import {
   MessageCircle,
   ChevronDown,
   ChevronRight,
+  Image,
+  Type,
   Trash2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -15,6 +17,7 @@ export default function CommentsList({
   comments,
   onUpvote,
   onDownvote,
+  onReply,
   onDelete,
 }) {
   const navigate = useNavigate();
@@ -56,6 +59,7 @@ export default function CommentsList({
           comment={comment}
           onUpvote={onUpvote}
           onDownvote={onDownvote}
+          onReply={onReply}
           onDelete={onDelete}
           navigate={navigate}
           depth={0}
@@ -69,11 +73,14 @@ function CommentThread({
   comment,
   onUpvote,
   onDownvote,
+  onReply,
   onDelete,
   navigate,
   depth,
 }) {
   const [isRepliesVisible, setIsRepliesVisible] = useState(true);
+  const [isReplying, setIsReplying] = useState(false);
+  const [replyText, setReplyText] = useState("");
   const vote = comment.vote ?? "NONE";
 
   const getAvatarUrl = () => {
@@ -139,10 +146,13 @@ function CommentThread({
             <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
               <button
                 type="button"
-                onClick={() => onUpvote && onUpvote(comment.id)}
+                onClick={() =>
+                  onUpvote &&
+                  onUpvote(comment.id, vote === "UPVOTE" ? "NONE" : "UPVOTE")
+                }
                 className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors ${
                   vote === "UPVOTE"
-                    ? "bg-orange-500/15 text-orange-300"
+                    ? "bg-orange-500/20 text-orange-200 ring-1 ring-orange-500/40 shadow-[0_0_0_1px_rgba(249,115,22,0.12)]"
                     : "bg-slate-800/60 text-slate-400 hover:bg-slate-700 hover:text-orange-400"
                 }`}
                 aria-pressed={vote === "UPVOTE"}
@@ -150,17 +160,25 @@ function CommentThread({
               >
                 <ArrowBigUp
                   className={`h-3.5 w-3.5 ${
-                    vote === "UPVOTE" ? "text-orange-300" : "text-orange-400"
+                    vote === "UPVOTE" ? "text-orange-200" : "text-orange-400"
                   }`}
                 />
-                {getCommentScore(comment)}
               </button>
+              <span className="inline-flex min-w-10 items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/50 px-3 py-1.5 text-sm font-semibold text-slate-200">
+                {getCommentScore(comment)}
+              </span>
               <button
                 type="button"
-                onClick={() => onDownvote && onDownvote(comment.id)}
+                onClick={() =>
+                  onDownvote &&
+                  onDownvote(
+                    comment.id,
+                    vote === "DOWNVOTE" ? "NONE" : "DOWNVOTE"
+                  )
+                }
                 className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors ${
                   vote === "DOWNVOTE"
-                    ? "bg-indigo-500/15 text-indigo-300"
+                    ? "bg-indigo-500/20 text-indigo-200 ring-1 ring-indigo-500/40 shadow-[0_0_0_1px_rgba(99,102,241,0.12)]"
                     : "bg-slate-800/60 text-slate-400 hover:bg-slate-700 hover:text-indigo-400"
                 }`}
                 aria-pressed={vote === "DOWNVOTE"}
@@ -168,7 +186,7 @@ function CommentThread({
               >
                 <ArrowBigDown
                   className={`h-3.5 w-3.5 ${
-                    vote === "DOWNVOTE" ? "text-indigo-300" : "text-indigo-400"
+                    vote === "DOWNVOTE" ? "text-indigo-200" : "text-indigo-400"
                   }`}
                 />
               </button>
@@ -179,6 +197,13 @@ function CommentThread({
               >
                 <Trash2 className="h-3.5 w-3.5" />
                 Delete
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsReplying(current => !current)}
+                className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/60 px-3 py-1.5 transition-colors hover:bg-slate-700 hover:text-slate-200 text-slate-400"
+              >
+                Reply
               </button>
               {comment.replies?.length > 0 && (
                 <button
@@ -206,6 +231,74 @@ function CommentThread({
         </div>
       </article>
 
+      {isReplying && (
+        <form
+          className="mt-3 rounded-full border-2 border-slate-700 bg-slate-900/50 p-4 flex items-center gap-3 transition-all hover:border-slate-600 focus-within:border-blue-500/50"
+          onSubmit={event => {
+            event.preventDefault();
+            if (!replyText.trim()) return;
+            onReply?.(comment.id, replyText);
+            setReplyText("");
+            setIsReplying(false);
+            setIsRepliesVisible(true);
+          }}
+        >
+          <button
+            type="button"
+            className="text-slate-400 hover:text-blue-400 transition-colors shrink-0"
+          >
+            <Image className="h-5 w-5" />
+          </button>
+          <button
+            type="button"
+            className="text-slate-400 hover:text-blue-400 transition-colors shrink-0"
+          >
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className="text-slate-400 hover:text-blue-400 transition-colors shrink-0"
+          >
+            <Type className="h-5 w-5" />
+          </button>
+          <input
+            value={replyText}
+            onChange={event => setReplyText(event.target.value)}
+            placeholder={`Reply to u/${getCommentAuthor(comment)}...`}
+            className="flex-1 bg-transparent text-slate-100 placeholder-slate-500 focus:outline-none text-sm"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              setIsReplying(false);
+              setReplyText("");
+            }}
+            className="px-4 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-all text-sm font-medium shrink-0"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={!replyText.trim()}
+            className="px-5 py-2 rounded-full bg-linear-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-all text-sm font-bold shrink-0"
+          >
+            Reply
+          </button>
+        </form>
+      )}
+
       {isRepliesVisible && comment.replies?.length > 0 && (
         <div className="mt-2 space-y-2">
           {comment.replies.map(reply => (
@@ -214,6 +307,7 @@ function CommentThread({
               comment={reply}
               onUpvote={onUpvote}
               onDownvote={onDownvote}
+              onReply={onReply}
               onDelete={onDelete}
               navigate={navigate}
               depth={depth + 1}

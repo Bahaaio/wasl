@@ -14,7 +14,7 @@ import Navbar from "../components/Navbar.jsx";
 import CommentsList from "../components/CommentsList.jsx";
 import { CommentsApi } from "../api/comments.js";
 import { PostsApi } from "../api/posts.js";
-import { getNetVoteScore } from "../api/util.js";
+import { getNetVoteScore, setLocalVote } from "../api/util.js";
 
 export default function PostDetailPage() {
   const navigate = useNavigate();
@@ -71,6 +71,7 @@ export default function PostDetailPage() {
 
     try {
       await PostsApi.votePost(post.id, action);
+      setLocalVote("posts", post.id, action);
       await loadPost();
     } catch (err) {
       console.error("Failed to vote on post:", err);
@@ -80,6 +81,7 @@ export default function PostDetailPage() {
   const handleCommentVote = async (commentId, action) => {
     try {
       await CommentsApi.voteComment(commentId, action);
+      setLocalVote("comments", commentId, action);
       const commentsResponse = await PostsApi.listPostComments(postId, {
         page: 0,
         size: 20,
@@ -102,6 +104,24 @@ export default function PostDetailPage() {
       await loadPost();
     } catch (err) {
       console.error("Failed to add comment:", err);
+    } finally {
+      setIsSubmittingComment(false);
+    }
+  };
+
+  const handleReplyToComment = async (parentId, content) => {
+    const trimmedContent = content.trim();
+    if (!trimmedContent) return;
+
+    setIsSubmittingComment(true);
+    try {
+      await CommentsApi.reply(postId, {
+        content: trimmedContent,
+        parentId,
+      });
+      await loadPost();
+    } catch (err) {
+      console.error("Failed to add reply:", err);
     } finally {
       setIsSubmittingComment(false);
     }
@@ -130,19 +150,19 @@ export default function PostDetailPage() {
 
   const getVoteButtonClassName = direction => {
     const baseClasses =
-      "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition-colors";
+      "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition-all";
 
     if (direction === "UPVOTE") {
       return `${baseClasses} ${
         postVote === "UPVOTE"
-          ? "bg-orange-500/15 text-orange-300"
+          ? "bg-orange-500/20 text-orange-200 ring-1 ring-orange-500/40 shadow-[0_0_0_1px_rgba(249,115,22,0.12)]"
           : "bg-slate-800/70 text-slate-300 hover:bg-slate-700 hover:text-orange-300"
       }`;
     }
 
     return `${baseClasses} ${
       postVote === "DOWNVOTE"
-        ? "bg-indigo-500/15 text-indigo-300"
+        ? "bg-indigo-500/20 text-indigo-200 ring-1 ring-indigo-500/40 shadow-[0_0_0_1px_rgba(99,102,241,0.12)]"
         : "bg-slate-800/70 text-slate-300 hover:bg-slate-700 hover:text-indigo-300"
     }`;
   };
@@ -153,6 +173,12 @@ export default function PostDetailPage() {
 
       {deleteConfirm.isOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div className="modal-cinematic-orbit absolute inset-[-35%]" />
+            <div className="modal-cinematic-sweep absolute inset-0" />
+            <div className="modal-cinematic-shimmer absolute inset-0" />
+          </div>
+
           <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-6 max-w-sm w-full">
             <h2 className="text-lg font-bold text-white mb-2">
               Delete Comment?
@@ -163,6 +189,7 @@ export default function PostDetailPage() {
             </p>
             <div className="flex gap-3 justify-end">
               <button
+                type="button"
                 onClick={() =>
                   setDeleteConfirm({ isOpen: false, commentId: null })
                 }
@@ -171,6 +198,7 @@ export default function PostDetailPage() {
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={confirmDeleteComment}
                 className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white transition-all font-medium text-sm"
               >
@@ -224,7 +252,9 @@ export default function PostDetailPage() {
                 <div className="mt-4 flex flex-wrap items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => handlePostVote("UPVOTE")}
+                    onClick={() =>
+                      handlePostVote(postVote === "UPVOTE" ? "NONE" : "UPVOTE")
+                    }
                     className={getVoteButtonClassName("UPVOTE")}
                     aria-pressed={postVote === "UPVOTE"}
                     aria-label="Upvote post"
@@ -232,36 +262,50 @@ export default function PostDetailPage() {
                     <ArrowBigUp
                       className={`h-4 w-4 ${
                         postVote === "UPVOTE"
-                          ? "text-orange-300"
+                          ? "text-orange-200"
                           : "text-orange-400"
                       }`}
                     />
-                    {formatCompactNumber(getNetVoteScore(post))}
                   </button>
+                  <span className="inline-flex min-w-11 items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/50 px-3 py-1.5 text-sm font-semibold text-slate-200">
+                    {formatCompactNumber(getNetVoteScore(post))}
+                  </span>
                   <button
                     type="button"
-                    onClick={() => handlePostVote("DOWNVOTE")}
-                    className={getVoteButtonClassName("DOWNVOTE")}
+                    onClick={() =>
+                      handlePostVote(
+                        postVote === "DOWNVOTE" ? "NONE" : "DOWNVOTE"
+                      )
+                    }
                     aria-pressed={postVote === "DOWNVOTE"}
                     aria-label="Downvote post"
                   >
                     <ArrowBigDown
                       className={`h-4 w-4 ${
                         postVote === "DOWNVOTE"
-                          ? "text-indigo-300"
+                          ? "text-indigo-200"
                           : "text-slate-400"
                       }`}
                     />
                   </button>
-                  <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/70 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-700">
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/70 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-700"
+                  >
                     <MessageCircle className="h-4 w-4" />
                     {post.commentCount}
                   </button>
-                  <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/70 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-700">
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/70 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-700"
+                  >
                     <Award className="h-4 w-4" />
                     Award
                   </button>
-                  <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/70 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-700">
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/70 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-700"
+                  >
                     <Share2 className="h-4 w-4" />
                     Share
                   </button>
@@ -270,10 +314,16 @@ export default function PostDetailPage() {
             ) : null}
 
             <div className="mt-5 rounded-full border-2 border-slate-700 bg-slate-900/50 p-4 flex items-center gap-3 transition-all hover:border-slate-600 focus-within:border-blue-500/50">
-              <button className="text-slate-400 hover:text-blue-400 transition-colors shrink-0">
+              <button
+                type="button"
+                className="text-slate-400 hover:text-blue-400 transition-colors shrink-0"
+              >
                 <Image className="h-5 w-5" />
               </button>
-              <button className="text-slate-400 hover:text-blue-400 transition-colors shrink-0">
+              <button
+                type="button"
+                className="text-slate-400 hover:text-blue-400 transition-colors shrink-0"
+              >
                 <svg
                   className="h-5 w-5"
                   fill="none"
@@ -288,7 +338,10 @@ export default function PostDetailPage() {
                   />
                 </svg>
               </button>
-              <button className="text-slate-400 hover:text-blue-400 transition-colors shrink-0">
+              <button
+                type="button"
+                className="text-slate-400 hover:text-blue-400 transition-colors shrink-0"
+              >
                 <Type className="h-5 w-5" />
               </button>
               <input
@@ -304,12 +357,14 @@ export default function PostDetailPage() {
                 }}
               />
               <button
+                type="button"
                 onClick={() => setCommentInput("")}
                 className="px-4 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-all text-sm font-medium shrink-0"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleAddComment}
                 disabled={!commentInput.trim() || isSubmittingComment}
                 className="px-5 py-2 rounded-full bg-linear-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-all text-sm font-bold shrink-0"
@@ -322,10 +377,13 @@ export default function PostDetailPage() {
               <div className="mt-5">
                 <CommentsList
                   comments={comments}
-                  onUpvote={commentId => handleCommentVote(commentId, "UPVOTE")}
-                  onDownvote={commentId =>
-                    handleCommentVote(commentId, "DOWNVOTE")
+                  onUpvote={(commentId, action) =>
+                    handleCommentVote(commentId, action)
                   }
+                  onDownvote={(commentId, action) =>
+                    handleCommentVote(commentId, action)
+                  }
+                  onReply={handleReplyToComment}
                   onDelete={handleDeleteComment}
                 />
               </div>
@@ -349,15 +407,6 @@ export default function PostDetailPage() {
 
               <p className="mt-3 text-sm leading-6 text-slate-400">
                 API-backed post view.
-              </p>
-            </section>
-
-            <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg shadow-black/20">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
-                About this post
-              </h3>
-              <p className="mt-3 text-sm leading-6 text-slate-300">
-                This page now reads real post and comment data from the API.
               </p>
             </section>
           </div>

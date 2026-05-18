@@ -5,7 +5,11 @@ import PostCard from "../components/PostCard.jsx";
 import SideBar from "../components/SideBar.jsx";
 import { PostsApi } from "../api/posts.js";
 import { UsersApi } from "../api/users.js";
-import { sortPostsByCreatedAtDesc } from "../api/util.js";
+import {
+  sortPostsByCreatedAtDesc,
+  applyLocalVotesToPosts,
+  setLocalVote,
+} from "../api/util.js";
 import { useUser } from "../auth/useUser.jsx";
 
 export default function PostsPage() {
@@ -61,7 +65,11 @@ export default function PostsPage() {
           sort: ["createdAt,desc"],
         });
 
-        setPosts(sortPostsByCreatedAtDesc(response?.content ?? []));
+        setPosts(
+          applyLocalVotesToPosts(
+            sortPostsByCreatedAtDesc(response?.content ?? [])
+          )
+        );
       } catch (err) {
         console.error("Failed to fetch posts:", err);
         setError("Failed to load posts.");
@@ -84,22 +92,26 @@ export default function PostsPage() {
       size: 20,
       sort: ["createdAt,desc"],
     });
-
-    setPosts(sortPostsByCreatedAtDesc(response?.content ?? []));
+    setPosts(
+      applyLocalVotesToPosts(sortPostsByCreatedAtDesc(response?.content ?? []))
+    );
   };
 
   const handleVote = async (postId, action) => {
     try {
       await PostsApi.votePost(postId, action);
+      setLocalVote("posts", postId, action);
       await refreshPosts();
     } catch (err) {
       console.error("Failed to vote on post:", err);
     }
   };
 
-  const handleUpvote = postId => handleVote(postId, "UPVOTE");
+  const handleUpvote = (postId, action = "UPVOTE") =>
+    handleVote(postId, action);
 
-  const handleDownvote = postId => handleVote(postId, "DOWNVOTE");
+  const handleDownvote = (postId, action = "DOWNVOTE") =>
+    handleVote(postId, action);
 
   const handleSave = postId => {
     setPosts(

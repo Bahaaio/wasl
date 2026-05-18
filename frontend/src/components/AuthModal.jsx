@@ -96,6 +96,12 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
         onClick={onClose}
       />
 
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="modal-cinematic-orbit absolute -inset-[35%]" />
+        <div className="modal-cinematic-sweep absolute inset-0" />
+        <div className="modal-cinematic-shimmer absolute inset-0" />
+      </div>
+
       <div className="relative w-full max-w-md">
         <div className="absolute -inset-1 rounded-3xl bg-linear-to-r from-orange-500/40 to-red-600/40 blur-xl" />
         <div className="relative bg-slate-900 border border-slate-800 backdrop-blur-xl rounded-3xl p-8 shadow-2xl">

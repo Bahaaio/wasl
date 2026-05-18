@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
@@ -6,7 +6,13 @@ import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { $getRoot, $getSelection, $isRangeSelection } from "lexical";
+import {
+  $createParagraphNode,
+  $createTextNode,
+  $getRoot,
+  $getSelection,
+  $isRangeSelection,
+} from "lexical";
 import { FORMAT_TEXT_COMMAND, UNDO_COMMAND, REDO_COMMAND } from "lexical";
 import { INSERT_UNORDERED_LIST_COMMAND } from "@lexical/list";
 
@@ -24,7 +30,7 @@ const editorConfig = {
   },
 };
 
-export default function RichTextEditor({ onChange, placeholder }) {
+export default function RichTextEditor({ value = "", onChange, placeholder }) {
   const [align, setAlign] = useState("left");
 
   const handleChange = useCallback(
@@ -65,10 +71,53 @@ export default function RichTextEditor({ onChange, placeholder }) {
         </div>
 
         <HistoryPlugin />
+        <EditorValuePlugin value={value} />
         <OnChangePlugin onChange={handleChange} />
       </div>
     </LexicalComposer>
   );
+}
+
+function EditorValuePlugin({ value }) {
+  const [editor] = useLexicalComposerContext();
+  const lastAppliedValueRef = useRef(null);
+
+  useEffect(() => {
+    const normalizedValue = typeof value === "string" ? value : "";
+
+    if (lastAppliedValueRef.current === normalizedValue) {
+      return;
+    }
+
+    editor.update(() => {
+      const root = $getRoot();
+      const currentText = root.getTextContent();
+
+      if (currentText === normalizedValue) {
+        return;
+      }
+
+      root.clear();
+
+      const lines = normalizedValue.split(/\r?\n/);
+      if (lines.length === 0) {
+        root.append($createParagraphNode());
+        return;
+      }
+
+      lines.forEach(line => {
+        const paragraph = $createParagraphNode();
+        if (line.length > 0) {
+          paragraph.append($createTextNode(line));
+        }
+        root.append(paragraph);
+      });
+    });
+
+    lastAppliedValueRef.current = normalizedValue;
+  }, [editor, value]);
+
+  return null;
 }
 
 function EditorToolbar({ align, setAlign }) {

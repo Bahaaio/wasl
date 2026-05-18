@@ -21,6 +21,55 @@ export function getNetVoteScore(entity) {
   return upvotes - downvotes;
 }
 
+// Local vote cache helpers — store user's vote actions in localStorage
+const LOCAL_VOTES_KEY = "wasl:local_votes";
+
+export function getLocalVotes() {
+  try {
+    return JSON.parse(localStorage.getItem(LOCAL_VOTES_KEY) || "{}");
+  } catch (err) {
+    return {};
+  }
+}
+
+export function setLocalVote(type, id, action) {
+  try {
+    const votes = getLocalVotes();
+    if (!votes[type]) votes[type] = {};
+
+    if (!action || action === "NONE") {
+      delete votes[type][id];
+    } else {
+      votes[type][id] = action;
+    }
+
+    localStorage.setItem(LOCAL_VOTES_KEY, JSON.stringify(votes));
+  } catch (err) {
+    // ignore storage errors
+  }
+}
+
+/**
+ * Merge local post vote actions into posts array so the UI can reflect
+ * votes made in this client session even if the backend doesn't return
+ * per-post vote information.
+ */
+export function applyLocalVotesToPosts(posts) {
+  const votes = getLocalVotes();
+  const postVotes = votes.posts || {};
+
+  return posts.map(p => {
+    const local = postVotes[p.id];
+    if (!local) return p;
+
+    const next = { ...p, vote: local };
+    // keep booleans in sync for older code paths
+    next.upvoted = local === "UPVOTE";
+    next.downvoted = local === "DOWNVOTE";
+    return next;
+  });
+}
+
 /**
  * @template T extends { createdAt?: string, id?: number }
  * @param {T[]} posts

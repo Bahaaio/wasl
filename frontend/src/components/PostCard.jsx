@@ -25,11 +25,12 @@ export default function PostCard({
 
   const handleVote = direction => {
     if (direction === "up") {
-      onUpvote && onUpvote(post.id);
+      onUpvote && onUpvote(post.id, vote === "UPVOTE" ? "NONE" : "UPVOTE");
       return;
     }
 
-    onDownvote && onDownvote(post.id);
+    onDownvote &&
+      onDownvote(post.id, vote === "DOWNVOTE" ? "NONE" : "DOWNVOTE");
   };
 
   return (

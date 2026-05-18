@@ -4,9 +4,14 @@ import { Share2, ChevronRight, Zap, ArrowLeft } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
 import PostCard from "../components/PostCard.jsx";
 import CameraButton from "../components/CameraButton.jsx";
+import RichTextEditor from "../components/RichTextEditor.jsx";
 import { UsersApi } from "../api/users.js";
 import { PostsApi } from "../api/posts.js";
-import { sortPostsByCreatedAtDesc } from "../api/util.js";
+import {
+  sortPostsByCreatedAtDesc,
+  applyLocalVotesToPosts,
+  setLocalVote,
+} from "../api/util.js";
 import { useUser } from "../auth/useUser.jsx";
 
 const PROFILE_TABS = ["Overview", "Posts"];
@@ -27,6 +32,7 @@ export default function UserProfile() {
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const [editingPostId, setEditingPostId] = useState(null);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
   const [isSavingPost, setIsSavingPost] = useState(false);
@@ -42,6 +48,8 @@ export default function UserProfile() {
   });
   const avatarInputRef = useRef(null);
   const bannerInputRef = useRef(null);
+  const editModalCloseTimeoutRef = useRef(null);
+  const editModalOpenFrameRef = useRef(null);
 
   const getAvatarFallback = profile =>
     profile?.username
@@ -66,8 +74,8 @@ export default function UserProfile() {
         size: 50,
         sort: ["createdAt,desc"],
       });
-
-      setPosts(sortPostsByCreatedAtDesc(response?.content ?? []));
+      const loaded = sortPostsByCreatedAtDesc(response?.content ?? []);
+      setPosts(applyLocalVotesToPosts(loaded));
     } catch (err) {
       console.error("Failed to load profile posts:", err);
       setPosts([]);
@@ -114,18 +122,33 @@ export default function UserProfile() {
     return () => window.clearTimeout(timeoutId);
   }, [loadUserPosts]);
 
+  useEffect(
+    () => () => {
+      if (editModalOpenFrameRef.current) {
+        window.cancelAnimationFrame(editModalOpenFrameRef.current);
+      }
+      if (editModalCloseTimeoutRef.current) {
+        window.clearTimeout(editModalCloseTimeoutRef.current);
+      }
+    },
+    []
+  );
+
   const handleVote = async (postId, action) => {
     try {
       await PostsApi.votePost(postId, action);
+      setLocalVote("posts", postId, action);
       await loadUserPosts();
     } catch (err) {
       console.error("Failed to vote on post:", err);
     }
   };
 
-  const handleUpvote = postId => handleVote(postId, "UPVOTE");
+  const handleUpvote = (postId, action = "UPVOTE") =>
+    handleVote(postId, action);
 
-  const handleDownvote = postId => handleVote(postId, "DOWNVOTE");
+  const handleDownvote = (postId, action = "DOWNVOTE") =>
+    handleVote(postId, action);
 
   const handleSave = postId => {
     setPosts(currentPosts =>
@@ -136,15 +159,37 @@ export default function UserProfile() {
   };
 
   const startEditingPost = post => {
+    if (editModalOpenFrameRef.current) {
+      window.cancelAnimationFrame(editModalOpenFrameRef.current);
+      editModalOpenFrameRef.current = null;
+    }
+    if (editModalCloseTimeoutRef.current) {
+      window.clearTimeout(editModalCloseTimeoutRef.current);
+      editModalCloseTimeoutRef.current = null;
+    }
+    setIsEditModalVisible(false);
     setEditingPostId(post.id);
     setEditTitle(post.title);
     setEditContent(post.content);
+    editModalOpenFrameRef.current = window.requestAnimationFrame(() => {
+      setIsEditModalVisible(true);
+      editModalOpenFrameRef.current = null;
+    });
   };
 
   const stopEditingPost = () => {
-    setEditingPostId(null);
-    setEditTitle("");
-    setEditContent("");
+    setIsEditModalVisible(false);
+
+    if (editModalCloseTimeoutRef.current) {
+      window.clearTimeout(editModalCloseTimeoutRef.current);
+    }
+
+    editModalCloseTimeoutRef.current = window.setTimeout(() => {
+      setEditingPostId(null);
+      setEditTitle("");
+      setEditContent("");
+      editModalCloseTimeoutRef.current = null;
+    }, 180);
   };
 
   const handleEditPostSubmit = async event => {
@@ -344,6 +389,12 @@ export default function UserProfile() {
 
       {deleteConfirm.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div className="modal-cinematic-orbit absolute inset-[-35%]" />
+            <div className="modal-cinematic-sweep absolute inset-0" />
+            <div className="modal-cinematic-shimmer absolute inset-0" />
+          </div>
+
           <div className="w-full max-w-md rounded-2xl border border-red-500/30 bg-slate-900 p-6 shadow-2xl">
             <h2 className="text-lg font-bold text-white">Delete Post?</h2>
             <p className="mt-2 text-sm text-slate-300">
@@ -353,7 +404,9 @@ export default function UserProfile() {
             <div className="mt-6 flex justify-end gap-3">
               <button
                 type="button"
-                onClick={() => setDeleteConfirm({ isOpen: false, postId: null })}
+                onClick={() =>
+                  setDeleteConfirm({ isOpen: false, postId: null })
+                }
                 className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-700"
               >
                 Cancel
@@ -372,8 +425,16 @@ export default function UserProfile() {
 
       {noticeModal.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div className="modal-cinematic-orbit absolute inset-[-35%]" />
+            <div className="modal-cinematic-sweep absolute inset-0" />
+            <div className="modal-cinematic-shimmer absolute inset-0" />
+          </div>
+
           <div className="w-full max-w-md rounded-2xl border border-orange-500/30 bg-slate-900 p-6 shadow-2xl">
-            <h2 className="text-lg font-bold text-white">{noticeModal.title}</h2>
+            <h2 className="text-lg font-bold text-white">
+              {noticeModal.title}
+            </h2>
             <p className="mt-2 text-sm text-slate-300">{noticeModal.message}</p>
             <div className="mt-6 flex justify-end">
               <button
@@ -387,6 +448,97 @@ export default function UserProfile() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {isOwnProfile && editingPostId && (
+        <div
+          className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-300 ease-out ${
+            isEditModalVisible
+              ? "bg-black/60 opacity-100 backdrop-blur-md"
+              : "bg-black/0 opacity-0 backdrop-blur-none pointer-events-none"
+          }`}
+          onClick={stopEditingPost}
+        >
+          <div
+            className={`pointer-events-none absolute inset-0 overflow-hidden transition-opacity duration-500 ${
+              isEditModalVisible ? "opacity-100" : "opacity-0"
+            }`}
+          >
+            <div className="modal-cinematic-orbit absolute inset-[-35%]" />
+            <div className="modal-cinematic-sweep absolute inset-0" />
+            <div className="modal-cinematic-shimmer absolute inset-0" />
+          </div>
+
+          <form
+            onSubmit={handleEditPostSubmit}
+            onClick={event => event.stopPropagation()}
+            className={`relative w-full max-w-2xl max-h-[85vh] overflow-hidden rounded-2xl border border-slate-700/90 bg-slate-900/95 shadow-2xl ring-1 ring-white/5 transition-all duration-300 ease-out ${
+              isEditModalVisible
+                ? "translate-y-0 scale-100 opacity-100"
+                : "translate-y-2 scale-[0.98] opacity-0"
+            }`}
+          >
+            <div className="border-b border-slate-800/90 bg-linear-to-r from-slate-900 to-slate-900/70 px-5 py-4 sm:px-6">
+              <h2 className="text-xl font-bold text-white">Edit Post</h2>
+              <p className="mt-1 text-sm text-slate-400">
+                Update your title and content, then save your changes.
+              </p>
+            </div>
+
+            <div className="space-y-4 overflow-y-auto px-5 py-4 sm:px-6">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-slate-200">
+                    Title
+                  </label>
+                  <span className="text-xs text-slate-500">
+                    {editTitle.trim().length} chars
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={event => setEditTitle(event.target.value)}
+                  placeholder="Write a clear title"
+                  className="w-full rounded-xl border border-slate-700/80 bg-slate-950/80 px-3 py-2.5 text-slate-100 outline-none transition-colors focus:border-orange-500/70"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-slate-200">
+                    Content
+                  </label>
+                  <span className="text-xs text-slate-500">
+                    {editContent.trim().length} chars
+                  </span>
+                </div>
+                <RichTextEditor
+                  value={editContent}
+                  onChange={setEditContent}
+                  placeholder="Describe your post"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-end gap-2 border-t border-slate-800/90 bg-slate-900/80 px-5 py-4 sm:px-6">
+              <button
+                type="button"
+                onClick={stopEditingPost}
+                className="rounded-full border border-slate-700 bg-slate-800/70 px-4 py-1.5 text-sm text-slate-200 transition-colors hover:border-slate-500"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSavingPost}
+                className="rounded-full bg-linear-to-r from-orange-500 to-red-600 px-4 py-1.5 text-sm font-semibold text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isSavingPost ? "Saving..." : "Save changes"}
+              </button>
+            </div>
+          </form>
         </div>
       )}
 
@@ -587,44 +739,6 @@ export default function UserProfile() {
                       onDelete={handleDeletePost}
                       isDeleting={deletingPostId === post.id}
                     />
-
-                    {isOwnProfile && editingPostId === post.id && (
-                      <form
-                        onSubmit={handleEditPostSubmit}
-                        className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 space-y-3"
-                      >
-                        <input
-                          type="text"
-                          value={editTitle}
-                          onChange={event => setEditTitle(event.target.value)}
-                          placeholder="Post title"
-                          className="w-full rounded-lg border border-slate-700 bg-slate-950/80 px-3 py-2 text-slate-100 outline-none focus:border-orange-500/70"
-                        />
-                        <textarea
-                          value={editContent}
-                          onChange={event => setEditContent(event.target.value)}
-                          rows={5}
-                          placeholder="Post content"
-                          className="w-full rounded-lg border border-slate-700 bg-slate-950/80 px-3 py-2 text-slate-100 outline-none focus:border-orange-500/70"
-                        />
-                        <div className="flex flex-wrap justify-end gap-2">
-                          <button
-                            type="button"
-                            onClick={stopEditingPost}
-                            className="rounded-full border border-slate-700 bg-slate-800/70 px-4 py-1.5 text-sm text-slate-200 hover:border-slate-500 transition-colors"
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            type="submit"
-                            disabled={isSavingPost}
-                            className="rounded-full bg-linear-to-r from-orange-500 to-red-600 px-4 py-1.5 text-sm font-semibold text-white disabled:opacity-60 disabled:cursor-not-allowed"
-                          >
-                            {isSavingPost ? "Saving..." : "Save changes"}
-                          </button>
-                        </div>
-                      </form>
-                    )}
                   </div>
                 ))}
               </div>

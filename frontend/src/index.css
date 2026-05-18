@@ -63,3 +63,100 @@ body.posts-scroll--active::-webkit-scrollbar-thumb {
   background: #94a3b8;
   border-color: transparent;
 }
+
+@keyframes modalCinematicOrbit {
+  0% {
+    transform: rotate(0deg) scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: rotate(180deg) scale(1.08);
+    opacity: 0.85;
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+    opacity: 0.5;
+  }
+}
+
+@keyframes modalCinematicSweep {
+  0% {
+    transform: translate3d(-3%, -2%, 0) scale(1);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translate3d(3%, 2%, 0) scale(1.06);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate3d(-3%, -2%, 0) scale(1);
+    opacity: 0.35;
+  }
+}
+
+@keyframes modalCinematicShimmer {
+  0% {
+    transform: translateX(-120%) skewX(-14deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.45;
+  }
+  80% {
+    opacity: 0.2;
+  }
+  100% {
+    transform: translateX(120%) skewX(-14deg);
+    opacity: 0;
+  }
+}
+
+.modal-cinematic-orbit {
+  pointer-events: none;
+  will-change: transform, opacity;
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    rgba(251, 146, 60, 0.22),
+    transparent 27%,
+    rgba(56, 189, 248, 0.16),
+    transparent 56%,
+    rgba(239, 68, 68, 0.2),
+    transparent 100%
+  );
+  filter: blur(52px);
+  animation: modalCinematicOrbit 18s linear infinite;
+}
+
+.modal-cinematic-sweep {
+  pointer-events: none;
+  will-change: transform, opacity;
+  background:
+    radial-gradient(
+      circle at 20% 18%,
+      rgba(251, 146, 60, 0.2),
+      transparent 42%
+    ),
+    radial-gradient(
+      circle at 80% 72%,
+      rgba(56, 189, 248, 0.14),
+      transparent 45%
+    ),
+    radial-gradient(circle at 52% 48%, rgba(239, 68, 68, 0.1), transparent 48%);
+  animation: modalCinematicSweep 7.5s ease-in-out infinite;
+}
+
+.modal-cinematic-shimmer {
+  pointer-events: none;
+  will-change: transform, opacity;
+  background: linear-gradient(
+    110deg,
+    transparent 38%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 62%
+  );
+  mix-blend-mode: screen;
+  animation: modalCinematicShimmer 6s ease-in-out infinite;
+}
