@@ -2,10 +2,12 @@ package com.github.bahaaio.wasl.exception;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.List;
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -20,4 +22,22 @@ public class GlobalExceptionHandler {
             ApiError.of("VALIDATION_ERROR", "Validation failed", errors)
         );
     }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ApiError<Map<String, String>>> handleMissingRequestParameter(MissingServletRequestParameterException ex) {
+        return ResponseEntity.badRequest().body(
+            ApiError.of(
+                "MISSING_QUERY_PARAMTER",
+                "Missing required query parameter",
+                Map.of("parameter", ex.getParameterName())
+            )
+        );
+    }
+
+//    @ExceptionHandler(RuntimeException.class)
+//    public ResponseEntity<ApiError<Void>> handleAll() {
+//        return ResponseEntity.internalServerError().body(
+//            ApiError.of("INTERNAL_SERVER_ERROR", "Something went wrong")
+//        );
+//    }
 }

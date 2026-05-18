@@ -58,6 +58,10 @@
  */
 
 /**
+ * @typedef {"all" | "year" | "month" | "week" | "day" | "hour"} SearchTimeFilter
+ */
+
+/**
  * @typedef {Object} PostDto
  * @property {number} id
  * @property {string} title
@@ -197,14 +201,32 @@
  */
 
 /**
+ * @typedef {Object} PagedModelCommunityMembershipDto
+ * @property {CommunityMembershipDto[]} content
+ * @property {PageMetadata} page
+ */
+
+/**
  * @typedef {Object} PagedModelCommunityDto
  * @property {CommunityDto[]} content
  * @property {PageMetadata} page
  */
 
 /**
- * @typedef {Object} PagedModelCommunityMembershipDto
- * @property {CommunityMembershipDto[]} content
+ * @typedef {Object} PagedModelUserDto
+ * @property {UserDto[]} content
+ * @property {PageMetadata} page
+ */
+
+/**
+ * @typedef {Object} PagedModelPostDto
+ * @property {PostDto[]} content
+ * @property {PageMetadata} page
+ */
+
+/**
+ * @typedef {Object} PagedModelCommentDto
+ * @property {CommentDto[]} content
  * @property {PageMetadata} page
  */
 

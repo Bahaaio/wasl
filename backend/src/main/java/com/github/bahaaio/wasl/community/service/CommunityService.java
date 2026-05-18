@@ -26,13 +26,8 @@ public class CommunityService {
     private final CommunityCategoryService categoryService;
     private final CommunityMembershipService membershipService;
 
-    /**
-     * Retrieves all communities available in the system.
-     *
-     * @return a list of all communities mapped to DTOs
-     */
-    public PagedModel<CommunityDto> getAllCommunities(Pageable pageable) {
-        var communities = communityRepository.findAll(pageable)
+    public PagedModel<CommunityDto> search(String query, Pageable pageable) {
+        var communities = communityRepository.findAllByNameContainingIgnoreCase(query, pageable)
             .map(communityMapper::toDto);
 
         return new PagedModel<>(communities);

@@ -5,9 +5,6 @@ import com.github.bahaaio.wasl.community.dto.request.CommunityPatchRequest;
 import com.github.bahaaio.wasl.community.dto.response.CommunityDto;
 import com.github.bahaaio.wasl.community.service.CommunityService;
 
-import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,11 +20,6 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/v1/communities")
 public class CommunityController {
     private final CommunityService communityService;
-
-    @GetMapping
-    public ResponseEntity<PagedModel<CommunityDto>> getAllCommunities(@ParameterObject Pageable pageable) {
-        return ResponseEntity.ok(communityService.getAllCommunities(pageable));
-    }
 
     @GetMapping("/{name}")
     public ResponseEntity<CommunityDto> getCommunityByName(@PathVariable String name) {

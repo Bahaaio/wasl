@@ -2,6 +2,8 @@ package com.github.bahaaio.wasl.community.repository;
 
 import com.github.bahaaio.wasl.community.model.Community;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -11,6 +13,8 @@ import java.util.Optional;
 public interface CommunityRepository extends JpaRepository<Community, Long> {
 
     Optional<Community> findByName(String name);
+
+    Page<Community> findAllByNameContainingIgnoreCase(String name, Pageable pageable);
 
     boolean existsByNameIgnoreCase(String name);
 

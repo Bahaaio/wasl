@@ -2,6 +2,7 @@ package com.github.bahaaio.wasl.post.repository;
 
 import com.github.bahaaio.wasl.post.model.Post;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,9 +10,23 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
+
 import jakarta.transaction.Transactional;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
+    @Query("""
+        SELECT p FROM Post p
+        WHERE
+            (LOWER(p.community.name) = LOWER(COALESCE(:communityName, p.community.name)))
+            AND (p.createdAt >= COALESCE(:after, p.createdAt))
+            AND (
+                LOWER(p.title) LIKE LOWER(CONCAT('%', :query, '%'))
+                OR (LOWER(p.content) LIKE LOWER(CONCAT('%', :query, '%')))
+            )
+        """)
+    Page<Post> searchPosts(String query, @Nullable String communityName, @Nullable Instant after, Pageable pageable);
+
     Page<Post> findAllByAuthor_Username(String authorUsername, Pageable pageable);
 
     @Transactional

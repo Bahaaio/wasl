@@ -9,9 +9,22 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
+
 import jakarta.transaction.Transactional;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
+    // only search top level comments
+    @Query("""
+        SELECT c FROM Comment c
+        WHERE
+            (c.parent IS NULL)
+            AND (LOWER(c.post.community.name) = LOWER(COALESCE(:communityName, c.post.community.name)))
+            AND (c.createdAt >= COALESCE(:after, c.createdAt))
+            AND (LOWER(c.content) LIKE LOWER(CONCAT('%', :query, '%')))
+        """)
+    Page<Comment> searchComments(String query, String communityName, Instant after, Pageable pageable);
+
     Page<Comment> findAllByPost_IdAndParentIsNull(Long postId, Pageable pageable);
 
     @Transactional

@@ -29,6 +29,8 @@ public class UsersController {
         return ResponseEntity.ok(userService.getUserByUsername(username));
     }
 
+    // TODO: get user's communites
+
     @GetMapping("/{username}/posts")
     public ResponseEntity<PagedModel<PostDto>> listUserPosts(
         @PathVariable String username,

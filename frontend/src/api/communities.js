@@ -6,19 +6,11 @@ import { uploadPut } from "./util";
 /** @typedef {import("./types").CommunityPatchRequest} CommunityPatchRequest */
 /** @typedef {import("./types").CommunityCategoryDto} CommunityCategoryDto */
 /** @typedef {import("./types").CommunityMembershipDto} CommunityMembershipDto */
-/** @typedef {import("./types").PagedModelCommunityDto} PagedModelCommunityDto */
 /** @typedef {import("./types").PagedModelCommunityMembershipDto} PagedModelCommunityMembershipDto */
+/** @typedef {import("./types").MediaUploadResponse} MediaUploadResponse */
 
 export const CommunitiesApi = {
   // Communities
-
-  /**
-   * Get all communities with pagination
-   * @param {{ page?: number, size?: number, sort?: string[] }} [params]
-   * @returns {Promise<PagedModelCommunityDto>}
-   */
-  getAllCommunities: (params = {}) =>
-    api.get("/communities", { params }).then(res => res.data),
 
   /**
    * Get a specific community by name
@@ -85,7 +77,7 @@ export const CommunitiesApi = {
    * Update community icon
    * @param {string} name
    * @param {File} file
-   * @returns {Promise<{mediaId: string}>}
+   * @returns {Promise<MediaUploadResponse>}
    */
   updateCommunityIcon: (name, file) =>
     uploadPut(`/communities/${name}/icon`, file),
@@ -102,7 +94,7 @@ export const CommunitiesApi = {
    * Update community banner
    * @param {string} name
    * @param {File} file
-   * @returns {Promise<{mediaId: string}>}
+   * @returns {Promise<MediaUploadResponse>}
    */
   updateCommunityBanner: (name, file) =>
     uploadPut(`/communities/${name}/banner`, file),

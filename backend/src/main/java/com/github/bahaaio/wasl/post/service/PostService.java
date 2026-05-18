@@ -22,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -42,6 +43,19 @@ public class PostService {
     private final VoteService voteService;
     private final CommunityService communityService;
     private final CommunityMembershipService communityMembershipService;
+
+    @Transactional
+    public PagedModel<PostDto> search(
+        String query,
+        @Nullable String communityName,
+        Instant after,
+        Pageable pageable
+    ) {
+        var posts = postRepository.searchPosts(query, communityName, after, pageable)
+            .map(post -> postMapper.toDto(post, getMediaById(post.getId()), VoteAction.NONE));
+
+        return new PagedModel<>(posts);
+    }
 
     @Transactional
     public PostDto getById(Long id, @Nullable String currentUsername) {

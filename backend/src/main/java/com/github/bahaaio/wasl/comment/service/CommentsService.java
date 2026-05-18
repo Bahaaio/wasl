@@ -23,8 +23,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,6 +45,22 @@ public class CommentsService {
     private final VoteService voteService;
     private final PostRepository postRepository;
     private final CommunityMembershipService communityMembershipService;
+
+    @Transactional
+    public PagedModel<CommentDto> search(
+        String query,
+        @Nullable String communityName,
+        @Nullable Instant after,
+        Pageable pageable
+    ) {
+        var comments = commentRepository.searchComments(query, communityName, after, pageable)
+            .map(comment -> {
+                var media = getMediaById(comment.getId());
+                return toDto(comment, comment.getPost().getId(), media, VoteAction.NONE);
+            });
+
+        return new PagedModel<>(comments);
+    }
 
     @Transactional
     public CommentDto getById(Long id, String username) {

@@ -10,6 +10,8 @@ import com.github.bahaaio.wasl.user.repository.UserRepository;
 import com.github.bahaaio.wasl.vote.service.VoteDeletionService;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
@@ -22,6 +24,13 @@ public class UserService {
     private final UserMapper userMapper;
     private final RefreshTokenService refreshTokenService;
     private final VoteDeletionService voteDeletionService;
+
+    public PagedModel<UserDto> search(String query, Pageable pageable) {
+        var users = userRepository.findAllByUsernameContainingIgnoreCase(query, pageable)
+            .map(userMapper::toDto);
+
+        return new PagedModel<>(users);
+    }
 
     /**
      * Retrieves a user by username.
