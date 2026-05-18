@@ -27,8 +27,9 @@ public class CurrentUserActivityController {
         Authentication authentication,
         @ParameterObject Pageable pageable
     ) {
-        var postDtoPagedModel = voteService.listVotedPostsByUsername(authentication.getName(), true, pageable);
-        return ResponseEntity.ok(postDtoPagedModel);
+        return ResponseEntity.ok(
+            voteService.listVotedPostsByUsername(authentication.getName(), true, pageable)
+        );
     }
 
     @SecurityRequirement(name = "bearerAuth")
@@ -37,7 +38,8 @@ public class CurrentUserActivityController {
         Authentication authentication,
         @ParameterObject Pageable pageable
     ) {
-        var postDtoPagedModel = voteService.listVotedPostsByUsername(authentication.getName(), false, pageable);
-        return ResponseEntity.ok(postDtoPagedModel);
+        return ResponseEntity.ok(
+            voteService.listVotedPostsByUsername(authentication.getName(), false, pageable)
+        );
     }
 }

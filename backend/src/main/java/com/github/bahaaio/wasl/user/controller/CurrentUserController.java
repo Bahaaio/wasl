@@ -21,8 +21,7 @@ public class CurrentUserController {
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping
     public ResponseEntity<UserDto> getCurrentUser(Authentication authentication) {
-        var dto = userService.getUserByUsername(authentication.getName());
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(userService.getUserByUsername(authentication.getName()));
     }
 
     @SecurityRequirement(name = "bearerAuth")
@@ -31,8 +30,7 @@ public class CurrentUserController {
         @Valid @RequestBody UserPatchRequest request,
         Authentication authentication
     ) {
-        var dto = userService.updateUserByUsername(authentication.getName(), request);
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(userService.updateUserByUsername(authentication.getName(), request));
     }
 
     @SecurityRequirement(name = "bearerAuth")

@@ -24,8 +24,9 @@ public class UserMediaController {
         @RequestParam("file") MultipartFile file,
         Authentication authentication
     ) {
-        var dto = userMediaService.updateAvatar(file, authentication.getName());
-        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+            userMediaService.updateAvatar(file, authentication.getName())
+        );
     }
 
     @SecurityRequirement(name = "bearerAuth")
@@ -41,8 +42,9 @@ public class UserMediaController {
         @RequestParam("file") MultipartFile file,
         Authentication authentication
     ) {
-        var dto = userMediaService.updateBanner(file, authentication.getName());
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+            userMediaService.updateBanner(file, authentication.getName())
+        );
     }
 
     @SecurityRequirement(name = "bearerAuth")

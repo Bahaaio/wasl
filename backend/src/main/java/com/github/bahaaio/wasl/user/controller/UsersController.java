@@ -26,8 +26,7 @@ public class UsersController {
 
     @GetMapping("/{username}")
     public ResponseEntity<UserDto> getUserByUsername(@PathVariable String username) {
-        var dto = userService.getUserByUsername(username);
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(userService.getUserByUsername(username));
     }
 
     @GetMapping("/{username}/posts")
@@ -37,7 +36,9 @@ public class UsersController {
         Authentication authentication
     ) {
         var currentUsername = authentication != null ? authentication.getName() : null;
-        var postsDto = postService.listByUsername(username, pageable, currentUsername);
-        return ResponseEntity.ok(postsDto);
+
+        return ResponseEntity.ok(
+            postService.listByUsername(username, pageable, currentUsername)
+        );
     }
 }

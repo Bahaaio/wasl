@@ -21,9 +21,7 @@ public class CommentsController {
     @GetMapping("/{id}")
     public ResponseEntity<CommentDto> getCommentById(@PathVariable Long id, Authentication authentication) {
         var username = authentication != null ? authentication.getName() : null;
-        var commentDto = commentsService.getById(id, username);
-
-        return ResponseEntity.ok(commentDto);
+        return ResponseEntity.ok(commentsService.getById(id, username));
     }
 
     @SecurityRequirement(name = "bearerAuth")
@@ -33,8 +31,7 @@ public class CommentsController {
         @Valid @RequestBody CommentPatchRequest request,
         Authentication authentication
     ) {
-        var commentDto = commentsService.patchById(id, request, authentication.getName());
-        return ResponseEntity.ok(commentDto);
+        return ResponseEntity.ok(commentsService.patchById(id, request, authentication.getName()));
     }
 
     @SecurityRequirement(name = "bearerAuth")

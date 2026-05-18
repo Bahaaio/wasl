@@ -29,9 +29,7 @@ public class PostCommentsController {
         Authentication authentication
     ) {
         var username = authentication != null ? authentication.getName() : null;
-        var commentDtoPagedModel = commentsService.listByPostId(postId, pageable, username);
-
-        return ResponseEntity.ok(commentDtoPagedModel);
+        return ResponseEntity.ok(commentsService.listByPostId(postId, pageable, username));
     }
 
     @SecurityRequirement(name = "bearerAuth")
@@ -41,7 +39,8 @@ public class PostCommentsController {
         @Valid @RequestBody CommentCreateRequest request,
         Authentication authentication
     ) {
-        var commentDto = commentsService.reply(postId, request, authentication.getName());
-        return ResponseEntity.status(HttpStatus.CREATED).body(commentDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+            commentsService.reply(postId, request, authentication.getName())
+        );
     }
 }

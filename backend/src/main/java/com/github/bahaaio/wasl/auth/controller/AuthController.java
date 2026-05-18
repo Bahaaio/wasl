@@ -26,14 +26,12 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-        var authResult = authService.register(request);
-        return buildResponse(authResult);
+        return buildResponse(authService.register(request));
     }
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        var authResult = authService.login(request);
-        return buildResponse(authResult);
+        return buildResponse(authService.login(request));
     }
 
     @PostMapping("/refresh")

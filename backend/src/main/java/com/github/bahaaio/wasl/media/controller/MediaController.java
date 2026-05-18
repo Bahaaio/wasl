@@ -51,9 +51,9 @@ public class MediaController {
         @RequestParam("file") MultipartFile file,
         Authentication authentication
     ) {
-        var uploaderUsername = authentication.getName();
-        var dto = mediaService.uploadMedia(file, uploaderUsername);
-        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+            mediaService.uploadMedia(file, authentication.getName())
+        );
     }
 
     private CacheControl getCacheControl() {

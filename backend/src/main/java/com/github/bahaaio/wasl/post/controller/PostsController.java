@@ -5,6 +5,7 @@ import com.github.bahaaio.wasl.post.dto.PostDto;
 import com.github.bahaaio.wasl.post.dto.PostPatchRequest;
 import com.github.bahaaio.wasl.post.service.PostService;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -22,8 +23,7 @@ public class PostsController {
     @GetMapping("/{id}")
     public ResponseEntity<PostDto> getPostById(@PathVariable Long id, Authentication authentication) {
         var username = authentication != null ? authentication.getName() : null;
-        var postDto = postService.getById(id, username);
-        return ResponseEntity.ok(postDto);
+        return ResponseEntity.ok(postService.getById(id, username));
     }
 
     @SecurityRequirement(name = "bearerAuth")
@@ -32,8 +32,9 @@ public class PostsController {
         @Valid @RequestBody PostCreateRequest request,
         Authentication authentication
     ) {
-        var postDto = postService.create(request, authentication.getName());
-        return ResponseEntity.ok(postDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+            postService.create(request, authentication.getName())
+        );
     }
 
     @SecurityRequirement(name = "bearerAuth")
@@ -43,8 +44,9 @@ public class PostsController {
         @Valid @RequestBody PostPatchRequest request,
         Authentication authentication
     ) {
-        var postDto = postService.patchById(id, request, authentication.getName());
-        return ResponseEntity.ok(postDto);
+        return ResponseEntity.ok(
+            postService.patchById(id, request, authentication.getName())
+        );
     }
 
     @SecurityRequirement(name = "bearerAuth")
