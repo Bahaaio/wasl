@@ -45,7 +45,6 @@ public class Comment {
     @BatchSize(size = 50)
     private List<Comment> replies;
 
-    @Column(nullable = false)
     private String content;
 
     // decentralized score

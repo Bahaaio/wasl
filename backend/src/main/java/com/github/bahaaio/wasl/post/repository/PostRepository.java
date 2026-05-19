@@ -18,8 +18,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("""
         SELECT p FROM Post p
         WHERE
-            (LOWER(p.community.name) = LOWER(COALESCE(:communityName, p.community.name)))
-            AND (p.createdAt >= COALESCE(:after, p.createdAt))
+            p.deleted = FALSE
+            AND LOWER(p.community.name) = LOWER(COALESCE(:communityName, p.community.name))
+            AND p.createdAt >= COALESCE(:after, p.createdAt)
             AND (
                 LOWER(p.title) LIKE LOWER(CONCAT('%', :query, '%'))
                 OR (LOWER(p.content) LIKE LOWER(CONCAT('%', :query, '%')))
@@ -127,7 +128,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         Pageable pageable
     );
 
-    Page<Post> findAllByAuthor_Username(String authorUsername, Pageable pageable);
+    Page<Post> findAllByAuthor_UsernameAndDeletedFalse(String authorUsername, Pageable pageable);
 
     @Transactional
     @Modifying
@@ -151,6 +152,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Transactional
     @Modifying
-    @Query("UPDATE Post p SET p.commentCount = p.commentCount + :delta WHERE p.id = :id")
-    void adjustCommentCount(@Param("id") Long id, @Param("delta") int delta);
+    @Query("UPDATE Post p SET p.commentCount = p.commentCount + 1 WHERE p.id = :id")
+    void incrementCommentCount(Long id);
 }

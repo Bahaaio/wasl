@@ -80,7 +80,7 @@ public class PostService {
 
     public PagedModel<PostDto> listByUsername(String username, Pageable pageable, @Nullable String currentUserName) {
         // TODO: n+1
-        var dtoPage = postRepository.findAllByAuthor_Username(username, pageable)
+        var dtoPage = postRepository.findAllByAuthor_UsernameAndDeletedFalse(username, pageable)
             .map(post -> {
                 var vote = VoteAction.NONE;
                 if (currentUserName != null) vote = voteService.getPostVoteByUsername(post.getId(), currentUserName);

@@ -82,7 +82,7 @@ public class CommentsService {
 
     @Transactional
     public PagedModel<CommentDto> listByUsername(String username, Pageable pageable, String currentUsername) {
-        var comments = commentRepository.findAllByAuthor_Username(username, pageable)
+        var comments = commentRepository.findAllByAuthor_UsernameAndDeletedFalse(username, pageable)
             .map(comment -> {
                 var vote = VoteAction.NONE;
                 if (currentUsername != null) {
@@ -116,7 +116,7 @@ public class CommentsService {
                 .build()
         );
 
-        postRepository.adjustCommentCount(post.getId(), 1);
+        postRepository.incrementCommentCount(post.getId());
 
         MediaDto media = null;
         if (request.mediaId() != null) {
@@ -162,11 +162,14 @@ public class CommentsService {
         var comment = getEntityById(id);
         validateAuthorOrModerator(username, comment);
 
-        postRepository.adjustCommentCount(comment.getPost().getId(), -1);
+        // remove the content
+        comment.setContent(null);
 
-        // TODO: soft delete
+        // mark it as deleted
+        comment.setDeleted(true);
+
+        // delete its media
         mediaService.deleteMediaByOwnerId(id, MediaOwnerType.COMMENT);
-        commentRepository.deleteById(id);
     }
 
     private @Nullable MediaDto getMediaById(Long commentId) {

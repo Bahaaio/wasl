@@ -18,14 +18,15 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Query("""
         SELECT c FROM Comment c
         WHERE
-            (c.parent IS NULL)
-            AND (LOWER(c.post.community.name) = LOWER(COALESCE(:communityName, c.post.community.name)))
-            AND (c.createdAt >= COALESCE(:after, c.createdAt))
-            AND (LOWER(c.content) LIKE LOWER(CONCAT('%', :query, '%')))
+            c.parent IS NULL
+            AND c.deleted = FALSE
+            AND LOWER(c.post.community.name) = LOWER(COALESCE(:communityName, c.post.community.name))
+            AND c.createdAt >= COALESCE(:after, c.createdAt)
+            AND LOWER(c.content) LIKE LOWER(CONCAT('%', :query, '%'))
         """)
     Page<Comment> searchComments(String query, String communityName, Instant after, Pageable pageable);
 
-    Page<Comment> findAllByAuthor_Username(String username, Pageable pageable);
+    Page<Comment> findAllByAuthor_UsernameAndDeletedFalse(String authorUsername, Pageable pageable);
 
     Page<Comment> findAllByPost_IdAndParentIsNull(Long postId, Pageable pageable);
 
