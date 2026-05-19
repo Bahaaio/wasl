@@ -166,16 +166,20 @@ export default function PostCard({
               <div className="flex flex-wrap items-center gap-2 pt-3 sm:pt-0 sm:pl-3">
                 <button
                   type="button"
-                  onClick={() => onEdit?.(post)}
-                  onClickCapture={stopCardNavigation}
+                  onClick={event => {
+                    event.stopPropagation();
+                    onEdit?.(post);
+                  }}
                   className="inline-flex items-center gap-1.5 rounded-full border border-slate-700/70 bg-slate-800/70 px-3 py-1.5 text-sm text-slate-100 transition-colors hover:border-orange-500/50 hover:bg-slate-700 hover:text-orange-200"
                 >
                   Edit
                 </button>
                 <button
                   type="button"
-                  onClick={() => onDelete?.(post.id)}
-                  onClickCapture={stopCardNavigation}
+                  onClick={event => {
+                    event.stopPropagation();
+                    onDelete?.(post.id);
+                  }}
                   disabled={isDeleting}
                   className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-sm text-red-200 transition-colors hover:border-red-400/50 hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
                 >

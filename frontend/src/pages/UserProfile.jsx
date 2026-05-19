@@ -138,7 +138,44 @@ export default function UserProfile() {
     try {
       await PostsApi.votePost(postId, action);
       setLocalVote("posts", postId, action);
-      await loadUserPosts();
+      setPosts(currentPosts =>
+        currentPosts.map(post => {
+          if (post.id !== postId) {
+            return post;
+          }
+
+          const previousVote =
+            post.vote ??
+            (post.upvoted ? "UPVOTE" : post.downvoted ? "DOWNVOTE" : "NONE");
+          const scoreDelta =
+            previousVote === action
+              ? 0
+              : previousVote === "NONE"
+                ? action === "UPVOTE"
+                  ? 1
+                  : -1
+                : action === "NONE"
+                  ? previousVote === "UPVOTE"
+                    ? -1
+                    : 1
+                  : action === "UPVOTE"
+                    ? 2
+                    : -2;
+
+          const nextScore =
+            typeof post.score === "number" && Number.isFinite(post.score)
+              ? post.score + scoreDelta
+              : post.score;
+
+          return {
+            ...post,
+            vote: action,
+            upvoted: action === "UPVOTE",
+            downvoted: action === "DOWNVOTE",
+            score: nextScore,
+          };
+        })
+      );
     } catch (err) {
       console.error("Failed to vote on post:", err);
     }
@@ -245,8 +282,6 @@ export default function UserProfile() {
           post.id === postId
             ? {
                 ...post,
-                title: "Deleted",
-                content: "",
                 softDeleted: true,
                 deleted: true,
               }

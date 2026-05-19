@@ -21,49 +21,37 @@ export function getNetVoteScore(entity) {
   return upvotes - downvotes;
 }
 
-// Local vote cache helpers — store user's vote actions in localStorage
-const LOCAL_VOTES_KEY = "wasl:local_votes";
+const localVotes = {};
 
 export function getLocalVotes() {
-  try {
-    return JSON.parse(localStorage.getItem(LOCAL_VOTES_KEY) || "{}");
-  } catch (err) {
-    return {};
-  }
+  return localVotes;
 }
 
 export function setLocalVote(type, id, action) {
-  try {
-    const votes = getLocalVotes();
-    if (!votes[type]) votes[type] = {};
-
-    if (!action || action === "NONE") {
-      delete votes[type][id];
-    } else {
-      votes[type][id] = action;
-    }
-
-    localStorage.setItem(LOCAL_VOTES_KEY, JSON.stringify(votes));
-  } catch (err) {
-    // ignore storage errors
+  if (!localVotes[type]) {
+    localVotes[type] = {};
   }
+
+  if (!action || action === "NONE") {
+    delete localVotes[type][id];
+    return;
+  }
+
+  localVotes[type][id] = action;
 }
 
 /**
  * Merge local post vote actions into posts array so the UI can reflect
- * votes made in this client session even if the backend doesn't return
- * per-post vote information.
+ * votes made in this client session without persisting them to storage.
  */
 export function applyLocalVotesToPosts(posts) {
-  const votes = getLocalVotes();
-  const postVotes = votes.posts || {};
+  const postVotes = getLocalVotes().posts || {};
 
-  return posts.map(p => {
-    const local = postVotes[p.id];
-    if (!local) return p;
+  return posts.map(post => {
+    const local = postVotes[post.id];
+    if (!local) return post;
 
-    const next = { ...p, vote: local };
-    // keep booleans in sync for older code paths
+    const next = { ...post, vote: local };
     next.upvoted = local === "UPVOTE";
     next.downvoted = local === "DOWNVOTE";
     return next;
