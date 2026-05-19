@@ -16,7 +16,9 @@ import Navbar from "../components/Navbar.jsx";
 import SideBar from "../components/SideBar.jsx";
 import PostCard from "../components/PostCard.jsx";
 import CameraButton from "../components/CameraButton.jsx";
+import SearchBar from "../components/SearchBar.jsx";
 import { CommunitiesApi } from "../api/communities.js";
+import CommunityRoleBanner from "../components/CommunityRoleBanner.jsx";
 import { MediaApi } from "../api/media.js";
 import { PostsApi } from "../api/posts.js";
 import { SearchApi } from "../api/search.js";
@@ -437,6 +439,7 @@ export default function CommunityProfilePage() {
                   </div>
 
                   <div className="flex items-center gap-3">
+                    <CommunityRoleBanner communityName={slug} />
                     <button
                       type="button"
                       onClick={handleCreatePost}
@@ -475,6 +478,10 @@ export default function CommunityProfilePage() {
 
             <section className="mt-5 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
               <div>
+                <div className="mb-4">
+                  <SearchBar communityName={slug} className="max-w-full" />
+                </div>
+
                 <div className="mb-4 flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3 text-sm font-semibold text-slate-300">
                   <div className="flex items-center gap-3">
                     <button

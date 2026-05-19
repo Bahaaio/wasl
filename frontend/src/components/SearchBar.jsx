@@ -10,7 +10,7 @@ function normalizeCommunitySlug(value) {
     .replace(/^r\//i, "");
 }
 
-export default function SearchBar({ className = "" }) {
+export default function SearchBar({ className = "", communityName = null }) {
   const navigate = useNavigate();
   const wrapperRef = useRef(null);
   const requestIdRef = useRef(0);
@@ -25,6 +25,7 @@ export default function SearchBar({ className = "" }) {
   });
 
   const hasQuery = query.trim().length > 0;
+  const isCommunityScoped = !!communityName;
 
   useEffect(() => {
     const handleOutsideClick = event => {
@@ -49,21 +50,40 @@ export default function SearchBar({ className = "" }) {
 
     const timerId = window.setTimeout(async () => {
       try {
-        const [communitiesRes, postsRes, usersRes] = await Promise.all([
-          SearchApi.searchCommunities(query, { size: 5 }),
-          SearchApi.searchPosts(query, { size: 5 }),
-          SearchApi.searchUsers(query, { size: 5 }),
-        ]);
+        if (isCommunityScoped) {
+          // Scoped search: only posts from this community
+          const postsRes = await SearchApi.searchPosts(query, {
+            c: normalizeCommunitySlug(communityName),
+            size: 10,
+          });
 
-        if (requestIdRef.current !== currentRequestId) {
-          return;
+          if (requestIdRef.current !== currentRequestId) {
+            return;
+          }
+
+          setResults({
+            communities: [],
+            posts: postsRes?.content ?? [],
+            users: [],
+          });
+        } else {
+          // Global search
+          const [communitiesRes, postsRes, usersRes] = await Promise.all([
+            SearchApi.searchCommunities(query, { size: 5 }),
+            SearchApi.searchPosts(query, { size: 5 }),
+            SearchApi.searchUsers(query, { size: 5 }),
+          ]);
+
+          if (requestIdRef.current !== currentRequestId) {
+            return;
+          }
+
+          setResults({
+            communities: communitiesRes?.content ?? [],
+            posts: postsRes?.content ?? [],
+            users: usersRes?.content ?? [],
+          });
         }
-
-        setResults({
-          communities: communitiesRes?.content ?? [],
-          posts: postsRes?.content ?? [],
-          users: usersRes?.content ?? [],
-        });
       } catch (error) {
         if (requestIdRef.current !== currentRequestId) {
           return;
@@ -77,7 +97,7 @@ export default function SearchBar({ className = "" }) {
     }, 300);
 
     return () => window.clearTimeout(timerId);
-  }, [query, hasQuery]);
+  }, [query, hasQuery, communityName, isCommunityScoped]);
 
   const hasAnyResult = useMemo(
     () =>
@@ -129,7 +149,11 @@ export default function SearchBar({ className = "" }) {
             goToPost(results.posts[0].id);
           }
         }}
-        placeholder="Search communities, posts, or users..."
+        placeholder={
+          isCommunityScoped
+            ? `Search in r/${normalizeCommunitySlug(communityName)}...`
+            : "Search communities, posts, or users..."
+        }
         className="w-full bg-slate-900 border border-slate-800 rounded-full py-2 pl-10 pr-4 text-sm text-slate-200 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 transition-all placeholder:text-slate-500"
       />
 
@@ -143,7 +167,7 @@ export default function SearchBar({ className = "" }) {
             </div>
           ) : (
             <>
-              {results.communities.length > 0 && (
+              {!isCommunityScoped && results.communities.length > 0 && (
                 <div className="border-b border-slate-800/80 p-2">
                   <p className="px-2 py-1 text-[11px] uppercase tracking-[0.12em] text-slate-500">
                     Communities
@@ -175,9 +199,15 @@ export default function SearchBar({ className = "" }) {
               )}
 
               {results.posts.length > 0 && (
-                <div className="border-b border-slate-800/80 p-2">
+                <div
+                  className={
+                    isCommunityScoped
+                      ? "p-2"
+                      : "border-b border-slate-800/80 p-2"
+                  }
+                >
                   <p className="px-2 py-1 text-[11px] uppercase tracking-[0.12em] text-slate-500">
-                    Posts
+                    {isCommunityScoped ? "Posts in this community" : "Posts"}
                   </p>
                   {results.posts.map(post => (
                     <button
@@ -189,15 +219,17 @@ export default function SearchBar({ className = "" }) {
                       <p className="line-clamp-1 text-sm text-slate-200">
                         {post.title}
                       </p>
-                      <p className="mt-0.5 text-xs text-slate-400">
-                        r/{normalizeCommunitySlug(post.communityName)}
-                      </p>
+                      {!isCommunityScoped && (
+                        <p className="mt-0.5 text-xs text-slate-400">
+                          r/{normalizeCommunitySlug(post.communityName)}
+                        </p>
+                      )}
                     </button>
                   ))}
                 </div>
               )}
 
-              {results.users.length > 0 && (
+              {!isCommunityScoped && results.users.length > 0 && (
                 <div className="p-2">
                   <p className="px-2 py-1 text-[11px] uppercase tracking-[0.12em] text-slate-500">
                     Users

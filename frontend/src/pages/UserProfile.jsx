@@ -670,9 +670,6 @@ export default function UserProfile() {
               <h1 className="text-3xl font-bold tracking-tight text-slate-100 sm:text-5xl">
                 u/{displayUser.username}
               </h1>
-              <p className="mt-1 text-slate-300 text-lg">
-                Member • {memberAgeLabel}
-              </p>
             </div>
 
             <div className="mt-4 flex flex-wrap gap-2 sm:absolute sm:right-6 sm:top-5 sm:mt-0">
