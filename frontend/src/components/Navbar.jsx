@@ -1,7 +1,6 @@
 ﻿import { useEffect, useState, useRef } from "react";
 import {
   MessageSquare,
-  Search,
   Menu,
   Edit3,
   Plus,
@@ -12,6 +11,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import AuthModal from "./AuthModal.jsx";
 import SettingsComponent from "./Settings.jsx";
+import SearchBar from "./SearchBar.jsx";
 import { useUser } from "../auth/useUser.jsx";
 import { authApi } from "../api/auth.js";
 import { UsersApi } from "../api/users.js";
@@ -99,14 +99,7 @@ export default function Navbar({ transparentMode = false }) {
             </div>
 
             <div className="hidden md:flex flex-2 justify-center px-4 lg:px-10">
-              <div className="relative w-full max-w-xl">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search communities, posts, or users..."
-                  className="w-full bg-slate-900 border border-slate-800 rounded-full py-2 pl-10 pr-4 text-sm text-slate-200 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 transition-all placeholder:text-slate-500"
-                />
-              </div>
+              <SearchBar className="max-w-xl" />
             </div>
 
             <div className="flex flex-1 items-center justify-end gap-3 sm:gap-4">

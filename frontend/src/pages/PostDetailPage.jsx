@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowBigUp,
   ArrowBigDown,
-  Award,
   ChevronLeft,
   MessageCircle,
   Share2,
@@ -14,10 +13,19 @@ import {
 import Navbar from "../components/Navbar.jsx";
 import CommentsList from "../components/CommentsList.jsx";
 import { CommentsApi } from "../api/comments.js";
+import { CommunitiesApi } from "../api/communities.js";
 import { PostsApi } from "../api/posts.js";
 import { MediaApi } from "../api/media.js";
 import MediaCarousel from "../components/MediaCarousel.jsx";
 import { getNetVoteScore, setLocalVote } from "../api/util.js";
+
+const communityIconCache = new Map();
+
+function normalizeCommunitySlug(value) {
+  return String(value || "")
+    .trim()
+    .replace(/^r\//i, "");
+}
 
 export default function PostDetailPage() {
   const navigate = useNavigate();
@@ -28,6 +36,7 @@ export default function PostDetailPage() {
   const [error, setError] = useState(null);
   const [commentInput, setCommentInput] = useState("");
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [communityIconMediaId, setCommunityIconMediaId] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState({
     isOpen: false,
     commentId: null,
@@ -154,6 +163,52 @@ export default function PostDetailPage() {
   const deletedMessage =
     "Sorry, this post was deleted by the person who originally posted it.";
 
+  useEffect(() => {
+    if (!post) {
+      setCommunityIconMediaId(null);
+      return undefined;
+    }
+
+    const directIcon =
+      post.communityIconMediaId ??
+      post.iconMediaId ??
+      post.community?.iconMediaId;
+    if (directIcon) {
+      setCommunityIconMediaId(directIcon);
+      return undefined;
+    }
+
+    const communitySlug = normalizeCommunitySlug(post.communityName);
+    if (!communitySlug) {
+      setCommunityIconMediaId(null);
+      return undefined;
+    }
+
+    const cachedIcon = communityIconCache.get(communitySlug);
+    if (cachedIcon !== undefined) {
+      setCommunityIconMediaId(cachedIcon);
+      return undefined;
+    }
+
+    let isMounted = true;
+    CommunitiesApi.getCommunityByName(communitySlug)
+      .then(data => {
+        if (!isMounted) return;
+        const nextIcon = data?.iconMediaId ?? null;
+        setCommunityIconMediaId(nextIcon);
+        communityIconCache.set(communitySlug, nextIcon);
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setCommunityIconMediaId(null);
+        communityIconCache.set(communitySlug, null);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [post]);
+
   const getVoteButtonClassName = direction => {
     const baseClasses =
       "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition-all";
@@ -238,8 +293,21 @@ export default function PostDetailPage() {
             ) : post ? (
               <article className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg shadow-black/20">
                 <div className="flex items-center gap-2 text-xs text-slate-400">
-                  <span className="font-semibold text-slate-200">
-                    {communityName}
+                  <span className="inline-flex items-center gap-2">
+                    {communityIconMediaId ? (
+                      <img
+                        src={MediaApi.getThumbnailMediaUrl(
+                          communityIconMediaId
+                        )}
+                        alt={`${communityName} avatar`}
+                        className="h-5 w-5 rounded-full object-cover border border-slate-700"
+                      />
+                    ) : (
+                      <span className="h-5 w-5 rounded-full bg-slate-700/70 border border-slate-600" />
+                    )}
+                    <span className="font-semibold text-slate-200">
+                      {communityName}
+                    </span>
                   </span>
                   <span>•</span>
                   <span>posted by u/{authorUsername}</span>
@@ -340,13 +408,6 @@ export default function PostDetailPage() {
                   >
                     <MessageCircle className="h-4 w-4" />
                     {post.commentCount}
-                  </button>
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/70 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-700"
-                  >
-                    <Award className="h-4 w-4" />
-                    Award
                   </button>
                   <button
                     type="button"

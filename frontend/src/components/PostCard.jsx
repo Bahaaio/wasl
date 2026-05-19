@@ -1,8 +1,19 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowBigUp, MessageCircle, Share2, Trash2 } from "lucide-react";
 import { getNetVoteScore } from "../api/util.js";
 import { MediaApi } from "../api/media.js";
+import { CommunitiesApi } from "../api/communities.js";
 import MediaCarousel from "./MediaCarousel.jsx";
+
+const communityIconCache = new Map();
+
+function normalizeCommunitySlug(value) {
+  return String(value || "")
+    .trim()
+    .replace(/^r\//i, "");
+}
+
 export default function PostCard({
   post,
   onUpvote,
@@ -16,6 +27,14 @@ export default function PostCard({
 
   const author = post.authorUsername ?? post.author ?? "unknown";
   const community = post.communityName ?? post.community ?? "";
+  const initialIconMediaId =
+    post.communityIconMediaId ??
+    post.iconMediaId ??
+    post.community?.iconMediaId ??
+    null;
+  const [communityIconMediaId, setCommunityIconMediaId] = useState(
+    initialIconMediaId ?? null
+  );
   const score = getNetVoteScore(post);
   const commentCount = post.commentCount ?? post.comments ?? 0;
   const vote =
@@ -46,6 +65,45 @@ export default function PostCard({
     onDownvote &&
       onDownvote(post.id, vote === "DOWNVOTE" ? "NONE" : "DOWNVOTE");
   };
+
+  useEffect(() => {
+    const communitySlug = normalizeCommunitySlug(community);
+    if (!communitySlug) {
+      setCommunityIconMediaId(initialIconMediaId ?? null);
+      return undefined;
+    }
+
+    if (initialIconMediaId) {
+      setCommunityIconMediaId(initialIconMediaId);
+      communityIconCache.set(communitySlug, initialIconMediaId);
+      return undefined;
+    }
+
+    const cachedIcon = communityIconCache.get(communitySlug);
+    if (cachedIcon !== undefined) {
+      setCommunityIconMediaId(cachedIcon);
+      return undefined;
+    }
+
+    let isMounted = true;
+
+    CommunitiesApi.getCommunityByName(communitySlug)
+      .then(data => {
+        if (!isMounted) return;
+        const nextIcon = data?.iconMediaId ?? null;
+        setCommunityIconMediaId(nextIcon);
+        communityIconCache.set(communitySlug, nextIcon);
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setCommunityIconMediaId(null);
+        communityIconCache.set(communitySlug, null);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [community, initialIconMediaId]);
 
   return (
     <article
@@ -114,7 +172,18 @@ export default function PostCard({
 
         <div className="flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-400 mb-2">
-            <span className="font-semibold text-slate-200">{community}</span>
+            <div className="inline-flex items-center gap-2">
+              {communityIconMediaId ? (
+                <img
+                  src={MediaApi.getThumbnailMediaUrl(communityIconMediaId)}
+                  alt={`${community} avatar`}
+                  className="h-5 w-5 rounded-full object-cover border border-slate-700"
+                />
+              ) : (
+                <div className="h-5 w-5 rounded-full bg-slate-700/70 border border-slate-600" />
+              )}
+              <span className="font-semibold text-slate-200">{community}</span>
+            </div>
             <span className="text-slate-500">•</span>
             <button
               type="button"
