@@ -2,6 +2,7 @@ package com.github.bahaaio.wasl.user.controller;
 
 import com.github.bahaaio.wasl.user.dto.UserDto;
 import com.github.bahaaio.wasl.user.dto.UserPatchRequest;
+import com.github.bahaaio.wasl.user.service.UserDeletionService;
 import com.github.bahaaio.wasl.user.service.UserService;
 
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/v1/users/me")
 public class CurrentUserController {
     private final UserService userService;
+    private final UserDeletionService userDeletionService;
 
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping
@@ -36,7 +38,7 @@ public class CurrentUserController {
     @SecurityRequirement(name = "bearerAuth")
     @DeleteMapping
     public ResponseEntity<Void> deleteCurrentUser(Authentication authentication) {
-        userService.deleteUserByUsername(authentication.getName());
+        userDeletionService.deleteUserByUsername(authentication.getName());
         return ResponseEntity.noContent().build();
     }
 }

@@ -11,6 +11,7 @@ public record UserDto(
     String about,
     UUID avatarMediaId,
     UUID bannerMediaId,
+    boolean deleted,
     Instant createdAt
 ) {
 }

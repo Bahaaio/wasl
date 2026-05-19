@@ -6,6 +6,7 @@ import com.github.bahaaio.wasl.auth.exception.ConflictException;
 import com.github.bahaaio.wasl.auth.exception.InvalidCredentialsException;
 import com.github.bahaaio.wasl.auth.model.AuthResult;
 import com.github.bahaaio.wasl.auth.security.JwtService;
+import com.github.bahaaio.wasl.exception.ResourceGoneException;
 import com.github.bahaaio.wasl.user.exception.UsernameNotFoundException;
 import com.github.bahaaio.wasl.user.mapper.UserMapper;
 import com.github.bahaaio.wasl.user.model.User;
@@ -64,6 +65,10 @@ public class AuthService {
     public AuthResult login(LoginRequest request) {
         var user = userRepository.findByUsername(request.username())
             .orElseThrow(() -> new UsernameNotFoundException(request.username()));
+
+        if (user.isDeleted()) {
+            throw new ResourceGoneException("User was deleted");
+        }
 
         if (!passwordEncoder.matches(request.password(), user.getHashedPassword())) {
             throw new InvalidCredentialsException();

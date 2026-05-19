@@ -17,9 +17,9 @@ public class StorageExceptionHandler {
     }
 
     @ExceptionHandler(StorageException.class)
-    public ResponseEntity<ApiError<Void>> handleStorageException() {
+    public ResponseEntity<ApiError<Void>> handleStorageException(StorageException ex) {
         return ResponseEntity.badRequest().body(
-            ApiError.of("STORAGE_FAILURE", "Something went wrong while storing the file")
+            ApiError.of("STORAGE_FAILURE", ex.getMessage())
         );
     }
 }

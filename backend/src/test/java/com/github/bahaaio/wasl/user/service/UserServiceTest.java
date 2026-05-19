@@ -7,13 +7,12 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 
-import com.github.bahaaio.wasl.auth.service.RefreshTokenService;
+import com.github.bahaaio.wasl.exception.ResourceGoneException;
 import com.github.bahaaio.wasl.user.dto.UserPatchRequest;
 import com.github.bahaaio.wasl.user.exception.UsernameNotFoundException;
 import com.github.bahaaio.wasl.user.mapper.UserMapper;
 import com.github.bahaaio.wasl.user.model.User;
 import com.github.bahaaio.wasl.user.repository.UserRepository;
-import com.github.bahaaio.wasl.vote.service.VoteDeletionService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,12 +30,6 @@ class UserServiceTest {
 
     @Spy
     UserMapper userMapper = Mappers.getMapper(UserMapper.class);
-
-    @Mock
-    RefreshTokenService refreshTokenService;
-
-    @Mock
-    VoteDeletionService voteDeletionService;
 
     @InjectMocks
     UserService userService;
@@ -110,13 +103,14 @@ class UserServiceTest {
     }
 
     @Test
-    void testDeleteUserByUsername() {
+    void testUpdateUserDeleted() {
+        testUser.setDeleted(true);
         given(userRepository.findByUsername("test")).willReturn(Optional.of(testUser));
 
-        userService.deleteUserByUsername("test");
+        testUser.setAbout("old about");
+        var request = new UserPatchRequest("  ");
 
-        then(userRepository).should().deleteById(1L);
-        then(refreshTokenService).should().deleteAllTokensByUserId(1L);
-        then(voteDeletionService).should().deleteAllVotesByUserId(1L);
+        assertThatThrownBy(() -> userService.updateUserByUsername("test", request))
+            .isInstanceOf(ResourceGoneException.class);
     }
 }

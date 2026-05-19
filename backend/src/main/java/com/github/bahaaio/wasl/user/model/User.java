@@ -36,6 +36,7 @@ public class User {
 
     private UUID avatarMediaId;
     private UUID bannerMediaId;
+    private boolean deleted;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

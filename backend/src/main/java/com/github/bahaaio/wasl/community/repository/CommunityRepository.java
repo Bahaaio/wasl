@@ -10,6 +10,8 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
 
+import jakarta.transaction.Transactional;
+
 public interface CommunityRepository extends JpaRepository<Community, Long> {
 
     Optional<Community> findByName(String name);
@@ -33,6 +35,24 @@ public interface CommunityRepository extends JpaRepository<Community, Long> {
     @Modifying
     @Query("UPDATE Community c SET c.subscribersCount = c.subscribersCount + 1 WHERE c.name = :communityName")
     void incrementSubscribers(String communityName);
+
+    /**
+     * Atomically decrements the subscriber count by 1 for all communities that the specified user is a member of.
+     *
+     * @param userId the unique identifier of the user
+     */
+    @Transactional
+    @Modifying
+    @Query("""
+        UPDATE Community c
+        SET c.subscribersCount = CASE WHEN c.subscribersCount > 0 THEN c.subscribersCount - 1 ELSE 0 END
+        WHERE c.id IN (
+            SELECT cm.community.id
+            From CommunityMembership cm
+            WHERE cm.user.id = :userId
+        )
+        """)
+    void decrementSubscribersForUserMemberships(Long userId);
 
     /**
      * Atomically decrements the subscriber count for a community, ensuring it never goes below 0.

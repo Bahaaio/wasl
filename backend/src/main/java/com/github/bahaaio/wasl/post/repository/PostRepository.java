@@ -143,7 +143,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             SELECT post_id FROM post_vote WHERE user_id = :userId
         )
         """, nativeQuery = true)
-    void adjustAllScoresByUserId(@Param("username") Long userId);
+    void adjustAllScoresByUserId(Long userId);
 
     @Transactional
     @Modifying

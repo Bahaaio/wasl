@@ -15,12 +15,14 @@ public class PostMapper {
         var author = post.getAuthor();
         var community = post.getCommunity();
 
+        var authorUsername = author.isDeleted() ? "[deleted]" : author.getUsername();
+
         return PostDto.builder()
             .id(post.getId())
             .title(post.getTitle())
             .content(post.getContent())
 
-            .authorUsername(author.getUsername())
+            .authorUsername(authorUsername)
             .authorAvatarMediaId(author.getAvatarMediaId())
 
             .communityId(community.getId())

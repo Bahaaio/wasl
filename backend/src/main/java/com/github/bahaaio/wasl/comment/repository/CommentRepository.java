@@ -43,7 +43,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
             SELECT comment_id FROM comment_vote WHERE user_id = :userId
         )
         """, nativeQuery = true)
-    void adjustAllScoresByUserId(@Param("userId") Long userId);
+    void adjustAllScoresByUserId(Long userId);
 
     @Transactional
     @Modifying

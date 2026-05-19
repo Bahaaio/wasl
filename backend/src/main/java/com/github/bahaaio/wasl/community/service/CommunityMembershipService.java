@@ -12,6 +12,7 @@ import com.github.bahaaio.wasl.community.repository.CommunityRepository;
 import com.github.bahaaio.wasl.user.model.User;
 import com.github.bahaaio.wasl.user.service.UserService;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
@@ -59,7 +60,6 @@ public class CommunityMembershipService {
     @Transactional
     public void addOwner(Community community, String username) {
         User user = userService.getEntityByUsername(username);
-
         CommunityMembership membership = CommunityMembership.builder()
             .community(community)
             .user(user)
@@ -120,6 +120,19 @@ public class CommunityMembershipService {
     }
 
     /**
+     * Allows a user to leave all communities they are currently a member of.
+     * This method removes the user's memberships across all communities and
+     * updates the subscriber count for those communities accordingly.
+     *
+     * @param user the user who is leaving all communities
+     */
+    @Transactional
+    public void leaveAllCommunities(User user) {
+        communityRepository.decrementSubscribersForUserMemberships(user.getId());
+        membershipRepository.deleteAllByUserId(user.getId());
+    }
+
+    /**
      * Forcefully removes a member from a community.
      * Only users with OWNER or MODERATOR roles can remove other members.
      *
@@ -168,5 +181,53 @@ public class CommunityMembershipService {
         return membershipRepository.existsByCommunity_NameAndUser_UsernameAndRoleIn(
             communityName, username, Set.of(CommunityRole.OWNER)
         );
+    }
+
+    @Transactional
+    public void transferAllUserOwnershipToOldestModerators(User user) {
+        var communityMembershipList = membershipRepository.findAllByUserAndRole(user, CommunityRole.OWNER)
+            .stream().map(CommunityMembership::getCommunity)
+            .toList();
+
+        communityMembershipList.forEach(this::transferOwnerShipToOldestModerator);
+    }
+
+    /**
+     * Transfers the ownership of the given community to the oldest moderator.
+     * If no moderators exist in the community, the community will remain orphaned.
+     * The current owner, if present, will have their role changed to a regular member.
+     *
+     * @param community the community whose ownership is to be transferred
+     */
+    @Transactional
+    public void transferOwnerShipToOldestModerator(Community community) {
+        var moderator = getOldestModerator(community);
+
+        // change owner to member
+        membershipRepository.findByCommunityAndRole(community, CommunityRole.OWNER)
+            .ifPresent(currentOwner -> currentOwner.setRole(CommunityRole.MEMBER));
+
+        // no other moderators, orphaned community
+        if (moderator == null) return;
+
+        // add moderator as the new owner
+        CommunityMembership newOwner = membershipRepository.findByCommunityAndUser(community, moderator);
+        newOwner.setRole(CommunityRole.OWNER);
+    }
+
+    /**
+     * Retrieves the user who is the oldest moderator of the given community.
+     * The oldest moderator is determined based on the earliest creation timestamp
+     * of their membership in the moderator role.
+     *
+     * @param community the community for which the oldest moderator is to be fetched
+     * @return the user who is the oldest moderator, or null if no moderator exists
+     */
+    private @Nullable User getOldestModerator(Community community) {
+        var membership = membershipRepository
+            .findFirstByCommunityAndRoleOrderByCreatedAtAsc(community, CommunityRole.MODERATOR)
+            .orElse(null);
+
+        return membership != null ? membership.getUser() : null;
     }
 }

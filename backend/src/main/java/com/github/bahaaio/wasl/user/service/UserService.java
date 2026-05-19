@@ -1,20 +1,18 @@
 package com.github.bahaaio.wasl.user.service;
 
-import com.github.bahaaio.wasl.auth.service.RefreshTokenService;
+import com.github.bahaaio.wasl.exception.ResourceGoneException;
 import com.github.bahaaio.wasl.user.dto.UserDto;
 import com.github.bahaaio.wasl.user.dto.UserPatchRequest;
 import com.github.bahaaio.wasl.user.exception.UsernameNotFoundException;
 import com.github.bahaaio.wasl.user.mapper.UserMapper;
 import com.github.bahaaio.wasl.user.model.User;
 import com.github.bahaaio.wasl.user.repository.UserRepository;
-import com.github.bahaaio.wasl.vote.service.VoteDeletionService;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -22,11 +20,9 @@ import lombok.RequiredArgsConstructor;
 public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final RefreshTokenService refreshTokenService;
-    private final VoteDeletionService voteDeletionService;
 
     public PagedModel<UserDto> search(String query, Pageable pageable) {
-        var users = userRepository.findAllByUsernameContainingIgnoreCase(query, pageable)
+        var users = userRepository.findAllByUsernameContainingIgnoreCaseAndDeletedFalse(query, pageable)
             .map(userMapper::toDto);
 
         return new PagedModel<>(users);
@@ -79,30 +75,15 @@ public class UserService {
     public UserDto updateUserByUsername(String username, UserPatchRequest request) {
         var user = getEntityByUsername(username);
 
+        if (user.isDeleted()) {
+            throw new ResourceGoneException("User was deleted");
+        }
+
         if (StringUtils.isNotBlank(request.about())) {
             user.setAbout(request.about());
             user = userRepository.save(user);
         }
 
         return userMapper.toDto(user);
-    }
-
-    /**
-     * Deletes a user account and revokes all active sessions
-     *
-     * @param username unique username
-     */
-    @Transactional
-    public void deleteUserByUsername(String username) {
-        var user = getEntityByUsername(username);
-
-        refreshTokenService.deleteAllTokensByUserId(user.getId());
-        voteDeletionService.deleteAllVotesByUserId(user.getId());
-
-        // TODO: delete media
-        // TODO: mark content as deleted
-
-        // TODO: soft delete
-        userRepository.deleteById(user.getId());
     }
 }

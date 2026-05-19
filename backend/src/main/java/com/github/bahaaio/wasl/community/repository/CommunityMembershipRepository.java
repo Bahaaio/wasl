@@ -1,12 +1,16 @@
 package com.github.bahaaio.wasl.community.repository;
 
+import com.github.bahaaio.wasl.community.model.Community;
 import com.github.bahaaio.wasl.community.model.CommunityMembership;
 import com.github.bahaaio.wasl.community.model.CommunityRole;
+import com.github.bahaaio.wasl.user.model.User;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public interface CommunityMembershipRepository extends JpaRepository<CommunityMembership, Long> {
@@ -21,4 +25,14 @@ public interface CommunityMembershipRepository extends JpaRepository<CommunityMe
     );
 
     long deleteByCommunity_NameAndUser_Username(String communityName, String userUsername);
+
+    Optional<CommunityMembership> findFirstByCommunityAndRoleOrderByCreatedAtAsc(Community community, CommunityRole role);
+
+    Optional<CommunityMembership> findByCommunityAndRole(Community community, CommunityRole communityRole);
+
+    CommunityMembership findByCommunityAndUser(Community community, User user);
+
+    List<CommunityMembership> findAllByUserAndRole(User user, CommunityRole role);
+
+    void deleteAllByUserId(Long userId);
 }
