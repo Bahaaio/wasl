@@ -164,9 +164,13 @@ public class PostService {
         var post = getEntityById(id);
         validateAuthorOrModerator(username, post);
 
-        // TODO: soft delete
+        // remove content
+        post.setContent(null);
+
+        // mark it as deleted
+        post.setDeleted(true);
+
         mediaService.deleteMediaByOwnerId(id, MediaOwnerType.POST);
-        postRepository.deleteById(id);
     }
 
     private MediaDto attachOrRepositionPost(

@@ -31,6 +31,7 @@ public class PostMapper {
             .vote(vote)
             .score(post.getScore())
             .commentCount(post.getCommentCount())
+            .deleted(post.isDeleted())
             .createdAt(post.getCreatedAt())
             .build();
     }
