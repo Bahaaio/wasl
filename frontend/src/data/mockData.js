@@ -1,5 +1,3 @@
-
-
 export const MOCK_TRENDING_POSTS = [
   {
     id: 101,

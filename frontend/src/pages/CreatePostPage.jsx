@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, ImagePlus, Link2, BarChart3, ArrowLeft } from "lucide-react";
+import axios from "axios";
 import Navbar from "../components/Navbar.jsx";
 import RichTextEditor from "../components/RichTextEditor.jsx";
 import AuthModal from "../components/AuthModal.jsx";
-import { MediaApi } from "../api/media.js";
 import { PostsApi } from "../api/posts.js";
 import { useUser } from "../auth/useUser.jsx";
 import { UsersApi } from "../api/users.js";
+import { getAccessToken } from "../auth/store.js";
 
 function stripCommunityPrefix(value) {
   return value.replace(/^r\//i, "").trim();
@@ -246,13 +247,69 @@ export default function CreatePostPage() {
         return;
       }
 
-      const uploadedMedia = await Promise.all(
-        createPostForm.images.map(file => MediaApi.uploadMedia(file))
-      );
+      let mediaIds = [];
 
-      const mediaIds = uploadedMedia
-        .map(result => result?.mediaId)
-        .filter(Boolean);
+      // Upload media files if any
+      if (createPostForm.images && createPostForm.images.length > 0) {
+        try {
+          console.log(`Attempting to upload ${createPostForm.images.length} image(s)`);
+          
+          const API_BASE_URL =
+            import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
+          const token = getAccessToken();
+          
+          const uploadPromises = createPostForm.images.map(async file => {
+            try {
+              console.log(`Uploading: ${file.name}`);
+              
+              // Create form data directly for this upload
+              const formData = new FormData();
+              formData.append("file", file);
+              
+              // Use axios instance with proper multipart/form-data handling
+              const response = await axios.post(
+                `${API_BASE_URL}/media`,
+                formData,
+                {
+                  headers: {
+                    // Let browser set proper multipart boundary
+                    "Content-Type": "multipart/form-data",
+                    // Add authorization token
+                    ...(token && { Authorization: `Bearer ${token}` }),
+                  },
+                  withCredentials: true,
+                  timeout: 30000,
+                }
+              );
+              
+              console.log(`Upload successful for ${file.name}:`, response.data);
+              return response.data;
+            } catch (error) {
+              console.error(`Upload failed for ${file.name}:`, error);
+              console.error("Error response:", error.response?.data);
+              return null;
+            }
+          });
+
+          const uploadedMedia = await Promise.all(uploadPromises);
+          console.log("All upload results:", uploadedMedia);
+          
+          mediaIds = uploadedMedia
+            .filter(result => result !== null && result !== undefined)
+            .map(result => result.mediaId || result.id)
+            .filter(Boolean);
+          
+          console.log("Final mediaIds:", mediaIds);
+          
+          if (mediaIds.length === 0 && createPostForm.images.length > 0) {
+            console.warn("⚠️ No images were successfully uploaded");
+          } else if (mediaIds.length < createPostForm.images.length) {
+            console.warn(`⚠️ Only ${mediaIds.length}/${createPostForm.images.length} images were uploaded`);
+          }
+        } catch (uploadError) {
+          console.error("Error during media upload process:", uploadError);
+        }
+      }
 
       const baseContent =
         createPostForm.content.trim() || createPostForm.title.trim();

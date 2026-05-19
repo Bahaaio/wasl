@@ -15,6 +15,7 @@ import Navbar from "../components/Navbar.jsx";
 import CommentsList from "../components/CommentsList.jsx";
 import { CommentsApi } from "../api/comments.js";
 import { PostsApi } from "../api/posts.js";
+import { MediaApi } from "../api/media.js";
 import { getNetVoteScore, setLocalVote } from "../api/util.js";
 
 export default function PostDetailPage() {
@@ -260,6 +261,90 @@ export default function PostDetailPage() {
                   <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-slate-200">
                     {post.content}
                   </p>
+                )}
+
+                {post.media && post.media.length > 0 && (
+                  <div className="mt-6 rounded-2xl overflow-hidden border border-slate-700/50 bg-slate-950">
+                    {post.media.length === 1 ? (
+                      <img
+                        src={MediaApi.getFullMediaUrl(post.media[0].id)}
+                        alt="Post media"
+                        className="w-full h-auto max-h-screen object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="grid gap-0.5 bg-slate-950">
+                        {post.media.length === 2 ? (
+                          <div className="grid grid-cols-2 gap-0.5">
+                            {post.media.map(media => (
+                              <div key={media.id} className="aspect-square overflow-hidden">
+                                {media.type === "IMAGE" && (
+                                  <img
+                                    src={MediaApi.getFullMediaUrl(media.id)}
+                                    alt="Post media"
+                                    className="w-full h-full object-cover"
+                                    loading="lazy"
+                                  />
+                                )}
+                                {media.type === "VIDEO" && (
+                                  <video
+                                    src={MediaApi.getFullMediaUrl(media.id)}
+                                    controls
+                                    className="w-full h-full"
+                                  />
+                                )}
+                                {media.type === "GIF" && (
+                                  <img
+                                    src={MediaApi.getFullMediaUrl(media.id)}
+                                    alt="Post GIF"
+                                    className="w-full h-full object-cover"
+                                    loading="lazy"
+                                  />
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-0.5">
+                            {post.media.slice(0, 4).map((media, idx) => (
+                              <div key={media.id} className="aspect-square overflow-hidden relative">
+                                {media.type === "IMAGE" && (
+                                  <img
+                                    src={MediaApi.getFullMediaUrl(media.id)}
+                                    alt="Post media"
+                                    className="w-full h-full object-cover"
+                                    loading="lazy"
+                                  />
+                                )}
+                                {media.type === "VIDEO" && (
+                                  <video
+                                    src={MediaApi.getFullMediaUrl(media.id)}
+                                    controls
+                                    className="w-full h-full"
+                                  />
+                                )}
+                                {media.type === "GIF" && (
+                                  <img
+                                    src={MediaApi.getFullMediaUrl(media.id)}
+                                    alt="Post GIF"
+                                    className="w-full h-full object-cover"
+                                    loading="lazy"
+                                  />
+                                )}
+                                {post.media.length > 4 && idx === 3 && (
+                                  <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+                                    <span className="text-2xl font-bold text-white">
+                                      +{post.media.length - 4}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 )}
 
                 <div className="mt-4 flex flex-wrap items-center gap-2">
