@@ -64,7 +64,7 @@ export default function CommunityProfilePage() {
   const avatarInputRef = useRef(null);
   const bannerInputRef = useRef(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(
-    () => window.innerWidth >= 768
+    () => window.innerWidth >= 1024
   );
 
   const communityFromState = location.state?.community;

@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowBigUp, MessageCircle, Share2, Trash2 } from "lucide-react";
 import { getNetVoteScore } from "../api/util.js";
 import { MediaApi } from "../api/media.js";
+import MediaCarousel from "./MediaCarousel.jsx";
 export default function PostCard({
   post,
   onUpvote,
@@ -132,52 +133,22 @@ export default function PostCard({
           {!isDeleted && post.media && post.media.length > 0 && (
             <div className="mb-4 rounded-lg overflow-hidden border border-slate-700/30 bg-slate-950">
               {post.media.length === 1 ? (
-                <img
-                  src={MediaApi.getFullMediaUrl(post.media[0].id)}
-                  alt="Post media"
-                  className="w-full h-auto object-cover"
-                  loading="lazy"
-                />
-              ) : (
-                <div className="grid grid-cols-2 gap-0.5 bg-slate-950">
-                  {post.media.slice(0, 4).map((media, idx) => (
-                    <div
-                      key={media.id}
-                      className={`relative overflow-hidden aspect-square ${
-                        post.media.length === 2 ? "col-span-1" : ""
-                      }`}
-                    >
-                      {media.type === "IMAGE" && (
-                        <img
-                          src={MediaApi.getFullMediaUrl(media.id)}
-                          alt="Post media"
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      )}
-                      {media.type === "VIDEO" && (
-                        <div className="w-full h-full bg-slate-900 flex items-center justify-center text-sm text-slate-400">
-                          VIDEO
-                        </div>
-                      )}
-                      {media.type === "GIF" && (
-                        <img
-                          src={MediaApi.getFullMediaUrl(media.id)}
-                          alt="Post GIF"
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      )}
-                      {post.media.length > 4 && idx === 3 && (
-                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                          <span className="text-xl font-bold text-white">
-                            +{post.media.length - 4}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                <div className="relative w-full flex items-center justify-center overflow-hidden">
+                  <div
+                    className="absolute inset-0 bg-center bg-cover filter blur-2xl scale-105"
+                    style={{ backgroundImage: `url(${MediaApi.getFullMediaUrl(post.media[0].id)})` }}
+                    aria-hidden="true"
+                  />
+                  <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
+                  <img
+                    src={MediaApi.getFullMediaUrl(post.media[0].id)}
+                    alt="Post media"
+                    className="relative z-10 max-h-[60vh] md:max-h-[60vh] lg:max-h-[70vh] w-auto object-contain mx-auto"
+                    loading="lazy"
+                  />
                 </div>
+              ) : (
+                <MediaCarousel media={post.media} />
               )}
             </div>
           )}

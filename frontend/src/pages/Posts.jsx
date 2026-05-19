@@ -16,7 +16,7 @@ export default function PostsPage() {
   const navigate = useNavigate();
   const { user } = useUser();
   const [isSidebarOpen, setIsSidebarOpen] = useState(
-    () => window.innerWidth >= 768
+    () => window.innerWidth >= 1024
   );
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -127,7 +127,7 @@ export default function PostsPage() {
       <div className="relative flex min-h-[calc(100vh-4rem)]">
         <SideBar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
-        <main className="flex-1 px-4 sm:px-6 lg:px-8 pt-24 pb-0 xl:pr-96">
+        <main className="flex-1 px-4 sm:px-6 lg:px-8 pt-24 pb-0 lg:pr-96">
           <div className="max-w-3xl space-y-4">
             {!user?.username ? (
               <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 text-slate-300">
@@ -169,7 +169,7 @@ export default function PostsPage() {
           </div>
         </main>
 
-        <aside className="hidden xl:block w-80 shrink-0 fixed right-0 top-16 h-[calc(100vh-4rem)] pr-6">
+        <aside className="hidden lg:block w-80 shrink-0 fixed right-0 top-16 h-[calc(100vh-4rem)] pr-6">
           <div className="h-full space-y-4 pt-8 pb-6">
             <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg shadow-black/20">
               <h3 className="text-lg font-semibold text-white mb-3">

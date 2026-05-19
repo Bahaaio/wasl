@@ -16,6 +16,7 @@ import CommentsList from "../components/CommentsList.jsx";
 import { CommentsApi } from "../api/comments.js";
 import { PostsApi } from "../api/posts.js";
 import { MediaApi } from "../api/media.js";
+import MediaCarousel from "../components/MediaCarousel.jsx";
 import { getNetVoteScore, setLocalVote } from "../api/util.js";
 
 export default function PostDetailPage() {
@@ -266,83 +267,22 @@ export default function PostDetailPage() {
                 {post.media && post.media.length > 0 && (
                   <div className="mt-6 rounded-2xl overflow-hidden border border-slate-700/50 bg-slate-950">
                     {post.media.length === 1 ? (
-                      <img
-                        src={MediaApi.getFullMediaUrl(post.media[0].id)}
-                        alt="Post media"
-                        className="w-full h-auto max-h-screen object-cover"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="grid gap-0.5 bg-slate-950">
-                        {post.media.length === 2 ? (
-                          <div className="grid grid-cols-2 gap-0.5">
-                            {post.media.map(media => (
-                              <div key={media.id} className="aspect-square overflow-hidden">
-                                {media.type === "IMAGE" && (
-                                  <img
-                                    src={MediaApi.getFullMediaUrl(media.id)}
-                                    alt="Post media"
-                                    className="w-full h-full object-cover"
-                                    loading="lazy"
-                                  />
-                                )}
-                                {media.type === "VIDEO" && (
-                                  <video
-                                    src={MediaApi.getFullMediaUrl(media.id)}
-                                    controls
-                                    className="w-full h-full"
-                                  />
-                                )}
-                                {media.type === "GIF" && (
-                                  <img
-                                    src={MediaApi.getFullMediaUrl(media.id)}
-                                    alt="Post GIF"
-                                    className="w-full h-full object-cover"
-                                    loading="lazy"
-                                  />
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="grid grid-cols-2 gap-0.5">
-                            {post.media.slice(0, 4).map((media, idx) => (
-                              <div key={media.id} className="aspect-square overflow-hidden relative">
-                                {media.type === "IMAGE" && (
-                                  <img
-                                    src={MediaApi.getFullMediaUrl(media.id)}
-                                    alt="Post media"
-                                    className="w-full h-full object-cover"
-                                    loading="lazy"
-                                  />
-                                )}
-                                {media.type === "VIDEO" && (
-                                  <video
-                                    src={MediaApi.getFullMediaUrl(media.id)}
-                                    controls
-                                    className="w-full h-full"
-                                  />
-                                )}
-                                {media.type === "GIF" && (
-                                  <img
-                                    src={MediaApi.getFullMediaUrl(media.id)}
-                                    alt="Post GIF"
-                                    className="w-full h-full object-cover"
-                                    loading="lazy"
-                                  />
-                                )}
-                                {post.media.length > 4 && idx === 3 && (
-                                  <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
-                                    <span className="text-2xl font-bold text-white">
-                                      +{post.media.length - 4}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                      <div className="relative w-full flex items-center justify-center overflow-hidden">
+                        <div
+                          className="absolute inset-0 bg-center bg-cover filter blur-2xl scale-105"
+                          style={{ backgroundImage: `url(${MediaApi.getFullMediaUrl(post.media[0].id)})` }}
+                          aria-hidden="true"
+                        />
+                        <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
+                        <img
+                          src={MediaApi.getFullMediaUrl(post.media[0].id)}
+                          alt="Post media"
+                          className="relative z-10 max-h-[70vh] md:max-h-[70vh] lg:max-h-[80vh] w-auto object-contain mx-auto"
+                          loading="lazy"
+                        />
                       </div>
+                    ) : (
+                      <MediaCarousel media={post.media} />
                     )}
                   </div>
                 )}
@@ -492,7 +432,7 @@ export default function PostDetailPage() {
           </div>
         </main>
 
-        <aside className="hidden xl:block w-80 shrink-0">
+        <aside className="hidden lg:block w-80 shrink-0">
           <div className="sticky top-20 space-y-4">
             <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg shadow-black/20">
               <div className="flex items-center justify-between">
