@@ -10,6 +10,7 @@ import com.github.bahaaio.wasl.comment.exception.CommentParentNotFoundException;
 import com.github.bahaaio.wasl.comment.model.Comment;
 import com.github.bahaaio.wasl.comment.repository.CommentRepository;
 import com.github.bahaaio.wasl.community.service.CommunityMembershipService;
+import com.github.bahaaio.wasl.exception.ResourceGoneException;
 import com.github.bahaaio.wasl.media.dto.MediaDto;
 import com.github.bahaaio.wasl.media.model.MediaOwnerType;
 import com.github.bahaaio.wasl.media.service.MediaService;
@@ -143,6 +144,10 @@ public class CommentsService {
 
         validateAuthorOrModerator(username, comment);
 
+        if (comment.isDeleted()) {
+            throw new ResourceGoneException("Comment was deleted");
+        }
+
         if (StringUtils.isNotBlank(request.content())) comment.setContent(request.content());
 
         MediaDto media = getMediaById(id);
@@ -161,6 +166,8 @@ public class CommentsService {
     public void deleteById(Long id, String username) {
         var comment = getEntityById(id);
         validateAuthorOrModerator(username, comment);
+
+        if (comment.isDeleted()) return;
 
         // remove the content
         comment.setContent(null);

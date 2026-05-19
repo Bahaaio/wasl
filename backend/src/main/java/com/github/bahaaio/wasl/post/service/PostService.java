@@ -3,6 +3,7 @@ package com.github.bahaaio.wasl.post.service;
 import com.github.bahaaio.wasl.auth.exception.ForbiddenException;
 import com.github.bahaaio.wasl.community.service.CommunityMembershipService;
 import com.github.bahaaio.wasl.community.service.CommunityService;
+import com.github.bahaaio.wasl.exception.ResourceGoneException;
 import com.github.bahaaio.wasl.media.dto.MediaDto;
 import com.github.bahaaio.wasl.media.model.MediaOwnerType;
 import com.github.bahaaio.wasl.media.service.MediaService;
@@ -127,8 +128,11 @@ public class PostService {
     @Transactional
     public PostDto patchById(Long id, PostPatchRequest request, String username) {
         var post = getEntityById(id);
-
         validateAuthorOrModerator(username, post);
+
+        if (post.isDeleted()) {
+            throw new ResourceGoneException("Post was deleted");
+        }
 
         if (StringUtils.isNotBlank(request.title())) post.setTitle(request.title());
         if (StringUtils.isNotBlank(request.content())) post.setContent(request.content());
@@ -163,6 +167,8 @@ public class PostService {
     public void deleteById(Long id, String username) {
         var post = getEntityById(id);
         validateAuthorOrModerator(username, post);
+
+        if (post.isDeleted()) return;
 
         // remove content
         post.setContent(null);

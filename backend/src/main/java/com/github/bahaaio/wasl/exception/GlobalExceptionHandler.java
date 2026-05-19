@@ -1,5 +1,6 @@
 package com.github.bahaaio.wasl.exception;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -31,6 +32,13 @@ public class GlobalExceptionHandler {
                 "Missing required query parameter",
                 Map.of("parameter", ex.getParameterName())
             )
+        );
+    }
+
+    @ExceptionHandler(ResourceGoneException.class)
+    public ResponseEntity<ApiError<Void>> handleResourceGone(ResourceGoneException ex) {
+        return ResponseEntity.status(HttpStatus.GONE).body(
+            ApiError.of("RESOURCE_GONE", ex.getMessage())
         );
     }
 
