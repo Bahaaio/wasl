@@ -136,10 +136,15 @@ export default function PostCard({
                 <div className="relative w-full flex items-center justify-center overflow-hidden">
                   <div
                     className="absolute inset-0 bg-center bg-cover filter blur-2xl scale-105"
-                    style={{ backgroundImage: `url(${MediaApi.getFullMediaUrl(post.media[0].id)})` }}
+                    style={{
+                      backgroundImage: `url(${MediaApi.getFullMediaUrl(post.media[0].id)})`,
+                    }}
                     aria-hidden="true"
                   />
-                  <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
+                  <div
+                    className="absolute inset-0 bg-black/40"
+                    aria-hidden="true"
+                  />
                   <img
                     src={MediaApi.getFullMediaUrl(post.media[0].id)}
                     alt="Post media"
@@ -153,7 +158,9 @@ export default function PostCard({
             </div>
           )}
           {!isDeleted && post.content && (
-            <p className="text-sm text-slate-300 mb-3 line-clamp-2">{post.content}</p>
+            <p className="text-sm text-slate-300 mb-3 line-clamp-2">
+              {post.content}
+            </p>
           )}
           {isDeleted && (
             <div className="mb-3 space-y-2">

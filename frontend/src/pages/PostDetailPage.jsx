@@ -270,10 +270,15 @@ export default function PostDetailPage() {
                       <div className="relative w-full flex items-center justify-center overflow-hidden">
                         <div
                           className="absolute inset-0 bg-center bg-cover filter blur-2xl scale-105"
-                          style={{ backgroundImage: `url(${MediaApi.getFullMediaUrl(post.media[0].id)})` }}
+                          style={{
+                            backgroundImage: `url(${MediaApi.getFullMediaUrl(post.media[0].id)})`,
+                          }}
                           aria-hidden="true"
                         />
-                        <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
+                        <div
+                          className="absolute inset-0 bg-black/40"
+                          aria-hidden="true"
+                        />
                         <img
                           src={MediaApi.getFullMediaUrl(post.media[0].id)}
                           alt="Post media"

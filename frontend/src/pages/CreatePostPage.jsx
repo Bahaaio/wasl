@@ -252,20 +252,22 @@ export default function CreatePostPage() {
       // Upload media files if any
       if (createPostForm.images && createPostForm.images.length > 0) {
         try {
-          console.log(`Attempting to upload ${createPostForm.images.length} image(s)`);
-          
+          console.log(
+            `Attempting to upload ${createPostForm.images.length} image(s)`
+          );
+
           const API_BASE_URL =
             import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
           const token = getAccessToken();
-          
+
           const uploadPromises = createPostForm.images.map(async file => {
             try {
               console.log(`Uploading: ${file.name}`);
-              
+
               // Create form data directly for this upload
               const formData = new FormData();
               formData.append("file", file);
-              
+
               // Use axios instance with proper multipart/form-data handling
               const response = await axios.post(
                 `${API_BASE_URL}/media`,
@@ -281,7 +283,7 @@ export default function CreatePostPage() {
                   timeout: 30000,
                 }
               );
-              
+
               console.log(`Upload successful for ${file.name}:`, response.data);
               return response.data;
             } catch (error) {
@@ -293,18 +295,20 @@ export default function CreatePostPage() {
 
           const uploadedMedia = await Promise.all(uploadPromises);
           console.log("All upload results:", uploadedMedia);
-          
+
           mediaIds = uploadedMedia
             .filter(result => result !== null && result !== undefined)
             .map(result => result.mediaId || result.id)
             .filter(Boolean);
-          
+
           console.log("Final mediaIds:", mediaIds);
-          
+
           if (mediaIds.length === 0 && createPostForm.images.length > 0) {
             console.warn("⚠️ No images were successfully uploaded");
           } else if (mediaIds.length < createPostForm.images.length) {
-            console.warn(`⚠️ Only ${mediaIds.length}/${createPostForm.images.length} images were uploaded`);
+            console.warn(
+              `⚠️ Only ${mediaIds.length}/${createPostForm.images.length} images were uploaded`
+            );
           }
         } catch (uploadError) {
           console.error("Error during media upload process:", uploadError);

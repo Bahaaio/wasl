@@ -56,15 +56,23 @@ export default function MediaCarousel({ media = [], className = "" }) {
     >
       <div
         className="flex w-full will-change-transform"
-        style={{ transform: `translateX(-${index * 100}%)`, transition: "transform 300ms ease-out" }}
+        style={{
+          transform: `translateX(-${index * 100}%)`,
+          transition: "transform 300ms ease-out",
+        }}
       >
         {media.map((m, i) => (
-          <div key={m.id} className="flex-none w-full relative flex items-center justify-center overflow-hidden">
+          <div
+            key={m.id}
+            className="flex-none w-full relative flex items-center justify-center overflow-hidden"
+          >
             {/* blurred background using the same media as a backdrop */}
             {(m.type === "IMAGE" || m.type === "GIF") && (
               <div
                 className="absolute inset-0 bg-center bg-cover filter blur-2xl scale-105"
-                style={{ backgroundImage: `url(${MediaApi.getFullMediaUrl(m.id)})` }}
+                style={{
+                  backgroundImage: `url(${MediaApi.getFullMediaUrl(m.id)})`,
+                }}
                 aria-hidden="true"
               />
             )}
