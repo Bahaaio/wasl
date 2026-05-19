@@ -145,10 +145,7 @@ export default function Settings({ isOpen = false, onClose }) {
             {/* Save Button */}
             <button
               type="button"
-              onClick={() => {
-                console.log("Settings saved:", settings);
-                onClose();
-              }}
+              onClick={onClose}
               className="w-full mt-6 py-2.5 bg-linear-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 text-white font-bold rounded-full transition-all shadow-lg hover:shadow-xl"
             >
               Save Settings

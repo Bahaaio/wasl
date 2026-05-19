@@ -78,7 +78,6 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
 
   const handleForgotSubmit = event => {
     event.preventDefault();
-    console.log("Forgot Password:", forgotForm);
     setIsForgotOpen(false);
     setForgotForm({ username: "" });
   };
