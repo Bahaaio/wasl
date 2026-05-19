@@ -9,6 +9,7 @@ import {
   Share2,
   Image,
   Type,
+  Trash2,
 } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
 import CommentsList from "../components/CommentsList.jsx";
@@ -147,6 +148,9 @@ export default function PostDetailPage() {
   const authorUsername = post?.authorUsername ?? "unknown";
   const createdAt = post?.createdAt ? formatRelativeTime(post.createdAt) : "";
   const postVote = post?.vote ?? "NONE";
+  const isDeleted = post?.deleted === true;
+  const deletedMessage =
+    "Sorry, this post was deleted by the person who originally posted it.";
 
   const getVoteButtonClassName = direction => {
     const baseClasses =
@@ -241,13 +245,22 @@ export default function PostDetailPage() {
                   <span>{createdAt}</span>
                 </div>
 
-                <h1 className="mt-3 text-2xl font-bold tracking-tight text-white sm:text-3xl">
-                  {post.title}
-                </h1>
+                {!isDeleted && (
+                  <h1 className="mt-3 text-2xl font-bold tracking-tight text-white sm:text-3xl">
+                    {post.title}
+                  </h1>
+                )}
 
-                <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-slate-200">
-                  {post.content}
-                </p>
+                {isDeleted ? (
+                  <div className="mt-4 flex items-center gap-2 rounded-lg border border-red-500/30 bg-slate-950/40 px-3 py-2 text-sm text-slate-300">
+                    <Trash2 className="h-4 w-4 text-red-400" />
+                    <span>{deletedMessage}</span>
+                  </div>
+                ) : (
+                  <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-slate-200">
+                    {post.content}
+                  </p>
+                )}
 
                 <div className="mt-4 flex flex-wrap items-center gap-2">
                   <button
@@ -255,6 +268,7 @@ export default function PostDetailPage() {
                     onClick={() =>
                       handlePostVote(postVote === "UPVOTE" ? "NONE" : "UPVOTE")
                     }
+                    disabled={isDeleted}
                     className={getVoteButtonClassName("UPVOTE")}
                     aria-pressed={postVote === "UPVOTE"}
                     aria-label="Upvote post"
@@ -277,6 +291,8 @@ export default function PostDetailPage() {
                         postVote === "DOWNVOTE" ? "NONE" : "DOWNVOTE"
                       )
                     }
+                    disabled={isDeleted}
+                    className={getVoteButtonClassName("DOWNVOTE")}
                     aria-pressed={postVote === "DOWNVOTE"}
                     aria-label="Downvote post"
                   >

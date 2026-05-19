@@ -240,7 +240,19 @@ export default function UserProfile() {
       if (editingPostId === postId) {
         stopEditingPost();
       }
-      await loadUserPosts();
+      setPosts(currentPosts =>
+        currentPosts.map(post =>
+          post.id === postId
+            ? {
+                ...post,
+                title: "Deleted",
+                content: "",
+                softDeleted: true,
+                deleted: true,
+              }
+            : post
+        )
+      );
       setDeleteConfirm({ isOpen: false, postId: null });
     } catch (err) {
       console.error("Failed to delete post:", err);
@@ -734,7 +746,9 @@ export default function UserProfile() {
                       onUpvote={handleUpvote}
                       onDownvote={handleDownvote}
                       onSave={handleSave}
-                      isEditable={isOwnProfile}
+                      isEditable={
+                        isOwnProfile && !post.softDeleted && !post.deleted
+                      }
                       onEdit={startEditingPost}
                       onDelete={handleDeletePost}
                       isDeleting={deletingPostId === post.id}
