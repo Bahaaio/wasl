@@ -11,7 +11,6 @@ public record PostCreateRequest(
     @Size(min = 3, max = 255)
     String title,
 
-    @NotBlank
     @Size(min = 3, max = 10000)
     String content,
 

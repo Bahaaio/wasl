@@ -96,10 +96,13 @@ public class PostService {
         var author = userService.getEntityByUsername(username);
         var community = communityService.getEntityByName(request.communityName());
 
+        // TDOD: sanitize content
+        String content = StringUtils.isNotBlank(request.content()) ? request.content() : null;
+
         var created = postRepository.save(
             Post.builder()
                 .title(request.title())
-                .content(request.content())
+                .content(content)
                 .author(author)
                 .community(community)
                 .build()
