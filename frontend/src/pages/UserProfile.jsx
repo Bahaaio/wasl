@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar.jsx";
 import PostCard from "../components/PostCard.jsx";
 import CameraButton from "../components/CameraButton.jsx";
 import RichTextEditor from "../components/RichTextEditor.jsx";
+import CommentsList from "../components/CommentsList.jsx";
 import { UsersApi } from "../api/users.js";
 import { PostsApi } from "../api/posts.js";
 import {
@@ -14,14 +15,14 @@ import {
 } from "../api/util.js";
 import { useUser } from "../auth/useUser.jsx";
 
-const PROFILE_TABS = ["Overview", "Posts"];
+const PROFILE_TABS = ["Posts", "Comments", "Votes"];
 
 export default function UserProfile() {
   const { username } = useParams();
   const navigate = useNavigate();
   const { user: loggedInUser, setUser: setAuthUser } = useUser();
   const profileUsername = username || loggedInUser?.username || "";
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("posts");
   const [posts, setPosts] = useState([]);
   const [profileUser, setProfileUser] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState("");
@@ -29,6 +30,13 @@ export default function UserProfile() {
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isLoadingPosts, setIsLoadingPosts] = useState(true);
   const [postsError, setPostsError] = useState(null);
+  const [commentsList, setCommentsList] = useState([]);
+  const [isLoadingComments, setIsLoadingComments] = useState(false);
+  const [commentsError, setCommentsError] = useState(null);
+  const [upvotedPosts, setUpvotedPosts] = useState([]);
+  const [downvotedPosts, setDownvotedPosts] = useState([]);
+  const [isLoadingVotes, setIsLoadingVotes] = useState(false);
+  const [votesError, setVotesError] = useState(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const [editingPostId, setEditingPostId] = useState(null);
@@ -85,6 +93,48 @@ export default function UserProfile() {
     }
   }, [profileUsername]);
 
+  const loadUserComments = useCallback(async () => {
+    setIsLoadingComments(true);
+    setCommentsError(null);
+
+    try {
+      const response = await UsersApi.listUserComments(profileUsername, {
+        page: 0,
+        size: 100,
+        sort: ["createdAt,desc"],
+      });
+      setCommentsList(response?.content ?? []);
+    } catch (err) {
+      console.error("Failed to load user comments:", err);
+      setCommentsList([]);
+      setCommentsError("Failed to load user comments.");
+    } finally {
+      setIsLoadingComments(false);
+    }
+  }, [profileUsername]);
+
+  const loadUserVotes = useCallback(async () => {
+    setIsLoadingVotes(true);
+    setVotesError(null);
+
+    try {
+      const [upResp, downResp] = await Promise.all([
+        UsersApi.listUpvotedPosts({ page: 0, size: 50 }),
+        UsersApi.listDownvotedPosts({ page: 0, size: 50 }),
+      ]);
+
+      setUpvotedPosts(upResp?.content ?? []);
+      setDownvotedPosts(downResp?.content ?? []);
+    } catch (err) {
+      console.error("Failed to load user votes:", err);
+      setUpvotedPosts([]);
+      setDownvotedPosts([]);
+      setVotesError("Failed to load user votes.");
+    } finally {
+      setIsLoadingVotes(false);
+    }
+  }, []);
+
   // Fetch user profile on mount
   useEffect(() => {
     const loadProfile = async () => {
@@ -117,10 +167,12 @@ export default function UserProfile() {
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
       loadUserPosts();
+      loadUserComments();
+      loadUserVotes();
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
-  }, [loadUserPosts]);
+  }, [loadUserPosts, loadUserComments, loadUserVotes]);
 
   useEffect(
     () => () => {
@@ -301,6 +353,42 @@ export default function UserProfile() {
       });
     } finally {
       setDeletingPostId(null);
+    }
+  };
+
+  // Comments handlers
+  const handleCommentUpvote = async (commentId, action) => {
+    try {
+      const { CommentsApi } = await import("../api/comments.js");
+      await CommentsApi.voteComment(commentId, action);
+      await loadUserComments();
+    } catch (err) {
+      console.error("Failed to vote on comment:", err);
+    }
+  };
+
+  const handleCommentDownvote = (commentId, action) =>
+    handleCommentUpvote(commentId, action);
+
+  const handleReplyToComment = async (parentId, content) => {
+    try {
+      const parent = commentsList.find(c => c.id === parentId);
+      if (!parent || !parent.postId) return;
+      const { CommentsApi } = await import("../api/comments.js");
+      await CommentsApi.reply(parent.postId, { content, parentId });
+      await loadUserComments();
+    } catch (err) {
+      console.error("Failed to reply to comment:", err);
+    }
+  };
+
+  const handleDeleteComment = async commentId => {
+    try {
+      const { CommentsApi } = await import("../api/comments.js");
+      await CommentsApi.deleteComment(commentId);
+      await loadUserComments();
+    } catch (err) {
+      console.error("Failed to delete comment:", err);
     }
   };
 
@@ -748,46 +836,114 @@ export default function UserProfile() {
               </div>
             </div>
 
-            {/* Empty State / Posts List */}
-            {postsError ? (
-              <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-red-200">
-                {postsError}
-              </div>
-            ) : isLoadingPosts ? (
-              <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 text-slate-400">
-                Loading posts...
-              </div>
-            ) : posts.length === 0 ? (
-              <div className="text-center py-20">
-                <div className="mb-6">
-                  <Zap className="w-16 h-16 text-slate-600 mx-auto" />
-                </div>
-                <h3 className="text-2xl font-bold text-slate-100 mb-2">
-                  You don't have any posts yet
-                </h3>
-                <p className="text-slate-400 max-w-md mx-auto">
-                  Once you post to a community, it will show up here.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {posts.map(post => (
-                  <div key={post.id} className="space-y-3">
-                    <PostCard
-                      post={post}
-                      onUpvote={handleUpvote}
-                      onDownvote={handleDownvote}
-                      onSave={handleSave}
-                      isEditable={
-                        isOwnProfile && !post.softDeleted && !post.deleted
-                      }
-                      onEdit={startEditingPost}
-                      onDelete={handleDeletePost}
-                      isDeleting={deletingPostId === post.id}
-                    />
+            {/* Content for each tab */}
+            {activeTab === "posts" && (
+              <>
+                {postsError ? (
+                  <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-red-200">
+                    {postsError}
                   </div>
-                ))}
-              </div>
+                ) : isLoadingPosts ? (
+                  <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 text-slate-400">
+                    Loading posts...
+                  </div>
+                ) : posts.length === 0 ? (
+                  <div className="text-center py-20">
+                    <div className="mb-6">
+                      <Zap className="w-16 h-16 text-slate-600 mx-auto" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-slate-100 mb-2">
+                      You don't have any posts yet
+                    </h3>
+                    <p className="text-slate-400 max-w-md mx-auto">
+                      Once you post to a community, it will show up here.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {posts.map(post => (
+                      <div key={post.id} className="space-y-3">
+                        <PostCard
+                          post={post}
+                          onUpvote={handleUpvote}
+                          onDownvote={handleDownvote}
+                          onSave={handleSave}
+                          isEditable={
+                            isOwnProfile && !post.softDeleted && !post.deleted
+                          }
+                          onEdit={startEditingPost}
+                          onDelete={handleDeletePost}
+                          isDeleting={deletingPostId === post.id}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+
+            {activeTab === "comments" && (
+              <>
+                {commentsError ? (
+                  <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-red-200">
+                    {commentsError}
+                  </div>
+                ) : isLoadingComments ? (
+                  <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 text-slate-400">
+                    Loading comments...
+                  </div>
+                ) : (
+                  <CommentsList
+                    comments={commentsList}
+                    onUpvote={handleCommentUpvote}
+                    onDownvote={handleCommentDownvote}
+                    onReply={handleReplyToComment}
+                    onDelete={handleDeleteComment}
+                  />
+                )}
+              </>
+            )}
+
+            {activeTab === "votes" && (
+              <>
+                {votesError ? (
+                  <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-red-200">
+                    {votesError}
+                  </div>
+                ) : isLoadingVotes ? (
+                  <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 text-slate-400">
+                    Loading votes...
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <section>
+                      <h3 className="text-lg font-semibold text-slate-200 mb-3">Upvoted posts</h3>
+                      {upvotedPosts.length === 0 ? (
+                        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 text-slate-400">No upvoted posts</div>
+                      ) : (
+                        <div className="space-y-4">
+                          {upvotedPosts.map(p => (
+                            <PostCard key={p.id} post={p} onUpvote={handleUpvote} onDownvote={handleDownvote} />
+                          ))}
+                        </div>
+                      )}
+                    </section>
+
+                    <section>
+                      <h3 className="text-lg font-semibold text-slate-200 mb-3">Downvoted posts</h3>
+                      {downvotedPosts.length === 0 ? (
+                        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 text-slate-400">No downvoted posts</div>
+                      ) : (
+                        <div className="space-y-4">
+                          {downvotedPosts.map(p => (
+                            <PostCard key={p.id} post={p} onUpvote={handleUpvote} onDownvote={handleDownvote} />
+                          ))}
+                        </div>
+                      )}
+                    </section>
+                  </div>
+                )}
+              </>
             )}
           </div>
 
