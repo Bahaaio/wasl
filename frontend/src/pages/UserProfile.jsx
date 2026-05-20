@@ -917,26 +917,44 @@ export default function UserProfile() {
                 ) : (
                   <div className="space-y-6">
                     <section>
-                      <h3 className="text-lg font-semibold text-slate-200 mb-3">Upvoted posts</h3>
+                      <h3 className="text-lg font-semibold text-slate-200 mb-3">
+                        Upvoted posts
+                      </h3>
                       {upvotedPosts.length === 0 ? (
-                        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 text-slate-400">No upvoted posts</div>
+                        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 text-slate-400">
+                          No upvoted posts
+                        </div>
                       ) : (
                         <div className="space-y-4">
                           {upvotedPosts.map(p => (
-                            <PostCard key={p.id} post={p} onUpvote={handleUpvote} onDownvote={handleDownvote} />
+                            <PostCard
+                              key={p.id}
+                              post={p}
+                              onUpvote={handleUpvote}
+                              onDownvote={handleDownvote}
+                            />
                           ))}
                         </div>
                       )}
                     </section>
 
                     <section>
-                      <h3 className="text-lg font-semibold text-slate-200 mb-3">Downvoted posts</h3>
+                      <h3 className="text-lg font-semibold text-slate-200 mb-3">
+                        Downvoted posts
+                      </h3>
                       {downvotedPosts.length === 0 ? (
-                        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 text-slate-400">No downvoted posts</div>
+                        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 text-slate-400">
+                          No downvoted posts
+                        </div>
                       ) : (
                         <div className="space-y-4">
                           {downvotedPosts.map(p => (
-                            <PostCard key={p.id} post={p} onUpvote={handleUpvote} onDownvote={handleDownvote} />
+                            <PostCard
+                              key={p.id}
+                              post={p}
+                              onUpvote={handleUpvote}
+                              onDownvote={handleDownvote}
+                            />
                           ))}
                         </div>
                       )}
