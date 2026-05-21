@@ -6,12 +6,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowBigUp, MessageCircle, Share2, Trash2 } from "lucide-react";
-import { getPostNetVoteScore } from "../api/posts.js";
+import { getPostNetVoteScore, PostsApi } from "../api/posts.js";
 import { MediaApi } from "../api/media.js";
 import { CommunitiesApi } from "../api/communities.js";
 import MediaCarousel from "./MediaCarousel.jsx";
 
 const communityIconCache = new Map();
+const commentCountCache = new Map();
 
 function normalizeCommunitySlug(value) {
   return String(value || "")
@@ -41,7 +42,9 @@ export default function PostCard({
     initialIconMediaId ?? null
   );
   const score = getPostNetVoteScore(post);
-  const commentCount = post.commentCount ?? post.comments ?? 0;
+  const [commentCount, setCommentCount] = useState(
+    post.commentCount ?? post.comments ?? 0
+  );
   const vote =
     post.vote ??
     (post.upvoted ? "UPVOTE" : post.downvoted ? "DOWNVOTE" : "NONE");
@@ -114,6 +117,46 @@ export default function PostCard({
       isMounted = false;
     };
   }, [community, initialIconMediaId]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const id = post?.id;
+    if (!id) return undefined;
+
+    const cached = commentCountCache.get(String(id));
+    if (typeof cached === "number") {
+      Promise.resolve().then(() => mounted && setCommentCount(cached));
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const resp = await PostsApi.listPostComments(id, { page: 0, size: 1 });
+        if (cancelled || !mounted) return;
+        const maybePage = resp?.page ?? resp?.comments?.page ?? {};
+        const totalTop = maybePage?.totalTopLevelComments ?? maybePage?.topLevelComments ?? maybePage?.totalElements ?? undefined;
+        const next =
+          typeof totalTop === "number"
+            ? totalTop
+            : Array.isArray(resp?.comments)
+            ? resp.comments.length
+            : post.commentCount ?? post.comments ?? 0;
+
+        commentCountCache.set(String(id), next);
+        setCommentCount(next);
+      } catch {
+        // ignore network errors, keep existing count
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      mounted = false;
+    };
+  }, [post]);
 
   return (
     <article
@@ -260,10 +303,11 @@ export default function PostCard({
                   event.stopPropagation();
                   navigate(`/posts/${post.id}`);
                 }}
-                className="inline-flex items-center gap-1.5 rounded-full border border-slate-700/70 bg-slate-800/50 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:border-slate-600 hover:bg-slate-700"
+                className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 bg-slate-800/50 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:border-slate-600 hover:bg-slate-700"
                 aria-label={`Open comments for post with ${commentCount} comments`}
               >
                 <MessageCircle className="w-4 h-4" />
+                <span className="text-sm text-slate-300">{formatCompactNumber(commentCount)}</span>
               </button>
               <button
                 type="button"
