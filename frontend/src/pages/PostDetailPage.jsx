@@ -578,26 +578,6 @@ export default function PostDetailPage() {
           </div>
         </main>
 
-        <aside className="hidden lg:block w-80 shrink-0">
-          <div className="sticky top-20 space-y-4">
-            <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg shadow-black/20">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
-                    Community
-                  </p>
-                  <h2 className="mt-2 text-xl font-bold text-white">
-                    {communityName}
-                  </h2>
-                </div>
-              </div>
-
-              <p className="mt-3 text-sm leading-6 text-slate-400">
-                API-backed post view.
-              </p>
-            </section>
-          </div>
-        </aside>
       </div>
     </div>
   );
