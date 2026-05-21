@@ -137,13 +137,17 @@ export default function PostCard({
         const resp = await PostsApi.listPostComments(id, { page: 0, size: 1 });
         if (cancelled || !mounted) return;
         const maybePage = resp?.page ?? resp?.comments?.page ?? {};
-        const totalTop = maybePage?.totalTopLevelComments ?? maybePage?.topLevelComments ?? maybePage?.totalElements ?? undefined;
+        const totalTop =
+          maybePage?.totalTopLevelComments ??
+          maybePage?.topLevelComments ??
+          maybePage?.totalElements ??
+          undefined;
         const next =
           typeof totalTop === "number"
             ? totalTop
             : Array.isArray(resp?.comments)
-            ? resp.comments.length
-            : post.commentCount ?? post.comments ?? 0;
+              ? resp.comments.length
+              : (post.commentCount ?? post.comments ?? 0);
 
         commentCountCache.set(String(id), next);
         setCommentCount(next);
@@ -307,7 +311,9 @@ export default function PostCard({
                 aria-label={`Open comments for post with ${commentCount} comments`}
               >
                 <MessageCircle className="w-4 h-4" />
-                <span className="text-sm text-slate-300">{formatCompactNumber(commentCount)}</span>
+                <span className="text-sm text-slate-300">
+                  {formatCompactNumber(commentCount)}
+                </span>
               </button>
               <button
                 type="button"
