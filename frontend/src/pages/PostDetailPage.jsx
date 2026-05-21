@@ -13,7 +13,6 @@ import {
   MessageCircle,
   Share2,
   Image,
-  Type,
   Trash2,
 } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
@@ -27,6 +26,7 @@ import {
 } from "../api/posts.js";
 import { MediaApi } from "../api/media.js";
 import MediaCarousel from "../components/MediaCarousel.jsx";
+import { useUser } from "../auth/useUser.jsx";
 
 const communityIconCache = new Map();
 
@@ -39,6 +39,7 @@ function normalizeCommunitySlug(value) {
 export default function PostDetailPage() {
   const navigate = useNavigate();
   const { postId } = useParams();
+  const { user: loggedInUser } = useUser();
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -154,6 +155,19 @@ export default function PostDetailPage() {
       console.error("Failed to add reply:", err);
     } finally {
       setIsSubmittingComment(false);
+    }
+  };
+
+  const handleEditComment = async (commentId, content, mediaId = null) => {
+    try {
+      await CommentsApi.patchComment(commentId, {
+        content,
+        mediaId: mediaId ?? undefined,
+      });
+      await loadPost();
+    } catch (err) {
+      console.error("Failed to update comment:", err);
+      throw err;
     }
   };
 
@@ -442,119 +456,106 @@ export default function PostDetailPage() {
               </article>
             ) : null}
 
-            <div className="mt-5 rounded-full border-2 border-slate-700 bg-slate-900/50 p-4 flex items-center gap-3 transition-all hover:border-slate-600 focus-within:border-blue-500/50">
-              <button
-                type="button"
-                className="text-slate-400 hover:text-blue-400 transition-colors shrink-0"
-                onClick={() => {
-                  // trigger hidden file input
-                  const el = document.getElementById("comment-image-input");
-                  if (el) el.click();
-                }}
-              >
-                <Image className="h-5 w-5" />
-              </button>
-              <input
-                id="comment-image-input"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={async e => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  try {
-                    setIsSubmittingComment(true);
-                    const resp = await MediaApi.uploadMedia(file);
-                    const mediaId =
-                      resp?.mediaId ?? resp?.id ?? resp?.media?.id;
-                    if (mediaId) {
-                      setAttachedMediaId(mediaId);
-                      const preview = URL.createObjectURL(file);
-                      setAttachedPreviewUrl(preview);
-                    }
-                  } catch (err) {
-                    console.error("Failed to upload media:", err);
-                  } finally {
-                    setIsSubmittingComment(false);
-                    // clear the input so same file can be selected again
-                    e.target.value = "";
-                  }
-                }}
-              />
-              {attachedPreviewUrl && (
-                <div className="mb-2 flex items-center gap-3">
-                  <img
-                    src={attachedPreviewUrl}
-                    alt="attached"
-                    className="h-20 w-20 rounded object-cover border border-slate-700"
-                  />
-                  <div className="flex-1">
-                    <div className="text-sm text-slate-300">Image attached</div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        URL.revokeObjectURL(attachedPreviewUrl);
-                        setAttachedPreviewUrl("");
-                        setAttachedMediaId(null);
-                      }}
-                      className="mt-2 text-sm text-red-400 hover:underline"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              )}
-              <button
-                type="button"
-                className="text-slate-400 hover:text-blue-400 transition-colors shrink-0"
-              >
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+            <div className="mt-5 rounded-3xl border border-slate-700/80 bg-slate-900/70 p-4 shadow-lg shadow-black/20 transition-all hover:border-slate-600 focus-within:border-blue-500/50 focus-within:shadow-blue-500/10">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/50 text-slate-400 transition-colors hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-300"
+                  onClick={() => {
+                    // trigger hidden file input
+                    const el = document.getElementById("comment-image-input");
+                    if (el) el.click();
+                  }}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </button>
-              <button
-                type="button"
-                className="text-slate-400 hover:text-blue-400 transition-colors shrink-0"
-              >
-                <Type className="h-5 w-5" />
-              </button>
-              <input
-                type="text"
-                value={commentInput}
-                onChange={e => setCommentInput(e.target.value)}
-                placeholder="Join the conversation..."
-                className="flex-1 bg-transparent text-slate-100 placeholder-slate-500 focus:outline-none text-sm"
-                onKeyDown={e => {
-                  if (e.key === "Enter" && !e.shiftKey && commentInput.trim()) {
-                    handleAddComment();
-                  }
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => setCommentInput("")}
-                className="px-4 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-all text-sm font-medium shrink-0"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleAddComment}
-                disabled={!commentInput.trim() || isSubmittingComment}
-                className="px-5 py-2 rounded-full bg-linear-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-all text-sm font-bold shrink-0"
-              >
-                {isSubmittingComment ? "..." : "Comment"}
-              </button>
+                  <Image className="h-5 w-5" />
+                </button>
+                <input
+                  id="comment-image-input"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={async e => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    try {
+                      setIsSubmittingComment(true);
+                      const resp = await MediaApi.uploadMedia(file);
+                      const mediaId =
+                        resp?.mediaId ?? resp?.id ?? resp?.media?.id;
+                      if (mediaId) {
+                        setAttachedMediaId(mediaId);
+                        const preview = URL.createObjectURL(file);
+                        setAttachedPreviewUrl(preview);
+                      }
+                    } catch (err) {
+                      console.error("Failed to upload media:", err);
+                    } finally {
+                      setIsSubmittingComment(false);
+                      // clear the input so same file can be selected again
+                      e.target.value = "";
+                    }
+                  }}
+                />
+                {attachedPreviewUrl && (
+                  <div className="mt-3 flex items-center gap-3 rounded-2xl border border-slate-700/80 bg-slate-950/40 p-3">
+                    <img
+                      src={attachedPreviewUrl}
+                      alt="attached"
+                      className="h-16 w-16 rounded-xl object-cover border border-slate-700"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium text-slate-200">
+                        Image attached
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        This will be posted with your comment.
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          URL.revokeObjectURL(attachedPreviewUrl);
+                          setAttachedPreviewUrl("");
+                          setAttachedMediaId(null);
+                        }}
+                        className="mt-2 text-sm font-medium text-red-400 hover:text-red-300"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                )}
+                <input
+                  type="text"
+                  value={commentInput}
+                  onChange={e => setCommentInput(e.target.value)}
+                  placeholder="Join the conversation..."
+                  className="min-w-0 flex-1 bg-transparent text-slate-100 placeholder-slate-500 focus:outline-none text-sm leading-10"
+                  onKeyDown={e => {
+                    if (
+                      e.key === "Enter" &&
+                      !e.shiftKey &&
+                      commentInput.trim()
+                    ) {
+                      handleAddComment();
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setCommentInput("")}
+                  className="px-4 py-2 rounded-full text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-all text-sm font-medium shrink-0"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAddComment}
+                  disabled={!commentInput.trim() || isSubmittingComment}
+                  className="px-5 py-2 rounded-full bg-linear-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-all text-sm font-bold shrink-0"
+                >
+                  {isSubmittingComment ? "..." : "Comment"}
+                </button>
+              </div>
             </div>
 
             <section className="mt-5 rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-lg shadow-black/20">
@@ -569,6 +570,8 @@ export default function PostDetailPage() {
                   }
                   onReply={handleReplyToComment}
                   onDelete={handleDeleteComment}
+                  onEditComment={handleEditComment}
+                  currentUsername={loggedInUser?.username ?? ""}
                 />
               </div>
             </section>

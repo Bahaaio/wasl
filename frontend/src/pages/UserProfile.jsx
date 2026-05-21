@@ -1,17 +1,13 @@
-/**
- * @typedef {import("../api/types.js").UserDto} UserDto
- * @typedef {import("../api/types.js").PostDto} PostDto
- * @typedef {import("../api/types.js").CommentDto} CommentDto
- */
-
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Share2, Zap, ArrowLeft } from "lucide-react";
+import { Share2, Zap, ArrowLeft, Image, Trash2, Plus } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
 import PostCard from "../components/PostCard.jsx";
 import CameraButton from "../components/CameraButton.jsx";
 import RichTextEditor from "../components/RichTextEditor.jsx";
 import CommentsList from "../components/CommentsList.jsx";
+import { MediaApi } from "../api/media.js";
+import { CommentsApi } from "../api/comments.js";
 import { UsersApi } from "../api/users.js";
 import {
   PostsApi,
@@ -50,6 +46,8 @@ export default function UserProfile() {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
+  const [editMediaIds, setEditMediaIds] = useState([]);
+  const [editMediaPreviews, setEditMediaPreviews] = useState([]);
   const [isSavingPost, setIsSavingPost] = useState(false);
   const [deletingPostId, setDeletingPostId] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState({
@@ -63,6 +61,8 @@ export default function UserProfile() {
   });
   const avatarInputRef = useRef(null);
   const bannerInputRef = useRef(null);
+  const editMediaInputRef = useRef(null);
+  const editMediaReplaceTargetRef = useRef(null);
   const editModalCloseTimeoutRef = useRef(null);
   const editModalOpenFrameRef = useRef(null);
 
@@ -343,14 +343,37 @@ export default function UserProfile() {
     setEditingPostId(post.id);
     setEditTitle(post.title);
     setEditContent(post.content);
+    const nextMediaIds = (post.media ?? [])
+      .map(media => media.id)
+      .filter(Boolean);
+    setEditMediaIds(nextMediaIds);
+    setEditMediaPreviews(
+      (post.media ?? []).map(media => ({
+        id: media.id,
+        url: MediaApi.getFullMediaUrl(media.id),
+        isRemote: true,
+      }))
+    );
     editModalOpenFrameRef.current = window.requestAnimationFrame(() => {
       setIsEditModalVisible(true);
       editModalOpenFrameRef.current = null;
     });
   };
 
+  const clearEditMediaPreviews = useCallback(() => {
+    setEditMediaPreviews(current => {
+      current.forEach(preview => {
+        if (!preview.isRemote) {
+          URL.revokeObjectURL(preview.url);
+        }
+      });
+      return [];
+    });
+  }, []);
+
   const stopEditingPost = () => {
     setIsEditModalVisible(false);
+    editMediaReplaceTargetRef.current = null;
 
     if (editModalCloseTimeoutRef.current) {
       window.clearTimeout(editModalCloseTimeoutRef.current);
@@ -360,8 +383,73 @@ export default function UserProfile() {
       setEditingPostId(null);
       setEditTitle("");
       setEditContent("");
+      setEditMediaIds([]);
+      clearEditMediaPreviews();
+      editMediaReplaceTargetRef.current = null;
       editModalCloseTimeoutRef.current = null;
     }, 180);
+  };
+
+  const handleAddEditMedia = async event => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const response = await MediaApi.uploadMedia(file);
+      const mediaId = response?.mediaId;
+      if (!mediaId) return;
+
+      const nextPreview = {
+        id: mediaId,
+        url: URL.createObjectURL(file),
+        isRemote: false,
+      };
+
+      if (editMediaReplaceTargetRef.current) {
+        const replaceTargetId = editMediaReplaceTargetRef.current;
+        editMediaReplaceTargetRef.current = null;
+
+        setEditMediaIds(current =>
+          current.map(id => (id === replaceTargetId ? mediaId : id))
+        );
+        setEditMediaPreviews(current => {
+          const next = current.map(preview =>
+            preview.id === replaceTargetId ? nextPreview : preview
+          );
+          const removed = current.find(
+            preview => preview.id === replaceTargetId
+          );
+          if (removed && !removed.isRemote) {
+            URL.revokeObjectURL(removed.url);
+          }
+          return next;
+        });
+      } else {
+        setEditMediaIds(current => [...current, mediaId]);
+        setEditMediaPreviews(current => [...current, nextPreview]);
+      }
+    } catch (error) {
+      console.error("Failed to upload post media:", error);
+    } finally {
+      event.target.value = "";
+    }
+  };
+
+  const handleRemoveEditMedia = mediaId => {
+    setEditMediaIds(current => current.filter(id => id !== mediaId));
+    setEditMediaPreviews(current => {
+      const next = current.filter(preview => preview.id !== mediaId);
+      const removed = current.find(preview => preview.id === mediaId);
+      if (removed && !removed.isRemote) {
+        URL.revokeObjectURL(removed.url);
+      }
+      return next;
+    });
+  };
+
+  const handleReplaceEditMedia = mediaId => {
+    editMediaReplaceTargetRef.current = mediaId;
+    editMediaInputRef.current?.click();
   };
 
   const handleEditPostSubmit = async event => {
@@ -384,6 +472,7 @@ export default function UserProfile() {
       await PostsApi.patchPost(editingPostId, {
         title: nextTitle,
         content: nextContent,
+        mediaIds: editMediaIds,
       });
 
       await loadUserPosts();
@@ -462,6 +551,19 @@ export default function UserProfile() {
       await loadUserComments();
     } catch (err) {
       console.error("Failed to reply to comment:", err);
+    }
+  };
+
+  const handleEditComment = async (commentId, content, mediaId = null) => {
+    try {
+      await CommentsApi.patchComment(commentId, {
+        content,
+        mediaId: mediaId ?? undefined,
+      });
+      await loadUserComments();
+    } catch (err) {
+      console.error("Failed to update comment:", err);
+      throw err;
     }
   };
 
@@ -693,7 +795,7 @@ export default function UserProfile() {
           <form
             onSubmit={handleEditPostSubmit}
             onClick={event => event.stopPropagation()}
-            className={`relative w-full max-w-2xl max-h-[85vh] overflow-hidden rounded-2xl border border-slate-700/90 bg-slate-900/95 shadow-2xl ring-1 ring-white/5 transition-all duration-300 ease-out ${
+            className={`relative flex w-full max-w-2xl max-h-[85vh] flex-col overflow-hidden rounded-2xl border border-slate-700/90 bg-slate-900/95 shadow-2xl ring-1 ring-white/5 transition-all duration-300 ease-out ${
               isEditModalVisible
                 ? "translate-y-0 scale-100 opacity-100"
                 : "translate-y-2 scale-[0.98] opacity-0"
@@ -706,7 +808,7 @@ export default function UserProfile() {
               </p>
             </div>
 
-            <div className="space-y-4 overflow-y-auto px-5 py-4 sm:px-6">
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4 sm:px-6">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium text-slate-200">
@@ -739,6 +841,81 @@ export default function UserProfile() {
                   onChange={setEditContent}
                   placeholder="Describe your post"
                 />
+              </div>
+
+              <div className="space-y-3 rounded-2xl border border-slate-800/90 bg-slate-950/40 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-sm font-medium text-slate-200">
+                      Post photos
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      Replace, remove, or add images to this post.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => editMediaInputRef.current?.click()}
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-800/70 px-3 py-2 text-xs font-medium text-slate-200 transition-colors hover:border-orange-500/40 hover:bg-slate-700"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    Add photo
+                  </button>
+                </div>
+
+                <input
+                  ref={editMediaInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAddEditMedia}
+                />
+
+                {editMediaPreviews.length > 0 ? (
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {editMediaPreviews.map(preview => (
+                      <div
+                        key={preview.id}
+                        className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/70"
+                      >
+                        <div className="aspect-video w-full bg-slate-950/60">
+                          <img
+                            src={preview.url}
+                            alt="Post media preview"
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                        <div className="flex items-center justify-between gap-2 px-3 py-2">
+                          <span className="text-xs text-slate-500">
+                            {preview.isRemote ? "Uploaded image" : "New image"}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleReplaceEditMedia(preview.id)}
+                              className="inline-flex items-center gap-1 rounded-full border border-slate-700 bg-slate-800/70 px-2.5 py-1 text-xs text-slate-200 transition-colors hover:border-orange-500/40 hover:bg-slate-700"
+                            >
+                              <Image className="h-3 w-3" />
+                              Replace
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveEditMedia(preview.id)}
+                              className="inline-flex items-center gap-1 rounded-full border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-xs text-red-200 transition-colors hover:border-red-400/50 hover:bg-red-500/20"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-950/30 px-4 py-8 text-center text-sm text-slate-500">
+                    No photos attached.
+                  </div>
+                )}
               </div>
             </div>
 
@@ -944,6 +1121,8 @@ export default function UserProfile() {
                     onDownvote={handleCommentDownvote}
                     onReply={handleReplyToComment}
                     onDelete={handleDeleteComment}
+                    onEditComment={handleEditComment}
+                    currentUsername={loggedInUser?.username ?? ""}
                   />
                 )}
               </>

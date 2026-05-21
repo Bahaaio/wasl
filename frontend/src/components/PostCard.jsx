@@ -5,7 +5,13 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowBigUp, MessageCircle, Share2, Trash2 } from "lucide-react";
+import {
+  ArrowBigUp,
+  MessageCircle,
+  PencilLine,
+  Share2,
+  Trash2,
+} from "lucide-react";
 import { getPostNetVoteScore, PostsApi } from "../api/posts.js";
 import { MediaApi } from "../api/media.js";
 import { CommunitiesApi } from "../api/communities.js";
@@ -333,9 +339,11 @@ export default function PostCard({
                     event.stopPropagation();
                     onEdit?.(post);
                   }}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-700/70 bg-slate-800/70 px-3 py-1.5 text-sm text-slate-100 transition-colors hover:border-orange-500/50 hover:bg-slate-700 hover:text-orange-200"
+                  aria-label="Edit post"
+                  title="Edit post"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-700/70 bg-slate-800/70 text-slate-100 transition-colors hover:border-orange-500/50 hover:bg-slate-700 hover:text-orange-200"
                 >
-                  Edit
+                  <PencilLine className="h-4 w-4" />
                 </button>
                 <button
                   type="button"
@@ -344,9 +352,15 @@ export default function PostCard({
                     onDelete?.(post.id);
                   }}
                   disabled={isDeleting}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-sm text-red-200 transition-colors hover:border-red-400/50 hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                  aria-label={isDeleting ? "Deleting post" : "Delete post"}
+                  title={isDeleting ? "Deleting post" : "Delete post"}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-500/30 bg-red-500/10 text-red-200 transition-colors hover:border-red-400/50 hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {isDeleting ? "Deleting..." : "Delete"}
+                  {isDeleting ? (
+                    <span className="text-[10px] font-semibold">...</span>
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
                 </button>
               </div>
             )}
