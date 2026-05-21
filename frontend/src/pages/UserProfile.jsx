@@ -21,7 +21,8 @@ import {
 } from "../api/posts.js";
 import { useUser } from "../auth/useUser.jsx";
 
-const PROFILE_TABS = ["Posts", "Comments", "Upvotes", "Downvotes"];
+const PROFILE_TABS = ["Posts", "Comments"];
+const PROFILE_VOTE_TABS = ["Upvotes", "Downvotes"];
 
 export default function UserProfile() {
   const { username } = useParams();
@@ -77,6 +78,9 @@ export default function UserProfile() {
       : "U";
 
   const isOwnProfile = loggedInUser?.username === profileUsername;
+  const visibleTabs = isOwnProfile
+    ? [...PROFILE_TABS, ...PROFILE_VOTE_TABS]
+    : PROFILE_TABS;
 
   const loadUserPosts = useCallback(async () => {
     setIsLoadingPosts(true);
@@ -198,12 +202,26 @@ export default function UserProfile() {
 
   useEffect(() => {
     // Fetch upvotes/downvotes when their respective tab is active
+    if (!isOwnProfile) {
+      return;
+    }
+
     if (activeTab === "upvotes") {
       Promise.resolve().then(() => loadUserVotes("up"));
     } else if (activeTab === "downvotes") {
       Promise.resolve().then(() => loadUserVotes("down"));
     }
-  }, [activeTab, loadUserVotes]);
+  }, [activeTab, isOwnProfile, loadUserVotes]);
+
+  useEffect(() => {
+    if (isOwnProfile) {
+      return;
+    }
+
+    if (activeTab === "upvotes" || activeTab === "downvotes") {
+      Promise.resolve().then(() => setActiveTab("posts"));
+    }
+  }, [activeTab, isOwnProfile]);
 
   // Re-apply local votes to posts whenever we return to the posts tab.
   // This ensures vote button highlights reflect local state after navigating
@@ -841,7 +859,7 @@ export default function UserProfile() {
 
           {/* Tabs */}
           <div className="flex gap-1 overflow-x-auto pb-2 border-b border-slate-800">
-            {PROFILE_TABS.map(tab => (
+            {visibleTabs.map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab.toLowerCase())}
@@ -931,7 +949,7 @@ export default function UserProfile() {
               </>
             )}
 
-            {activeTab === "upvotes" && (
+            {isOwnProfile && activeTab === "upvotes" && (
               <div className="relative">
                 {votesError && (
                   <div className="mb-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
@@ -962,7 +980,7 @@ export default function UserProfile() {
               </div>
             )}
 
-            {activeTab === "downvotes" && (
+            {isOwnProfile && activeTab === "downvotes" && (
               <div className="relative">
                 {votesError && (
                   <div className="mb-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">

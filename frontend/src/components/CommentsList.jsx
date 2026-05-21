@@ -161,7 +161,9 @@ function CommentThread({
                   <div className="mt-3">
                     <img
                       src={MediaApi.getFullMediaUrl(
-                        comment.media.id ?? comment.media.mediaId ?? comment.media
+                        comment.media.id ??
+                          comment.media.mediaId ??
+                          comment.media
                       )}
                       alt="comment media"
                       className="mt-2 max-h-64 w-auto rounded border border-slate-700 object-cover"
@@ -273,24 +275,26 @@ function CommentThread({
         <form
           className="mt-3 rounded-full border-2 border-slate-700 bg-slate-900/50 p-4 flex items-center gap-3 transition-all hover:border-slate-600 focus-within:border-blue-500/50"
           onSubmit={event => {
-              event.preventDefault();
-              if (!replyText.trim() && !replyAttachedMediaId) return;
-              onReply?.(comment.id, replyText, replyAttachedMediaId);
-              setReplyText("");
-              if (replyAttachedPreviewUrl) {
-                URL.revokeObjectURL(replyAttachedPreviewUrl);
-              }
-              setReplyAttachedPreviewUrl("");
-              setReplyAttachedMediaId(null);
-              setIsReplying(false);
-              setIsRepliesVisible(true);
-            }}
+            event.preventDefault();
+            if (!replyText.trim() && !replyAttachedMediaId) return;
+            onReply?.(comment.id, replyText, replyAttachedMediaId);
+            setReplyText("");
+            if (replyAttachedPreviewUrl) {
+              URL.revokeObjectURL(replyAttachedPreviewUrl);
+            }
+            setReplyAttachedPreviewUrl("");
+            setReplyAttachedMediaId(null);
+            setIsReplying(false);
+            setIsRepliesVisible(true);
+          }}
         >
           <button
             type="button"
             className="text-slate-400 hover:text-blue-400 transition-colors shrink-0"
             onClick={() => {
-              const el = document.getElementById(`reply-image-input-${comment.id}`);
+              const el = document.getElementById(
+                `reply-image-input-${comment.id}`
+              );
               if (el) el.click();
             }}
           >

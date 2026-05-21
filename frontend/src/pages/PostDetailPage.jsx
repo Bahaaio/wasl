@@ -465,7 +465,8 @@ export default function PostDetailPage() {
                   try {
                     setIsSubmittingComment(true);
                     const resp = await MediaApi.uploadMedia(file);
-                    const mediaId = resp?.mediaId ?? resp?.id ?? resp?.media?.id;
+                    const mediaId =
+                      resp?.mediaId ?? resp?.id ?? resp?.media?.id;
                     if (mediaId) {
                       setAttachedMediaId(mediaId);
                       const preview = URL.createObjectURL(file);
