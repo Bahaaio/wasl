@@ -13,10 +13,7 @@ function readCommentVotes() {
 
 function writeCommentVotes(value) {
   try {
-    window.localStorage.setItem(
-      LOCAL_COMMENT_VOTES_KEY,
-      JSON.stringify(value)
-    );
+    window.localStorage.setItem(LOCAL_COMMENT_VOTES_KEY, JSON.stringify(value));
   } catch {
     // Ignore storage failures.
   }
@@ -69,7 +66,8 @@ export function getCommentNetVoteScore(comment) {
     0;
 
   const baseScore =
-    Number.isFinite(Number(upvoteCount)) && Number.isFinite(Number(downvoteCount))
+    Number.isFinite(Number(upvoteCount)) &&
+    Number.isFinite(Number(downvoteCount))
       ? Number(upvoteCount) - Number(downvoteCount)
       : 0;
 

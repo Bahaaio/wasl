@@ -18,10 +18,7 @@ import {
 } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
 import CommentsList from "../components/CommentsList.jsx";
-import {
-  CommentsApi,
-  setCommentLocalVote,
-} from "../api/comments.js";
+import { CommentsApi, setCommentLocalVote } from "../api/comments.js";
 import { CommunitiesApi } from "../api/communities.js";
 import {
   PostsApi,

@@ -95,7 +95,8 @@ export function getPostNetVoteScore(post) {
     post.downvoteCount ?? post.downvotes ?? post.dislikes ?? post.voteDown ?? 0;
 
   const baseScore =
-    Number.isFinite(Number(upvoteCount)) && Number.isFinite(Number(downvoteCount))
+    Number.isFinite(Number(upvoteCount)) &&
+    Number.isFinite(Number(downvoteCount))
       ? Number(upvoteCount) - Number(downvoteCount)
       : 0;
 

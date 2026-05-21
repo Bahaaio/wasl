@@ -7,7 +7,6 @@
 import {
   useCallback,
   useEffect,
-  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -27,7 +26,7 @@ import {
 } from "../api/posts.js";
 import { useUser } from "../auth/useUser.jsx";
 
-const PROFILE_TABS = ["Posts", "Comments", "Votes"];
+const PROFILE_TABS = ["Posts", "Comments", "Upvotes", "Downvotes"];
 
 export default function UserProfile() {
   const { username } = useParams();
@@ -49,7 +48,7 @@ export default function UserProfile() {
   const [downvotedPosts, setDownvotedPosts] = useState([]);
   const [isLoadingVotes, setIsLoadingVotes] = useState(false);
   const [votesError, setVotesError] = useState(null);
-  const [votesFilter, setVotesFilter] = useState("both");
+  
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const [editingPostId, setEditingPostId] = useState(null);
@@ -71,9 +70,7 @@ export default function UserProfile() {
   const bannerInputRef = useRef(null);
   const editModalCloseTimeoutRef = useRef(null);
   const editModalOpenFrameRef = useRef(null);
-  const votesContainerRef = useRef(null);
-  const votesButtonsRef = useRef(null);
-  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
+  
 
   const getAvatarFallback = profile =>
     profile?.username
@@ -201,45 +198,19 @@ export default function UserProfile() {
     const timeoutId = window.setTimeout(() => {
       loadUserPosts();
       loadUserComments();
-      loadUserVotes();
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
-  }, [loadUserPosts, loadUserComments, loadUserVotes]);
+  }, [loadUserPosts, loadUserComments]);
 
   useEffect(() => {
-    // When the Votes tab becomes active (or the filter changes), fetch accordingly
-    if (activeTab === "votes") {
-      // defer to a microtask to avoid calling setState synchronously in the effect
-      Promise.resolve().then(() => loadUserVotes(votesFilter));
+    // Fetch upvotes/downvotes when their respective tab is active
+    if (activeTab === "upvotes") {
+      Promise.resolve().then(() => loadUserVotes("up"));
+    } else if (activeTab === "downvotes") {
+      Promise.resolve().then(() => loadUserVotes("down"));
     }
-  }, [activeTab, votesFilter, loadUserVotes]);
-
-  useLayoutEffect(() => {
-    const update = () => {
-      try {
-        const container = votesContainerRef.current;
-        if (!container) return;
-        const active = container.querySelector(
-          `[data-vote-key="${votesFilter}"]`
-        );
-        if (!active) return setIndicatorStyle({ left: 0, width: 0 });
-
-        const containerRect = container.getBoundingClientRect();
-        const rect = active.getBoundingClientRect();
-        setIndicatorStyle({
-          left: rect.left - containerRect.left,
-          width: rect.width,
-        });
-      } catch {
-        // ignore
-      }
-    };
-
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, [votesFilter]);
+  }, [activeTab, loadUserVotes]);
 
   useEffect(
     () => () => {
@@ -971,146 +942,66 @@ export default function UserProfile() {
               </>
             )}
 
-            {activeTab === "votes" && (
-              <>
-                <div className="mb-4">
-                  <div
-                    ref={votesContainerRef}
-                    className="relative rounded-full bg-slate-900/40 border border-slate-800/60 overflow-hidden"
-                    style={{ minWidth: 240 }}
-                  >
-                    {/* Sliding indicator */}
-                    <div
-                      aria-hidden
-                      className="absolute top-1/2 -translate-y-1/2 rounded-full bg-slate-800/60 backdrop-blur-sm shadow-md pointer-events-none transition-all duration-300 ease-out"
-                      style={{
-                        left: indicatorStyle.left,
-                        width: indicatorStyle.width,
-                        height: "44px",
-                      }}
-                    />
-                    <div
-                      ref={votesButtonsRef}
-                      className="grid grid-cols-3 gap-0"
-                    >
-                      {[
-                        { key: "both", label: "All" },
-                        { key: "up", label: "Upvotes" },
-                        { key: "down", label: "Downvotes" },
-                      ].map(item => (
-                        <button
-                          key={item.key}
-                          data-vote-key={item.key}
-                          type="button"
-                          onClick={() => setVotesFilter(item.key)}
-                          aria-pressed={votesFilter === item.key}
-                          className={`relative z-10 w-full text-center px-4 py-2 text-sm font-medium transition-colors duration-200 ease-out focus:outline-none ${
-                            votesFilter === item.key
-                              ? "text-orange-300"
-                              : "text-slate-300 hover:text-slate-100"
-                          }`}
-                        >
-                          <span
-                            className={`inline-block transform transition-transform duration-200 ${votesFilter === item.key ? "scale-105" : "scale-100"}`}
-                          >
-                            {item.label}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
+            {activeTab === "upvotes" && (
+              <div className="relative">
+                {votesError && (
+                  <div className="mb-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
+                    {votesError}
                   </div>
-                </div>
+                )}
 
-                <div className="relative">
-                  {votesError && (
-                    <div className="mb-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
-                      {votesError}
-                    </div>
-                  )}
-
-                  {/* Small overlay spinner when fetching new filter results so page doesn't re-render fully */}
-                  {isLoadingVotes && (
-                    <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/10 backdrop-blur-sm pointer-events-none">
-                      <div className="inline-flex items-center gap-2 rounded-full bg-slate-900/70 px-3 py-2 text-sm text-slate-200 shadow">
-                        <svg
-                          className="w-4 h-4 animate-spin"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                          ></path>
-                        </svg>
-                        <span>Updating…</span>
-                      </div>
-                    </div>
-                  )}
-
-                  <div
-                    className={`transition-opacity duration-300 ${isLoadingVotes ? "opacity-60" : "opacity-100"}`}
-                  >
-                    <div className="space-y-6">
-                      {votesFilter !== "down" && (
-                        <section>
-                          <h3 className="text-lg font-semibold text-slate-200 mb-3">
-                            Upvoted posts
-                          </h3>
-                          {upvotedPosts.length === 0 ? (
-                            <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 text-slate-400">
-                              No upvoted posts
-                            </div>
-                          ) : (
-                            <div className="space-y-4">
-                              {upvotedPosts.map(p => (
-                                <PostCard
-                                  key={p.id}
-                                  post={p}
-                                  onUpvote={handleUpvote}
-                                  onDownvote={handleDownvote}
-                                />
-                              ))}
-                            </div>
-                          )}
-                        </section>
-                      )}
-
-                      {votesFilter !== "up" && (
-                        <section>
-                          <h3 className="text-lg font-semibold text-slate-200 mb-3">
-                            Downvoted posts
-                          </h3>
-                          {downvotedPosts.length === 0 ? (
-                            <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 text-slate-400">
-                              No downvoted posts
-                            </div>
-                          ) : (
-                            <div className="space-y-4">
-                              {downvotedPosts.map(p => (
-                                <PostCard
-                                  key={p.id}
-                                  post={p}
-                                  onUpvote={handleUpvote}
-                                  onDownvote={handleDownvote}
-                                />
-                              ))}
-                            </div>
-                          )}
-                        </section>
-                      )}
-                    </div>
+                {isLoadingVotes ? (
+                  <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 text-slate-400">
+                    Loading upvoted posts...
                   </div>
-                </div>
-              </>
+                ) : upvotedPosts.length === 0 ? (
+                  <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 text-slate-400">
+                    No upvoted posts
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {upvotedPosts.map(p => (
+                      <PostCard
+                        key={p.id}
+                        post={p}
+                        onUpvote={handleUpvote}
+                        onDownvote={handleDownvote}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === "downvotes" && (
+              <div className="relative">
+                {votesError && (
+                  <div className="mb-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
+                    {votesError}
+                  </div>
+                )}
+
+                {isLoadingVotes ? (
+                  <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 text-slate-400">
+                    Loading downvoted posts...
+                  </div>
+                ) : downvotedPosts.length === 0 ? (
+                  <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 text-slate-400">
+                    No downvoted posts
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {downvotedPosts.map(p => (
+                      <PostCard
+                        key={p.id}
+                        post={p}
+                        onUpvote={handleUpvote}
+                        onDownvote={handleDownvote}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
