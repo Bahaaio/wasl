@@ -4,12 +4,7 @@
  * @typedef {import("../api/types.js").CommentDto} CommentDto
  */
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Share2, ChevronRight, Zap, ArrowLeft } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
@@ -48,7 +43,6 @@ export default function UserProfile() {
   const [downvotedPosts, setDownvotedPosts] = useState([]);
   const [isLoadingVotes, setIsLoadingVotes] = useState(false);
   const [votesError, setVotesError] = useState(null);
-  
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const [editingPostId, setEditingPostId] = useState(null);
@@ -70,7 +64,6 @@ export default function UserProfile() {
   const bannerInputRef = useRef(null);
   const editModalCloseTimeoutRef = useRef(null);
   const editModalOpenFrameRef = useRef(null);
-  
 
   const getAvatarFallback = profile =>
     profile?.username
@@ -211,6 +204,38 @@ export default function UserProfile() {
       Promise.resolve().then(() => loadUserVotes("down"));
     }
   }, [activeTab, loadUserVotes]);
+
+  // Re-apply local votes to posts whenever we return to the posts tab.
+  // This ensures vote button highlights reflect local state after navigating
+  // to a post detail and back without forcing a full reload.
+  useEffect(() => {
+    if (activeTab !== "posts") return;
+    // Defer state update to avoid synchronous setState inside effect
+    Promise.resolve().then(() =>
+      setPosts(current => applyLocalVotesToPosts(current))
+    );
+  }, [activeTab]);
+
+  // Re-apply local votes when navigation or storage events occur so vote
+  // highlights stay in sync after visiting a post detail and returning.
+  useEffect(() => {
+    const reapPLY = () =>
+      Promise.resolve().then(() => setPosts(current => applyLocalVotesToPosts(current)));
+
+    const onFocus = () => reapPLY();
+    const onPop = () => reapPLY();
+    const onStorage = () => reapPLY();
+
+    window.addEventListener("focus", onFocus);
+    window.addEventListener("popstate", onPop);
+    window.addEventListener("storage", onStorage);
+
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("popstate", onPop);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, []);
 
   useEffect(
     () => () => {
