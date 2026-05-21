@@ -1075,10 +1075,14 @@ export default function UserProfile() {
                       <Zap className="w-16 h-16 text-slate-600 mx-auto" />
                     </div>
                     <h3 className="text-2xl font-bold text-slate-100 mb-2">
-                      You don't have any posts yet
+                      {isOwnProfile
+                        ? "You don't have any posts yet"
+                        : `u/${displayUser.username} hasn't posted yet`}
                     </h3>
                     <p className="text-slate-400 max-w-md mx-auto">
-                      Once you post to a community, it will show up here.
+                      {isOwnProfile
+                        ? "Once you post to a community, it will show up here."
+                        : "Once they post to a community, it will show up here."}
                     </p>
                   </div>
                 ) : (
@@ -1123,6 +1127,8 @@ export default function UserProfile() {
                     onDelete={handleDeleteComment}
                     onEditComment={handleEditComment}
                     currentUsername={loggedInUser?.username ?? ""}
+                    isOwnProfile={isOwnProfile}
+                    profileUsername={profileUsername}
                   />
                 )}
               </>
