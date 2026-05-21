@@ -149,7 +149,7 @@ export default function PostCard({
             }}
             disabled={isDeleted}
             className={`p-1 rounded transition-colors ${
-              vote === "UPVOTE" && !isDeleted
+              vote === "UPVOTE"
                 ? "text-orange-500 bg-orange-500/10"
                 : isDeleted
                   ? "cursor-not-allowed text-slate-500"
@@ -168,7 +168,7 @@ export default function PostCard({
             }}
             disabled={isDeleted}
             className={`p-1 rounded transition-colors ${
-              vote === "DOWNVOTE" && !isDeleted
+              vote === "DOWNVOTE"
                 ? "text-indigo-500 bg-indigo-500/10"
                 : isDeleted
                   ? "cursor-not-allowed text-slate-500"
@@ -250,6 +250,7 @@ export default function PostCard({
                 <Trash2 className="h-4 w-4 text-red-400" />
                 <span>{body}</span>
               </div>
+              
             </div>
           )}
           <div className="flex flex-col gap-3 rounded-2xl bg-slate-950/30 p-3 sm:flex-row sm:items-center sm:justify-between">
