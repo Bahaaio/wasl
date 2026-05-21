@@ -6,7 +6,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Share2, ChevronRight, Zap, ArrowLeft } from "lucide-react";
+import { Share2, Zap, ArrowLeft } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
 import PostCard from "../components/PostCard.jsx";
 import CameraButton from "../components/CameraButton.jsx";
@@ -220,7 +220,9 @@ export default function UserProfile() {
   // highlights stay in sync after visiting a post detail and returning.
   useEffect(() => {
     const reapPLY = () =>
-      Promise.resolve().then(() => setPosts(current => applyLocalVotesToPosts(current)));
+      Promise.resolve().then(() =>
+        setPosts(current => applyLocalVotesToPosts(current))
+      );
 
     const onFocus = () => reapPLY();
     const onPop = () => reapPLY();
@@ -857,47 +859,7 @@ export default function UserProfile() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Content Filter */}
-            <div className="flex items-center justify-between mb-6">
-              <button className="flex items-center gap-2 text-slate-300 transition-colors bg-slate-800/30 px-3 py-2 rounded-lg border border-slate-800 group">
-                <span>Showing user posts</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Create Post Box */}
-            <div className="mb-6">
-              <div className="bg-slate-900/40 border border-slate-800/50 rounded-lg p-4 flex items-center gap-3 backdrop-blur-sm hover:bg-slate-900/50 hover:border-slate-700 transition-all">
-                <div className="w-10 h-10 rounded-full bg-linear-to-br from-orange-500 to-red-600 flex items-center justify-center text-white font-bold text-sm shadow-md overflow-hidden">
-                  {avatarUrl ? (
-                    <img
-                      src={avatarUrl}
-                      alt="Profile avatar"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    getAvatarFallback(displayUser)
-                  )}
-                </div>
-                <button
-                  onClick={() => navigate("/create-post")}
-                  className="flex-1 text-left text-slate-400 px-3 py-2 rounded hover:bg-slate-800/50 transition-colors"
-                >
-                  Create post in a community
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-2 pt-3">
-                <button className="inline-flex items-center gap-2 px-3 py-2 rounded-full transition-colors text-sm text-slate-400 hover:text-orange-400 hover:bg-slate-800/50">
-                  <span>Image</span>
-                </button>
-                <button className="inline-flex items-center gap-2 px-3 py-2 rounded-full transition-colors text-sm text-slate-400 hover:text-orange-400 hover:bg-slate-800/50">
-                  <span>Link</span>
-                </button>
-                <button className="inline-flex items-center gap-2 px-3 py-2 rounded-full transition-colors text-sm text-slate-400 hover:text-orange-400 hover:bg-slate-800/50">
-                  <span>Poll</span>
-                </button>
-              </div>
-            </div>
+            {/* Removed: Content filter pill and Create-post box per user request */}
 
             {/* Content for each tab */}
             {activeTab === "posts" && (
