@@ -18,12 +18,18 @@ import {
 } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
 import CommentsList from "../components/CommentsList.jsx";
-import { CommentsApi } from "../api/comments.js";
+import {
+  CommentsApi,
+  setCommentLocalVote,
+} from "../api/comments.js";
 import { CommunitiesApi } from "../api/communities.js";
-import { PostsApi } from "../api/posts.js";
+import {
+  PostsApi,
+  getPostNetVoteScore,
+  setPostLocalVote,
+} from "../api/posts.js";
 import { MediaApi } from "../api/media.js";
 import MediaCarousel from "../components/MediaCarousel.jsx";
-import { getNetVoteScore, setLocalVote } from "../api/util.js";
 
 const communityIconCache = new Map();
 
@@ -89,7 +95,7 @@ export default function PostDetailPage() {
 
     try {
       await PostsApi.votePost(post.id, action);
-      setLocalVote("posts", post.id, action);
+      setPostLocalVote(post.id, action);
       await loadPost();
     } catch (err) {
       console.error("Failed to vote on post:", err);
@@ -99,7 +105,7 @@ export default function PostDetailPage() {
   const handleCommentVote = async (commentId, action) => {
     try {
       await CommentsApi.voteComment(commentId, action);
-      setLocalVote("comments", commentId, action);
+      setCommentLocalVote(commentId, action);
       const commentsResponse = await PostsApi.listPostComments(postId, {
         page: 0,
         size: 20,
@@ -387,7 +393,7 @@ export default function PostDetailPage() {
                     />
                   </button>
                   <span className="inline-flex min-w-11 items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/50 px-3 py-1.5 text-sm font-semibold text-slate-200">
-                    {formatCompactNumber(getNetVoteScore(post))}
+                    {formatCompactNumber(getPostNetVoteScore(post))}
                   </span>
                   <button
                     type="button"

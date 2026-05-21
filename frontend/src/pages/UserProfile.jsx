@@ -4,7 +4,13 @@
  * @typedef {import("../api/types.js").CommentDto} CommentDto
  */
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Share2, ChevronRight, Zap, ArrowLeft } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
@@ -13,12 +19,12 @@ import CameraButton from "../components/CameraButton.jsx";
 import RichTextEditor from "../components/RichTextEditor.jsx";
 import CommentsList from "../components/CommentsList.jsx";
 import { UsersApi } from "../api/users.js";
-import { PostsApi } from "../api/posts.js";
 import {
+  PostsApi,
   sortPostsByCreatedAtDesc,
   applyLocalVotesToPosts,
-  setLocalVote,
-} from "../api/util.js";
+  setPostLocalVote,
+} from "../api/posts.js";
 import { useUser } from "../auth/useUser.jsx";
 
 const PROFILE_TABS = ["Posts", "Comments", "Votes"];
@@ -214,13 +220,18 @@ export default function UserProfile() {
       try {
         const container = votesContainerRef.current;
         if (!container) return;
-        const active = container.querySelector(`[data-vote-key="${votesFilter}"]`);
+        const active = container.querySelector(
+          `[data-vote-key="${votesFilter}"]`
+        );
         if (!active) return setIndicatorStyle({ left: 0, width: 0 });
 
         const containerRect = container.getBoundingClientRect();
         const rect = active.getBoundingClientRect();
-        setIndicatorStyle({ left: rect.left - containerRect.left, width: rect.width });
-      } catch (e) {
+        setIndicatorStyle({
+          left: rect.left - containerRect.left,
+          width: rect.width,
+        });
+      } catch {
         // ignore
       }
     };
@@ -245,7 +256,7 @@ export default function UserProfile() {
   const handleVote = async (postId, action) => {
     try {
       await PostsApi.votePost(postId, action);
-      setLocalVote("posts", postId, action);
+      setPostLocalVote(postId, action);
       setPosts(currentPosts =>
         currentPosts.map(post => {
           if (post.id !== postId) {
@@ -963,14 +974,25 @@ export default function UserProfile() {
             {activeTab === "votes" && (
               <>
                 <div className="mb-4">
-                  <div ref={votesContainerRef} className="relative rounded-full bg-slate-900/40 border border-slate-800/60 overflow-hidden" style={{ minWidth: 240 }}>
+                  <div
+                    ref={votesContainerRef}
+                    className="relative rounded-full bg-slate-900/40 border border-slate-800/60 overflow-hidden"
+                    style={{ minWidth: 240 }}
+                  >
                     {/* Sliding indicator */}
                     <div
                       aria-hidden
                       className="absolute top-1/2 -translate-y-1/2 rounded-full bg-slate-800/60 backdrop-blur-sm shadow-md pointer-events-none transition-all duration-300 ease-out"
-                      style={{ left: indicatorStyle.left, width: indicatorStyle.width, height: '44px' }}
+                      style={{
+                        left: indicatorStyle.left,
+                        width: indicatorStyle.width,
+                        height: "44px",
+                      }}
                     />
-                    <div ref={votesButtonsRef} className="grid grid-cols-3 gap-0">
+                    <div
+                      ref={votesButtonsRef}
+                      className="grid grid-cols-3 gap-0"
+                    >
                       {[
                         { key: "both", label: "All" },
                         { key: "up", label: "Upvotes" },
@@ -988,7 +1010,9 @@ export default function UserProfile() {
                               : "text-slate-300 hover:text-slate-100"
                           }`}
                         >
-                          <span className={`inline-block transform transition-transform duration-200 ${votesFilter === item.key ? "scale-105" : "scale-100"}`}>
+                          <span
+                            className={`inline-block transform transition-transform duration-200 ${votesFilter === item.key ? "scale-105" : "scale-100"}`}
+                          >
                             {item.label}
                           </span>
                         </button>
@@ -998,20 +1022,43 @@ export default function UserProfile() {
                 </div>
 
                 <div className="relative">
+                  {votesError && (
+                    <div className="mb-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
+                      {votesError}
+                    </div>
+                  )}
+
                   {/* Small overlay spinner when fetching new filter results so page doesn't re-render fully */}
                   {isLoadingVotes && (
                     <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/10 backdrop-blur-sm pointer-events-none">
                       <div className="inline-flex items-center gap-2 rounded-full bg-slate-900/70 px-3 py-2 text-sm text-slate-200 shadow">
-                        <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        <svg
+                          className="w-4 h-4 animate-spin"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                          ></path>
                         </svg>
                         <span>Updating…</span>
                       </div>
                     </div>
                   )}
 
-                  <div className={`transition-opacity duration-300 ${isLoadingVotes ? "opacity-60" : "opacity-100"}`}> 
+                  <div
+                    className={`transition-opacity duration-300 ${isLoadingVotes ? "opacity-60" : "opacity-100"}`}
+                  >
                     <div className="space-y-6">
                       {votesFilter !== "down" && (
                         <section>

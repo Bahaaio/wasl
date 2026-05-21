@@ -16,7 +16,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { MediaApi } from "../api/media.js";
-import { getNetVoteScore } from "../api/util.js";
+import { getCommentNetVoteScore } from "../api/comments.js";
 
 export default function CommentsList({
   comments,
@@ -360,5 +360,5 @@ function getCommentCommunity(comment) {
 }
 
 function getCommentScore(comment) {
-  return getNetVoteScore(comment);
+  return getCommentNetVoteScore(comment);
 }

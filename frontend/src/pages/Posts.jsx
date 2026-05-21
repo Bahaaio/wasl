@@ -4,13 +4,13 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar.jsx";
 import PostCard from "../components/PostCard.jsx";
 import SideBar from "../components/SideBar.jsx";
-import { PostsApi } from "../api/posts.js";
-import { UsersApi } from "../api/users.js";
 import {
+  PostsApi,
   sortPostsByCreatedAtDesc,
   applyLocalVotesToPosts,
-  setLocalVote,
-} from "../api/util.js";
+  setPostLocalVote,
+} from "../api/posts.js";
+import { UsersApi } from "../api/users.js";
 import { useUser } from "../auth/useUser.jsx";
 
 export default function PostsPage() {
@@ -101,7 +101,7 @@ export default function PostsPage() {
   const handleVote = async (postId, action) => {
     try {
       await PostsApi.votePost(postId, action);
-      setLocalVote("posts", postId, action);
+      setPostLocalVote(postId, action);
       await refreshPosts();
     } catch (err) {
       console.error("Failed to vote on post:", err);

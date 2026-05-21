@@ -6,7 +6,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowBigUp, MessageCircle, Share2, Trash2 } from "lucide-react";
-import { getNetVoteScore } from "../api/util.js";
+import { getPostNetVoteScore } from "../api/posts.js";
 import { MediaApi } from "../api/media.js";
 import { CommunitiesApi } from "../api/communities.js";
 import MediaCarousel from "./MediaCarousel.jsx";
@@ -40,7 +40,7 @@ export default function PostCard({
   const [communityIconMediaId, setCommunityIconMediaId] = useState(
     initialIconMediaId ?? null
   );
-  const score = getNetVoteScore(post);
+  const score = getPostNetVoteScore(post);
   const commentCount = post.commentCount ?? post.comments ?? 0;
   const vote =
     post.vote ??
