@@ -144,94 +144,110 @@ function CommentThread({
               )}
             </div>
 
-            <p className="mt-2 text-sm leading-6 text-slate-200">
-              {getCommentBody(comment)}
-            </p>
+            {comment.deleted ? (
+              <div className="mt-2 mb-3 flex items-center gap-2 rounded-lg bg-slate-950/40 px-3 py-2 text-sm text-slate-300">
+                <Trash2 className="h-4 w-4 text-red-400" />
+                <span>Comment deleted</span>
+              </div>
+            ) : (
+              <>
+                <p className="mt-2 text-sm leading-6 text-slate-200">
+                  {getCommentBody(comment)}
+                </p>
 
-            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-              <button
-                type="button"
-                onClick={() =>
-                  onUpvote &&
-                  onUpvote(comment.id, vote === "UPVOTE" ? "NONE" : "UPVOTE")
-                }
-                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors ${
-                  vote === "UPVOTE"
-                    ? "bg-orange-500/20 text-orange-200 ring-1 ring-orange-500/40 shadow-[0_0_0_1px_rgba(249,115,22,0.12)]"
-                    : "bg-slate-800/60 text-slate-400 hover:bg-slate-700 hover:text-orange-400"
-                }`}
-                aria-pressed={vote === "UPVOTE"}
-                aria-label="Upvote comment"
-              >
-                <ArrowBigUp
-                  className={`h-3.5 w-3.5 ${
-                    vote === "UPVOTE" ? "text-orange-200" : "text-orange-400"
-                  }`}
-                />
-              </button>
-              <span className="inline-flex min-w-10 items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/50 px-3 py-1.5 text-sm font-semibold text-slate-200">
-                {getCommentScore(comment)}
-              </span>
-              <button
-                type="button"
-                onClick={() =>
-                  onDownvote &&
-                  onDownvote(
-                    comment.id,
-                    vote === "DOWNVOTE" ? "NONE" : "DOWNVOTE"
-                  )
-                }
-                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors ${
-                  vote === "DOWNVOTE"
-                    ? "bg-indigo-500/20 text-indigo-200 ring-1 ring-indigo-500/40 shadow-[0_0_0_1px_rgba(99,102,241,0.12)]"
-                    : "bg-slate-800/60 text-slate-400 hover:bg-slate-700 hover:text-indigo-400"
-                }`}
-                aria-pressed={vote === "DOWNVOTE"}
-                aria-label="Downvote comment"
-              >
-                <ArrowBigDown
-                  className={`h-3.5 w-3.5 ${
-                    vote === "DOWNVOTE" ? "text-indigo-200" : "text-indigo-400"
-                  }`}
-                />
-              </button>
-              <button
-                type="button"
-                onClick={() => onDelete && onDelete(comment.id)}
-                className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/60 px-3 py-1.5 transition-colors hover:bg-red-900/30 hover:text-red-400 text-slate-400"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                Delete
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsReplying(current => !current)}
-                className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/60 px-3 py-1.5 transition-colors hover:bg-slate-700 hover:text-slate-200 text-slate-400"
-              >
-                Reply
-              </button>
-              {comment.replies?.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setIsRepliesVisible(!isRepliesVisible)}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/60 px-3 py-1.5 transition-colors hover:bg-slate-700 hover:text-slate-200 text-slate-400 ml-auto"
-                >
-                  {isRepliesVisible ? (
-                    <>
-                      <ChevronDown className="h-3.5 w-3.5" />
-                      {comment.replies.length} repl
-                      {comment.replies.length === 1 ? "y" : "ies"}
-                    </>
-                  ) : (
-                    <>
-                      <ChevronRight className="h-3.5 w-3.5" />
-                      {comment.replies.length} repl
-                      {comment.replies.length === 1 ? "y" : "ies"}
-                    </>
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onUpvote &&
+                      onUpvote(
+                        comment.id,
+                        vote === "UPVOTE" ? "NONE" : "UPVOTE"
+                      )
+                    }
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors ${
+                      vote === "UPVOTE"
+                        ? "bg-orange-500/20 text-orange-200 ring-1 ring-orange-500/40 shadow-[0_0_0_1px_rgba(249,115,22,0.12)]"
+                        : "bg-slate-800/60 text-slate-400 hover:bg-slate-700 hover:text-orange-400"
+                    }`}
+                    aria-pressed={vote === "UPVOTE"}
+                    aria-label="Upvote comment"
+                  >
+                    <ArrowBigUp
+                      className={`h-3.5 w-3.5 ${
+                        vote === "UPVOTE"
+                          ? "text-orange-200"
+                          : "text-orange-400"
+                      }`}
+                    />
+                  </button>
+                  <span className="inline-flex min-w-10 items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/50 px-3 py-1.5 text-sm font-semibold text-slate-200">
+                    {getCommentScore(comment)}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onDownvote &&
+                      onDownvote(
+                        comment.id,
+                        vote === "DOWNVOTE" ? "NONE" : "DOWNVOTE"
+                      )
+                    }
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors ${
+                      vote === "DOWNVOTE"
+                        ? "bg-indigo-500/20 text-indigo-200 ring-1 ring-indigo-500/40 shadow-[0_0_0_1px_rgba(99,102,241,0.12)]"
+                        : "bg-slate-800/60 text-slate-400 hover:bg-slate-700 hover:text-indigo-400"
+                    }`}
+                    aria-pressed={vote === "DOWNVOTE"}
+                    aria-label="Downvote comment"
+                  >
+                    <ArrowBigDown
+                      className={`h-3.5 w-3.5 ${
+                        vote === "DOWNVOTE"
+                          ? "text-indigo-200"
+                          : "text-indigo-400"
+                      }`}
+                    />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onDelete && onDelete(comment.id)}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/60 px-3 py-1.5 transition-colors hover:bg-red-900/30 hover:text-red-400 text-slate-400"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Delete
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsReplying(current => !current)}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/60 px-3 py-1.5 transition-colors hover:bg-slate-700 hover:text-slate-200 text-slate-400"
+                  >
+                    Reply
+                  </button>
+                  {comment.replies?.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setIsRepliesVisible(!isRepliesVisible)}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/60 px-3 py-1.5 transition-colors hover:bg-slate-700 hover:text-slate-200 text-slate-400 ml-auto"
+                    >
+                      {isRepliesVisible ? (
+                        <>
+                          <ChevronDown className="h-3.5 w-3.5" />
+                          {comment.replies.length} repl
+                          {comment.replies.length === 1 ? "y" : "ies"}
+                        </>
+                      ) : (
+                        <>
+                          <ChevronRight className="h-3.5 w-3.5" />
+                          {comment.replies.length} repl
+                          {comment.replies.length === 1 ? "y" : "ies"}
+                        </>
+                      )}
+                    </button>
                   )}
-                </button>
-              )}
-            </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </article>

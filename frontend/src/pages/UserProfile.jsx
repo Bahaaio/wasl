@@ -450,8 +450,10 @@ export default function UserProfile() {
   const handleDeleteComment = async commentId => {
     try {
       const { CommentsApi } = await import("../api/comments.js");
+      const prevScrollY = window.scrollY || 0;
       await CommentsApi.deleteComment(commentId);
       await loadUserComments();
+      window.scrollTo({ top: prevScrollY, left: 0 });
     } catch (err) {
       console.error("Failed to delete comment:", err);
     }

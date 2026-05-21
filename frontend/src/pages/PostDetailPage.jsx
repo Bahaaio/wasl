@@ -155,8 +155,11 @@ export default function PostDetailPage() {
   const confirmDeleteComment = async () => {
     if (!deleteConfirm.commentId) return;
     try {
+      const prevScrollY = window.scrollY || 0;
       await CommentsApi.deleteComment(deleteConfirm.commentId);
       await loadPost();
+      // restore scroll to avoid jumping to top after re-render
+      window.scrollTo({ top: prevScrollY, left: 0 });
       setDeleteConfirm({ isOpen: false, commentId: null });
     } catch (err) {
       console.error("Failed to delete comment:", err);
