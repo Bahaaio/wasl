@@ -3,10 +3,6 @@
  * @typedef {import("../api/types.js").MediaDto} MediaDto
  */
 
-/**
- * @typedef {import("../api/types.js").CommentDto} CommentDto
- */
-
 import {
   ArrowBigDown,
   ArrowBigUp,
@@ -38,7 +34,8 @@ export default function CommentsList({
   const [editText, setEditText] = useState("");
   const [editMediaId, setEditMediaId] = useState(null);
   const [editMediaPreviewUrl, setEditMediaPreviewUrl] = useState("");
-  const [editMediaPreviewIsRemote, setEditMediaPreviewIsRemote] = useState(false);
+  const [editMediaPreviewIsRemote, setEditMediaPreviewIsRemote] =
+    useState(false);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
 
   useEffect(
@@ -262,7 +259,9 @@ export default function CommentsList({
                     </div>
                     <div className="flex items-center justify-between gap-2 px-3 py-2">
                       <span className="text-xs text-slate-500">
-                        {editMediaPreviewIsRemote ? "Uploaded image" : "New image"}
+                        {editMediaPreviewIsRemote
+                          ? "Uploaded image"
+                          : "New image"}
                       </span>
                       <button
                         type="button"
