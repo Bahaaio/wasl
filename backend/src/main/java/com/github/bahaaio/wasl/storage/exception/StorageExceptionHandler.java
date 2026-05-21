@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class StorageExceptionHandler {
-    @ExceptionHandler(FileNotFoundException.class)
-    public ResponseEntity<ApiError<Void>> handleFileNotFound(FileNotFoundException ex) {
+    @ExceptionHandler(StorageFileNotFoundException.class)
+    public ResponseEntity<ApiError<Void>> handleFileNotFound(StorageFileNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
             ApiError.of("FILE_NOT_FOUND", ex.getMessage())
         );

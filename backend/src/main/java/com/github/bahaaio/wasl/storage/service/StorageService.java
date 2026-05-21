@@ -1,36 +1,35 @@
 package com.github.bahaaio.wasl.storage.service;
 
-import com.github.bahaaio.wasl.storage.exception.FileNotFoundException;
-import com.github.bahaaio.wasl.storage.exception.StorageException;
+import com.github.bahaaio.wasl.storage.exception.StorageFileNotFoundException;
+import com.github.bahaaio.wasl.storage.model.StorageFile;
 
 import org.springframework.core.io.Resource;
 
-import java.io.InputStream;
-
 public interface StorageService {
     /**
-     * Stores the given file at the specified path.
+     * Stores a file in the storage system using the specified key.
      *
-     * @param inputStream the file to store; must not be empty
-     * @param destination the unique storage key where the file will be stored
-     * @throws StorageException if the file is empty or storing fails
+     * @param mediaFile the file to store, represented as a {@link StorageFile}
+     *                  containing the file's input stream, size, and MIME type
+     * @param key       the unique storage key under which the file will be stored,
+     *                  typically representing the file path or identifier
      */
-    void store(InputStream inputStream, String destination);
+    void store(StorageFile mediaFile, String key);
 
     /**
      * Loads a file as a {@link Resource}.
      *
      * @param key the unqiuq storage key of the file to load
      * @return the file as a readable {@link Resource}
-     * @throws FileNotFoundException if the file does not exist or is not readable
+     * @throws StorageFileNotFoundException if the file does not exist or is not readable
      */
     Resource load(String key);
 
     /**
      * Deletes the file at the specified path.
      *
-     * @param filePath the relative path (storage key) of the file to delete
-     * @throws FileNotFoundException if the file cannot be deleted
+     * @param key the relative path (storage key) of the file to delete
+     * @throws StorageFileNotFoundException if the file cannot be deleted
      */
-    void delete(String filePath);
+    void delete(String key);
 }

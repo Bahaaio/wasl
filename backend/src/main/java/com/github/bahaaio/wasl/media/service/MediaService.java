@@ -14,8 +14,8 @@ import com.github.bahaaio.wasl.media.repository.MediaRepository;
 import com.github.bahaaio.wasl.media.service.processing.MediaProcessor;
 import com.github.bahaaio.wasl.media.service.processing.MediaProcessorFactory;
 import com.github.bahaaio.wasl.media.service.validation.MediaValidator;
-import com.github.bahaaio.wasl.storage.exception.FileNotFoundException;
 import com.github.bahaaio.wasl.storage.exception.StorageException;
+import com.github.bahaaio.wasl.storage.exception.StorageFileNotFoundException;
 import com.github.bahaaio.wasl.storage.service.StorageService;
 import com.github.bahaaio.wasl.user.service.UserService;
 
@@ -53,7 +53,7 @@ public class MediaService {
 
     private Media getEntityById(UUID id) {
         return mediaRepository.findById(id)
-            .orElseThrow(() -> new FileNotFoundException("Media not found"));
+            .orElseThrow(() -> new StorageFileNotFoundException("Media not found"));
     }
 
     @Transactional
@@ -81,8 +81,9 @@ public class MediaService {
         try {
             var processed = processor.process(file);
 
-            storageService.store(processed.fullStream(), fullPath);
-            storageService.store(processed.thumbnailStream(), thumbnailPath);
+            storageService.store(processed.full(), fullPath);
+
+            storageService.store(processed.thumbnail(), thumbnailPath);
         } catch (IOException e) {
             deleteMedia(media);
             throw new StorageException("Failed to save media");
@@ -197,7 +198,7 @@ public class MediaService {
             storageService.delete(mediaPathService.getFullPath(media));
             storageService.delete(mediaPathService.getThumbnailPath(media));
             storageService.delete(mediaPathService.getStorageKey(media.getId()));
-        } catch (FileNotFoundException ignored) {
+        } catch (StorageFileNotFoundException ignored) {
         }
     }
 }

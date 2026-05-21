@@ -1,28 +1,30 @@
 package com.github.bahaaio.wasl.storage.service;
 
 import com.github.bahaaio.wasl.storage.config.StorageProperties;
-import com.github.bahaaio.wasl.storage.exception.FileNotFoundException;
 import com.github.bahaaio.wasl.storage.exception.StorageException;
+import com.github.bahaaio.wasl.storage.exception.StorageFileNotFoundException;
+import com.github.bahaaio.wasl.storage.model.StorageFile;
 
 import org.jspecify.annotations.NonNull;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
+@ConditionalOnProperty(value = "storage.type", havingValue = "local")
 @Service
 public class LocalStorageService implements StorageService {
     private final Path root;
 
     public LocalStorageService(StorageProperties storageProperties) {
-        root = Paths.get(storageProperties.getLocation()).toAbsolutePath();
+        root = Paths.get(storageProperties.getLocal().getLocation()).toAbsolutePath();
 
         try {
             Files.createDirectories(root);
@@ -32,10 +34,10 @@ public class LocalStorageService implements StorageService {
     }
 
     @Override
-    public void store(InputStream inputStream, String destination) {
-        var filePath = resolve(destination);
+    public void store(StorageFile mediaFile, String key) {
+        var filePath = resolve(key);
 
-        try (inputStream) {
+        try (var inputStream = mediaFile.inputStream()) {
             Files.createDirectories(filePath.getParent());
             Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
@@ -51,23 +53,23 @@ public class LocalStorageService implements StorageService {
             Resource resource = new UrlResource(file.toUri());
 
             if (!resource.exists() || !resource.isReadable()) {
-                throw new FileNotFoundException("Could not read file: " + key);
+                throw new StorageFileNotFoundException("Could not read file: " + key);
             }
 
             return resource;
         } catch (MalformedURLException e) {
-            throw new FileNotFoundException("Could not read file: " + key);
+            throw new StorageFileNotFoundException("Could not read file: " + key);
         }
     }
 
     @Override
-    public void delete(String filePath) {
-        var file = resolve(filePath);
+    public void delete(String key) {
+        var file = resolve(key);
 
         try {
             Files.deleteIfExists(file);
         } catch (IOException e) {
-            throw new FileNotFoundException("Could not delete file: " + filePath);
+            throw new StorageFileNotFoundException("Could not delete file: " + key);
         }
     }
 

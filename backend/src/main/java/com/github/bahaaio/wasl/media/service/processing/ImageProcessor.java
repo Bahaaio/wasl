@@ -2,6 +2,7 @@ package com.github.bahaaio.wasl.media.service.processing;
 
 import com.github.bahaaio.wasl.media.model.MediaType;
 import com.github.bahaaio.wasl.media.model.ProcessedMedia;
+import com.github.bahaaio.wasl.storage.model.StorageFile;
 
 import net.coobird.thumbnailator.Thumbnails;
 
@@ -12,7 +13,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
 @Component
 public class ImageProcessor implements MediaProcessor {
@@ -23,13 +23,13 @@ public class ImageProcessor implements MediaProcessor {
 
     @Override
     public ProcessedMedia process(MultipartFile file) throws IOException {
-        var fullImageStream = generateFullSizeImage(file);
-        var thumbnailImageStream = generateThumbnail(file);
+        var fullImage = generateFullSizeImage(file);
+        var thumbnailImage = generateThumbnail(file);
 
-        return new ProcessedMedia(fullImageStream, thumbnailImageStream);
+        return new ProcessedMedia(fullImage, thumbnailImage);
     }
 
-    private InputStream generateFullSizeImage(MultipartFile file) throws IOException {
+    private StorageFile generateFullSizeImage(MultipartFile file) throws IOException {
         try (var inputStream = file.getInputStream()) {
             var outputStream = new ByteArrayOutputStream();
 
@@ -39,11 +39,15 @@ public class ImageProcessor implements MediaProcessor {
                 .outputFormat("jpg")
                 .toOutputStream(outputStream);
 
-            return new ByteArrayInputStream(outputStream.toByteArray());
+            return new StorageFile(
+                new ByteArrayInputStream(outputStream.toByteArray()),
+                outputStream.size(),
+                "image/jpeg"
+            );
         }
     }
 
-    private InputStream generateThumbnail(MultipartFile file) throws IOException {
+    private StorageFile generateThumbnail(MultipartFile file) throws IOException {
         try (var inputStream = file.getInputStream()) {
             var outputStream = new ByteArrayOutputStream();
 
@@ -53,7 +57,11 @@ public class ImageProcessor implements MediaProcessor {
                 .outputFormat("jpg")
                 .toOutputStream(outputStream);
 
-            return new ByteArrayInputStream(outputStream.toByteArray());
+            return new StorageFile(
+                new ByteArrayInputStream(outputStream.toByteArray()),
+                outputStream.size(),
+                "image/jpeg"
+            );
         }
     }
 }
