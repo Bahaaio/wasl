@@ -1,5 +1,10 @@
 ﻿import { useState } from "react";
-import { authApi } from "../api/auth";
+/**
+ * @typedef {import("../api/types.js").RegisterRequest} RegisterRequest
+ * @typedef {import("../api/types.js").LoginRequest} LoginRequest
+ */
+
+import { authApi } from "../api/auth.js";
 import { Mail, Lock, User, Eye, EyeOff, X, ArrowLeft } from "lucide-react";
 
 export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
@@ -96,7 +101,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
       />
 
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="modal-cinematic-orbit absolute -inset-[35%]" />
+        <div className="modal-cinematic-orbit absolute inset-[-35%]" />
         <div className="modal-cinematic-sweep absolute inset-0" />
         <div className="modal-cinematic-shimmer absolute inset-0" />
       </div>

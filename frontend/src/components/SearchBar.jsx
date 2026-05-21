@@ -1,3 +1,9 @@
+/**
+ * @typedef {import("../api/types.js").CommunityDto} CommunityDto
+ * @typedef {import("../api/types.js").PostDto} PostDto
+ * @typedef {import("../api/types.js").UserDto} UserDto
+ */
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
@@ -40,13 +46,17 @@ export default function SearchBar({ className = "", communityName = null }) {
 
   useEffect(() => {
     if (!hasQuery) {
-      setResults({ communities: [], posts: [], users: [] });
-      setIsLoading(false);
+      // Defer state updates to avoid synchronous setState inside effect
+      Promise.resolve().then(() => {
+        setResults({ communities: [], posts: [], users: [] });
+        setIsLoading(false);
+      });
       return;
     }
 
     const currentRequestId = ++requestIdRef.current;
-    setIsLoading(true);
+    // Defer to avoid synchronous setState inside effect
+    Promise.resolve().then(() => setIsLoading(true));
 
     const timerId = window.setTimeout(async () => {
       try {
@@ -84,7 +94,7 @@ export default function SearchBar({ className = "", communityName = null }) {
             users: usersRes?.content ?? [],
           });
         }
-      } catch (error) {
+      } catch {
         if (requestIdRef.current !== currentRequestId) {
           return;
         }

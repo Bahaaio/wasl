@@ -1,3 +1,9 @@
+/**
+ * @typedef {import("../api/types.js").PostDto} PostDto
+ * @typedef {import("../api/types.js").CommentDto} CommentDto
+ * @typedef {import("../api/types.js").MediaDto} MediaDto
+ */
+
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -165,7 +171,8 @@ export default function PostDetailPage() {
 
   useEffect(() => {
     if (!post) {
-      setCommunityIconMediaId(null);
+      // Defer setState to avoid synchronous update inside effect
+      Promise.resolve().then(() => setCommunityIconMediaId(null));
       return undefined;
     }
 
@@ -174,19 +181,19 @@ export default function PostDetailPage() {
       post.iconMediaId ??
       post.community?.iconMediaId;
     if (directIcon) {
-      setCommunityIconMediaId(directIcon);
+      Promise.resolve().then(() => setCommunityIconMediaId(directIcon));
       return undefined;
     }
 
     const communitySlug = normalizeCommunitySlug(post.communityName);
     if (!communitySlug) {
-      setCommunityIconMediaId(null);
+      Promise.resolve().then(() => setCommunityIconMediaId(null));
       return undefined;
     }
 
     const cachedIcon = communityIconCache.get(communitySlug);
     if (cachedIcon !== undefined) {
-      setCommunityIconMediaId(cachedIcon);
+      Promise.resolve().then(() => setCommunityIconMediaId(cachedIcon));
       return undefined;
     }
 

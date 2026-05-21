@@ -1,3 +1,4 @@
+/** @typedef {import("../api/types.js").MediaDto} MediaDto */
 import { useState, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { MediaApi } from "../api/media.js";
@@ -61,7 +62,7 @@ export default function MediaCarousel({ media = [], className = "" }) {
           transition: "transform 300ms ease-out",
         }}
       >
-        {media.map((m, i) => (
+        {media.map((m) => (
           <div
             key={m.id}
             className="flex-none w-full relative flex items-center justify-center overflow-hidden"

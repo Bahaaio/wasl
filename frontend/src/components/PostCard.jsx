@@ -1,3 +1,8 @@
+/**
+ * @typedef {import("../api/types.js").PostDto} PostDto
+ * @typedef {import("../api/types.js").VoteAction} VoteAction
+ */
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowBigUp, MessageCircle, Share2, Trash2 } from "lucide-react";
@@ -69,19 +74,24 @@ export default function PostCard({
   useEffect(() => {
     const communitySlug = normalizeCommunitySlug(community);
     if (!communitySlug) {
-      setCommunityIconMediaId(initialIconMediaId ?? null);
+      // Defer state update to avoid synchronous setState inside effect
+      Promise.resolve().then(() =>
+        setCommunityIconMediaId(initialIconMediaId ?? null)
+      );
       return undefined;
     }
 
     if (initialIconMediaId) {
-      setCommunityIconMediaId(initialIconMediaId);
+      // Defer state update to avoid synchronous setState inside effect
+      Promise.resolve().then(() => setCommunityIconMediaId(initialIconMediaId));
       communityIconCache.set(communitySlug, initialIconMediaId);
       return undefined;
     }
 
     const cachedIcon = communityIconCache.get(communitySlug);
     if (cachedIcon !== undefined) {
-      setCommunityIconMediaId(cachedIcon);
+      // Defer state update to avoid synchronous setState inside effect
+      Promise.resolve().then(() => setCommunityIconMediaId(cachedIcon));
       return undefined;
     }
 

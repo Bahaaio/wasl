@@ -1,3 +1,9 @@
+/**
+ * @typedef {import("../api/types.js").UserDto} UserDto
+ * @typedef {import("../api/types.js").PostDto} PostDto
+ * @typedef {import("../api/types.js").CommentDto} CommentDto
+ */
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Share2, ChevronRight, Zap, ArrowLeft } from "lucide-react";

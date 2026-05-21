@@ -1,3 +1,4 @@
+/** @typedef {import("../api/types.js").CommunityCreateRequest} CommunityCreateRequest */
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {

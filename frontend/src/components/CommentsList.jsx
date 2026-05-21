@@ -1,3 +1,8 @@
+/**
+ * @typedef {import("../api/types.js").CommentDto} CommentDto
+ * @typedef {import("../api/types.js").MediaDto} MediaDto
+ */
+
 import {
   ArrowBigUp,
   ArrowBigDown,
@@ -10,7 +15,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { MediaApi } from "../api/media";
+import { MediaApi } from "../api/media.js";
 import { getNetVoteScore } from "../api/util.js";
 
 export default function CommentsList({

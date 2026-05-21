@@ -1,3 +1,9 @@
+/**
+ * @typedef {import("../api/types.js").CommunityMembershipDto} CommunityMembershipDto
+ * @typedef {import("../api/types.js").CommunityDto} CommunityDto
+ * @typedef {import("../api/types.js").UserDto} UserDto
+ */
+
 import { useEffect, useMemo, useState } from "react";
 import { CommunitiesApi } from "../api/communities.js";
 import { UsersApi } from "../api/users.js";
@@ -52,7 +58,7 @@ export default function CommunityRoleBanner({ communityName }) {
         } else {
           setRole(null);
         }
-      } catch (err) {
+      } catch {
         setError("Failed to load membership info");
       } finally {
         if (mounted) setLoading(false);
@@ -77,7 +83,7 @@ export default function CommunityRoleBanner({ communityName }) {
     try {
       await CommunitiesApi.removeMember(communityName, username);
       setMembers(prev => prev.filter(m => m.username !== username));
-    } catch (err) {
+    } catch {
       setError("Failed to remove member");
     }
   };

@@ -1,3 +1,9 @@
+/**
+ * @typedef {import("../api/types.js").CommunityDto} CommunityDto
+ * @typedef {import("../api/types.js").PostDto} PostDto
+ * @typedef {import("../api/types.js").UserDto} UserDto
+ */
+
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {

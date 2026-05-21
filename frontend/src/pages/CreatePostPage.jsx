@@ -1,3 +1,8 @@
+/**
+ * @typedef {import("../api/types.js").PostCreateRequest} PostCreateRequest
+ * @typedef {import("../api/types.js").MediaDto} MediaDto
+ */
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, ImagePlus, Link2, BarChart3, ArrowLeft } from "lucide-react";

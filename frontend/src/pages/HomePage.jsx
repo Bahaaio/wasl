@@ -1,3 +1,5 @@
+/** @typedef {import("../api/types.js").PostDto} PostDto */
+
 import {
   ArrowBigUp,
   Flame,

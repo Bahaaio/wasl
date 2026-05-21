@@ -1,4 +1,5 @@
-﻿import { useEffect, useState, useRef } from "react";
+﻿/** @typedef {import("../api/types.js").UserDto} UserDto */
+import { useEffect, useState, useRef } from "react";
 import {
   MessageSquare,
   Menu,
