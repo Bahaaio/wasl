@@ -25,7 +25,7 @@ public class PostMapper {
             .authorUsername(authorUsername)
             .authorAvatarMediaId(author.getAvatarMediaId())
 
-            .communityId(community.getId())
+            .communityIconMediaId(community.getIconMediaId())
             .communityName(community.getName())
 
             .media(media)

@@ -57,7 +57,7 @@
  * @property {string} content
  * @property {string} authorUsername
  * @property {string?} authorAvatarMediaId
- * @property {number} communityId
+ * @property {number} communityMediaId
  * @property {string} communityName
  * @property {MediaDto[]} media
  * @property {VoteAction} vote

@@ -18,7 +18,7 @@ public record PostDto(
     String authorUsername,
     UUID authorAvatarMediaId,
 
-    long communityId,
+    UUID communityIconMediaId,
     String communityName,
     List<MediaDto> media,
 
