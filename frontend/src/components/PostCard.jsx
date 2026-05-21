@@ -250,7 +250,6 @@ export default function PostCard({
                 <Trash2 className="h-4 w-4 text-red-400" />
                 <span>{body}</span>
               </div>
-              
             </div>
           )}
           <div className="flex flex-col gap-3 rounded-2xl bg-slate-950/30 p-3 sm:flex-row sm:items-center sm:justify-between">

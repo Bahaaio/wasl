@@ -62,7 +62,7 @@ export default function MediaCarousel({ media = [], className = "" }) {
           transition: "transform 300ms ease-out",
         }}
       >
-        {media.map((m) => (
+        {media.map(m => (
           <div
             key={m.id}
             className="flex-none w-full relative flex items-center justify-center overflow-hidden"

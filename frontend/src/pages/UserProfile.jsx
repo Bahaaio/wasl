@@ -43,6 +43,7 @@ export default function UserProfile() {
   const [downvotedPosts, setDownvotedPosts] = useState([]);
   const [isLoadingVotes, setIsLoadingVotes] = useState(false);
   const [votesError, setVotesError] = useState(null);
+  const [votesFilter, setVotesFilter] = useState("both");
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const [editingPostId, setEditingPostId] = useState(null);
@@ -119,22 +120,39 @@ export default function UserProfile() {
     }
   }, [profileUsername]);
 
-  const loadUserVotes = useCallback(async () => {
+  const loadUserVotes = useCallback(async (filter = "both") => {
     setIsLoadingVotes(true);
     setVotesError(null);
 
     try {
-      const [upResp, downResp] = await Promise.all([
-        UsersApi.listUpvotedPosts({ page: 0, size: 50 }),
-        UsersApi.listDownvotedPosts({ page: 0, size: 50 }),
-      ]);
+      if (filter === "both") {
+        const [upResp, downResp] = await Promise.all([
+          UsersApi.listUpvotedPosts({ page: 0, size: 50 }),
+          UsersApi.listDownvotedPosts({ page: 0, size: 50 }),
+        ]);
 
-      setUpvotedPosts(upResp?.content ?? []);
-      setDownvotedPosts(downResp?.content ?? []);
+        setUpvotedPosts(upResp?.content ?? []);
+        setDownvotedPosts(downResp?.content ?? []);
+      } else if (filter === "up") {
+        const upResp = await UsersApi.listUpvotedPosts({ page: 0, size: 50 });
+        setUpvotedPosts(upResp?.content ?? []);
+      } else if (filter === "down") {
+        const downResp = await UsersApi.listDownvotedPosts({
+          page: 0,
+          size: 50,
+        });
+        setDownvotedPosts(downResp?.content ?? []);
+      }
     } catch (err) {
       console.error("Failed to load user votes:", err);
-      setUpvotedPosts([]);
-      setDownvotedPosts([]);
+      if (filter === "both") {
+        setUpvotedPosts([]);
+        setDownvotedPosts([]);
+      } else if (filter === "up") {
+        setUpvotedPosts([]);
+      } else if (filter === "down") {
+        setDownvotedPosts([]);
+      }
       setVotesError("Failed to load user votes.");
     } finally {
       setIsLoadingVotes(false);
@@ -179,6 +197,14 @@ export default function UserProfile() {
 
     return () => window.clearTimeout(timeoutId);
   }, [loadUserPosts, loadUserComments, loadUserVotes]);
+
+  useEffect(() => {
+    // When the Votes tab becomes active (or the filter changes), fetch accordingly
+    if (activeTab === "votes") {
+      // defer to a microtask to avoid calling setState synchronously in the effect
+      Promise.resolve().then(() => loadUserVotes(votesFilter));
+    }
+  }, [activeTab, votesFilter, loadUserVotes]);
 
   useEffect(
     () => () => {
@@ -912,6 +938,44 @@ export default function UserProfile() {
 
             {activeTab === "votes" && (
               <>
+                <div className="mb-4 flex items-center gap-3">
+                  <div className="flex items-center rounded-lg bg-slate-900/50 border border-slate-800/60 p-1">
+                    <button
+                      type="button"
+                      onClick={() => setVotesFilter("both")}
+                      className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                        votesFilter === "both"
+                          ? "bg-orange-500/10 text-orange-400"
+                          : "text-slate-300 hover:text-slate-100"
+                      }`}
+                    >
+                      All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setVotesFilter("up")}
+                      className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                        votesFilter === "up"
+                          ? "bg-orange-500/10 text-orange-400"
+                          : "text-slate-300 hover:text-slate-100"
+                      }`}
+                    >
+                      Upvotes
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setVotesFilter("down")}
+                      className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                        votesFilter === "down"
+                          ? "bg-orange-500/10 text-orange-400"
+                          : "text-slate-300 hover:text-slate-100"
+                      }`}
+                    >
+                      Downvotes
+                    </button>
+                  </div>
+                </div>
+
                 {votesError ? (
                   <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-red-200">
                     {votesError}
@@ -922,49 +986,53 @@ export default function UserProfile() {
                   </div>
                 ) : (
                   <div className="space-y-6">
-                    <section>
-                      <h3 className="text-lg font-semibold text-slate-200 mb-3">
-                        Upvoted posts
-                      </h3>
-                      {upvotedPosts.length === 0 ? (
-                        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 text-slate-400">
-                          No upvoted posts
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          {upvotedPosts.map(p => (
-                            <PostCard
-                              key={p.id}
-                              post={p}
-                              onUpvote={handleUpvote}
-                              onDownvote={handleDownvote}
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </section>
+                    {votesFilter !== "down" && (
+                      <section>
+                        <h3 className="text-lg font-semibold text-slate-200 mb-3">
+                          Upvoted posts
+                        </h3>
+                        {upvotedPosts.length === 0 ? (
+                          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 text-slate-400">
+                            No upvoted posts
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            {upvotedPosts.map(p => (
+                              <PostCard
+                                key={p.id}
+                                post={p}
+                                onUpvote={handleUpvote}
+                                onDownvote={handleDownvote}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </section>
+                    )}
 
-                    <section>
-                      <h3 className="text-lg font-semibold text-slate-200 mb-3">
-                        Downvoted posts
-                      </h3>
-                      {downvotedPosts.length === 0 ? (
-                        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 text-slate-400">
-                          No downvoted posts
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          {downvotedPosts.map(p => (
-                            <PostCard
-                              key={p.id}
-                              post={p}
-                              onUpvote={handleUpvote}
-                              onDownvote={handleDownvote}
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </section>
+                    {votesFilter !== "up" && (
+                      <section>
+                        <h3 className="text-lg font-semibold text-slate-200 mb-3">
+                          Downvoted posts
+                        </h3>
+                        {downvotedPosts.length === 0 ? (
+                          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 text-slate-400">
+                            No downvoted posts
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            {downvotedPosts.map(p => (
+                              <PostCard
+                                key={p.id}
+                                post={p}
+                                onUpvote={handleUpvote}
+                                onDownvote={handleDownvote}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </section>
+                    )}
                   </div>
                 )}
               </>
