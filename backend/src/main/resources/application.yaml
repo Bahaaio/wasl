@@ -34,7 +34,7 @@ security:
     token-byte-length: 64
 
 storage:
-  type: s3
+  type: local
 
   local:
     location: upload
