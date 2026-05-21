@@ -577,7 +577,6 @@ export default function PostDetailPage() {
             </section>
           </div>
         </main>
-
       </div>
     </div>
   );

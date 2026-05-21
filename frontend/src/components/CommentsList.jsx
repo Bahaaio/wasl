@@ -129,13 +129,11 @@ export default function CommentsList({
         <div className="flex flex-col items-center gap-2">
           <MessageCircle className="h-10 w-10 text-slate-600" />
           <p className="text-sm text-slate-400">
-            {isOwnProfile ? (
-              "You haven't left any comments yet. Be the first to share your thoughts!"
-            ) : profileUsername ? (
-              `u/${profileUsername} hasn't left any comments yet`
-            ) : (
-              "No comments yet. Be the first to share your thoughts!"
-            )}
+            {isOwnProfile
+              ? "You haven't left any comments yet. Be the first to share your thoughts!"
+              : profileUsername
+                ? `u/${profileUsername} hasn't left any comments yet`
+                : "No comments yet. Be the first to share your thoughts!"}
           </p>
         </div>
       </div>
