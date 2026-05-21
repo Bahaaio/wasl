@@ -86,6 +86,8 @@ function CommentThread({
   const [isRepliesVisible, setIsRepliesVisible] = useState(true);
   const [isReplying, setIsReplying] = useState(false);
   const [replyText, setReplyText] = useState("");
+  const [replyAttachedMediaId, setReplyAttachedMediaId] = useState(null);
+  const [replyAttachedPreviewUrl, setReplyAttachedPreviewUrl] = useState("");
   const vote = comment.vote ?? "NONE";
 
   const getAvatarUrl = () => {
@@ -154,6 +156,21 @@ function CommentThread({
                 <p className="mt-2 text-sm leading-6 text-slate-200">
                   {getCommentBody(comment)}
                 </p>
+
+                {comment.media && (
+                  <div className="mt-3">
+                    <img
+                      src={MediaApi.getFullMediaUrl(
+                        comment.media.id ?? comment.media.mediaId ?? comment.media
+                      )}
+                      alt="comment media"
+                      className="mt-2 max-h-64 w-auto rounded border border-slate-700 object-cover"
+                      onError={e => {
+                        e.target.style.display = "none";
+                      }}
+                    />
+                  </div>
+                )}
 
                 <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
                   <button
@@ -256,20 +273,52 @@ function CommentThread({
         <form
           className="mt-3 rounded-full border-2 border-slate-700 bg-slate-900/50 p-4 flex items-center gap-3 transition-all hover:border-slate-600 focus-within:border-blue-500/50"
           onSubmit={event => {
-            event.preventDefault();
-            if (!replyText.trim()) return;
-            onReply?.(comment.id, replyText);
-            setReplyText("");
-            setIsReplying(false);
-            setIsRepliesVisible(true);
-          }}
+              event.preventDefault();
+              if (!replyText.trim() && !replyAttachedMediaId) return;
+              onReply?.(comment.id, replyText, replyAttachedMediaId);
+              setReplyText("");
+              if (replyAttachedPreviewUrl) {
+                URL.revokeObjectURL(replyAttachedPreviewUrl);
+              }
+              setReplyAttachedPreviewUrl("");
+              setReplyAttachedMediaId(null);
+              setIsReplying(false);
+              setIsRepliesVisible(true);
+            }}
         >
           <button
             type="button"
             className="text-slate-400 hover:text-blue-400 transition-colors shrink-0"
+            onClick={() => {
+              const el = document.getElementById(`reply-image-input-${comment.id}`);
+              if (el) el.click();
+            }}
           >
             <Image className="h-5 w-5" />
           </button>
+          <input
+            id={`reply-image-input-${comment.id}`}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={async e => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              try {
+                const resp = await MediaApi.uploadMedia(file);
+                const mediaId = resp?.mediaId ?? resp?.id ?? resp?.media?.id;
+                if (mediaId) {
+                  setReplyAttachedMediaId(mediaId);
+                  const preview = URL.createObjectURL(file);
+                  setReplyAttachedPreviewUrl(preview);
+                }
+              } catch (err) {
+                console.error("Failed to upload reply media:", err);
+              } finally {
+                e.target.value = "";
+              }
+            }}
+          />
           <button
             type="button"
             className="text-slate-400 hover:text-blue-400 transition-colors shrink-0"
@@ -300,6 +349,29 @@ function CommentThread({
             placeholder={`Reply to u/${getCommentAuthor(comment)}...`}
             className="flex-1 bg-transparent text-slate-100 placeholder-slate-500 focus:outline-none text-sm"
           />
+          {replyAttachedPreviewUrl && (
+            <div className="mt-2 flex items-center gap-3">
+              <img
+                src={replyAttachedPreviewUrl}
+                alt="attached"
+                className="h-20 w-20 rounded object-cover border border-slate-700"
+              />
+              <div className="flex-1">
+                <div className="text-sm text-slate-300">Image attached</div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    URL.revokeObjectURL(replyAttachedPreviewUrl);
+                    setReplyAttachedPreviewUrl("");
+                    setReplyAttachedMediaId(null);
+                  }}
+                  className="mt-2 text-sm text-red-400 hover:underline"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          )}
           <button
             type="button"
             onClick={() => {

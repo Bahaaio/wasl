@@ -435,12 +435,12 @@ export default function UserProfile() {
   const handleCommentDownvote = (commentId, action) =>
     handleCommentUpvote(commentId, action);
 
-  const handleReplyToComment = async (parentId, content) => {
+  const handleReplyToComment = async (parentId, content, mediaId = null) => {
     try {
       const parent = commentsList.find(c => c.id === parentId);
       if (!parent || !parent.postId) return;
       const { CommentsApi } = await import("../api/comments.js");
-      await CommentsApi.reply(parent.postId, { content, parentId });
+      await CommentsApi.reply(parent.postId, { content, parentId, mediaId });
       await loadUserComments();
     } catch (err) {
       console.error("Failed to reply to comment:", err);

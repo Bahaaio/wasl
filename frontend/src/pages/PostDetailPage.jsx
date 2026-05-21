@@ -45,6 +45,8 @@ export default function PostDetailPage() {
   const [error, setError] = useState(null);
   const [commentInput, setCommentInput] = useState("");
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [attachedMediaId, setAttachedMediaId] = useState(null);
+  const [attachedPreviewUrl, setAttachedPreviewUrl] = useState("");
   const [communityIconMediaId, setCommunityIconMediaId] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState({
     isOpen: false,
@@ -120,8 +122,14 @@ export default function PostDetailPage() {
     try {
       await CommentsApi.reply(postId, {
         content: commentInput,
+        mediaId: attachedMediaId,
       });
       setCommentInput("");
+      if (attachedPreviewUrl) {
+        URL.revokeObjectURL(attachedPreviewUrl);
+      }
+      setAttachedPreviewUrl("");
+      setAttachedMediaId(null);
       await loadPost();
     } catch (err) {
       console.error("Failed to add comment:", err);
@@ -130,15 +138,16 @@ export default function PostDetailPage() {
     }
   };
 
-  const handleReplyToComment = async (parentId, content) => {
+  const handleReplyToComment = async (parentId, content, mediaId = null) => {
     const trimmedContent = content.trim();
-    if (!trimmedContent) return;
+    if (!trimmedContent && !mediaId) return;
 
     setIsSubmittingComment(true);
     try {
       await CommentsApi.reply(postId, {
         content: trimmedContent,
         parentId,
+        mediaId,
       });
       await loadPost();
     } catch (err) {
@@ -437,9 +446,63 @@ export default function PostDetailPage() {
               <button
                 type="button"
                 className="text-slate-400 hover:text-blue-400 transition-colors shrink-0"
+                onClick={() => {
+                  // trigger hidden file input
+                  const el = document.getElementById("comment-image-input");
+                  if (el) el.click();
+                }}
               >
                 <Image className="h-5 w-5" />
               </button>
+              <input
+                id="comment-image-input"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={async e => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  try {
+                    setIsSubmittingComment(true);
+                    const resp = await MediaApi.uploadMedia(file);
+                    const mediaId = resp?.mediaId ?? resp?.id ?? resp?.media?.id;
+                    if (mediaId) {
+                      setAttachedMediaId(mediaId);
+                      const preview = URL.createObjectURL(file);
+                      setAttachedPreviewUrl(preview);
+                    }
+                  } catch (err) {
+                    console.error("Failed to upload media:", err);
+                  } finally {
+                    setIsSubmittingComment(false);
+                    // clear the input so same file can be selected again
+                    e.target.value = "";
+                  }
+                }}
+              />
+              {attachedPreviewUrl && (
+                <div className="mb-2 flex items-center gap-3">
+                  <img
+                    src={attachedPreviewUrl}
+                    alt="attached"
+                    className="h-20 w-20 rounded object-cover border border-slate-700"
+                  />
+                  <div className="flex-1">
+                    <div className="text-sm text-slate-300">Image attached</div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        URL.revokeObjectURL(attachedPreviewUrl);
+                        setAttachedPreviewUrl("");
+                        setAttachedMediaId(null);
+                      }}
+                      className="mt-2 text-sm text-red-400 hover:underline"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              )}
               <button
                 type="button"
                 className="text-slate-400 hover:text-blue-400 transition-colors shrink-0"
