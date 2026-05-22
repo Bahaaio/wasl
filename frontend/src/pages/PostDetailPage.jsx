@@ -382,9 +382,7 @@ export default function PostDetailPage() {
                     score={getPostNetVoteScore(post)}
                     disabled={isDeleted}
                     onUpvote={() =>
-                      handlePostVote(
-                        postVote === "UPVOTE" ? "NONE" : "UPVOTE"
-                      )
+                      handlePostVote(postVote === "UPVOTE" ? "NONE" : "UPVOTE")
                     }
                     onDownvote={() =>
                       handlePostVote(

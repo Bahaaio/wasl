@@ -5,12 +5,7 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  MessageCircle,
-  PencilLine,
-  Share2,
-  Trash2,
-} from "lucide-react";
+import { MessageCircle, PencilLine, Share2, Trash2 } from "lucide-react";
 import { getPostNetVoteScore, PostsApi } from "../api/posts.js";
 import { MediaApi } from "../api/media.js";
 import { CommunitiesApi } from "../api/communities.js";
