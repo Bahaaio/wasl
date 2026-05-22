@@ -15,13 +15,9 @@ import {
 } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
 import CommentsList from "../components/CommentsList.jsx";
-import { CommentsApi, setCommentLocalVote } from "../api/comments.js";
+import { CommentsApi } from "../api/comments.js";
 import { CommunitiesApi } from "../api/communities.js";
-import {
-  PostsApi,
-  getPostNetVoteScore,
-  setPostLocalVote,
-} from "../api/posts.js";
+import { PostsApi } from "../api/posts.js";
 import { MediaApi } from "../api/media.js";
 import MediaCarousel from "../components/MediaCarousel.jsx";
 import MediaLightbox from "../components/MediaLightbox.jsx";
@@ -29,6 +25,93 @@ import VoteControl from "../components/VoteControl.jsx";
 import { useUser } from "../auth/useUser.jsx";
 
 const communityIconCache = new Map();
+
+// Local storage key for client-side vote cache (PostDetail uses it too)
+const LOCAL_VOTES_KEY = "wasl.localPostVotes";
+
+function readLocalVotes() {
+  try {
+    return JSON.parse(localStorage.getItem(LOCAL_VOTES_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function writeLocalVotes(map) {
+  try {
+    localStorage.setItem(LOCAL_VOTES_KEY, JSON.stringify(map));
+  } catch {
+    /* ignore */
+  }
+}
+
+function setPostLocalVote(postId, action) {
+  const map = readLocalVotes();
+  if (action === "NONE") {
+    delete map[String(postId)];
+  } else {
+    map[String(postId)] = action;
+  }
+  writeLocalVotes(map);
+}
+
+// Comment-local vote cache (keeps client-side vote intent for comments)
+const LOCAL_COMMENT_VOTES_KEY = "wasl.localCommentVotes";
+
+function readCommentLocalVotes() {
+  try {
+    return JSON.parse(localStorage.getItem(LOCAL_COMMENT_VOTES_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function writeCommentLocalVotes(map) {
+  try {
+    localStorage.setItem(LOCAL_COMMENT_VOTES_KEY, JSON.stringify(map));
+  } catch {
+    /* ignore */
+  }
+}
+
+function setCommentLocalVote(commentId, action) {
+  const map = readCommentLocalVotes();
+  if (action === "NONE") {
+    delete map[String(commentId)];
+  } else {
+    map[String(commentId)] = action;
+  }
+  writeCommentLocalVotes(map);
+}
+
+function applyLocalVotesToComments(comments) {
+  const map = readCommentLocalVotes();
+  return (comments || []).map(c => {
+    const action = map[String(c.id)];
+    if (!action) return c;
+
+    const previousVote =
+      c.vote ?? (c.upvoted ? "UPVOTE" : c.downvoted ? "DOWNVOTE" : "NONE");
+    let scoreDelta;
+    if (previousVote === action) scoreDelta = 0;
+    else if (previousVote === "NONE") scoreDelta = action === "UPVOTE" ? 1 : -1;
+    else if (action === "NONE") scoreDelta = previousVote === "UPVOTE" ? -1 : 1;
+    else scoreDelta = action === "UPVOTE" ? 2 : -2;
+
+    const nextScore =
+      typeof c.score === "number" && Number.isFinite(c.score)
+        ? c.score + scoreDelta
+        : c.score;
+
+    return {
+      ...c,
+      vote: action,
+      upvoted: action === "UPVOTE",
+      downvoted: action === "DOWNVOTE",
+      score: nextScore,
+    };
+  });
+}
 
 function normalizeCommunitySlug(value) {
   return String(value || "")
@@ -66,7 +149,7 @@ export default function PostDetailPage() {
       ]);
 
       setPost(postResponse);
-      setComments(commentsResponse?.comments ?? []);
+      setComments(applyLocalVotesToComments(commentsResponse?.comments ?? []));
     } catch (err) {
       console.error("Failed to load post detail:", err);
       setError("Failed to load post details.");
@@ -111,7 +194,7 @@ export default function PostDetailPage() {
         page: 0,
         size: 20,
       });
-      setComments(commentsResponse?.comments ?? []);
+      setComments(applyLocalVotesToComments(commentsResponse?.comments ?? []));
     } catch (err) {
       console.error("Failed to vote on comment:", err);
     }
@@ -196,6 +279,7 @@ export default function PostDetailPage() {
   const createdAt = post?.createdAt ? formatRelativeTime(post.createdAt) : "";
   const postVote = post?.vote ?? "NONE";
   const isDeleted = post?.deleted === true;
+
   const deletedMessage =
     "Sorry, this post was deleted by the person who originally posted it.";
 
@@ -401,7 +485,13 @@ export default function PostDetailPage() {
                 <div className="mt-4 flex flex-wrap items-center gap-2">
                   <VoteControl
                     vote={postVote}
-                    score={getPostNetVoteScore(post)}
+                    score={
+                      post?.score ??
+                      (typeof post?.upvoteCount === "number" &&
+                      typeof post?.downvoteCount === "number"
+                        ? post.upvoteCount - post.downvoteCount
+                        : 0)
+                    }
                     disabled={isDeleted}
                     onUpvote={() =>
                       handlePostVote(postVote === "UPVOTE" ? "NONE" : "UPVOTE")

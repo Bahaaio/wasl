@@ -39,6 +39,9 @@ export default function MediaLightbox({
       onNext?.(event);
     }
   };
+  if (!open) {
+    return null;
+  }
 
   return (
     <div

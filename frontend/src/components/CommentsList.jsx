@@ -16,8 +16,17 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getCommentNetVoteScore } from "../api/comments.js";
 import { MediaApi } from "../api/media.js";
+
+function getCommentNetVoteScore(comment) {
+  if (!comment) return 0;
+  if (typeof comment.score === "number") return comment.score;
+
+  const up = Number(comment.upvoteCount ?? comment.upvotes ?? 0) || 0;
+  const down = Number(comment.downvoteCount ?? comment.downvotes ?? 0) || 0;
+
+  return up - down;
+}
 
 export default function CommentsList({
   comments,
