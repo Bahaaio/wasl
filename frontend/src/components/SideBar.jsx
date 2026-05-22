@@ -18,18 +18,6 @@ export default function SideBar({ isOpen, setIsOpen }) {
   const sidebarRef = useRef(null);
 
   useEffect(() => {
-    const handleEscape = event => {
-      if (event.key === "Escape") {
-        setIsOpen(false);
-      }
-    };
-
-    window.addEventListener("keydown", handleEscape);
-
-    return () => window.removeEventListener("keydown", handleEscape);
-  }, [setIsOpen]);
-
-  useEffect(() => {
     const sidebar = sidebarRef.current;
     if (!sidebar) {
       return undefined;

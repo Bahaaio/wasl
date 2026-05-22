@@ -12,7 +12,7 @@ export default function VoteControl({
 
   return (
     <div
-      className={`inline-flex items-center gap-1.5 rounded-full border border-slate-700/70 bg-slate-950/80 px-2 py-1 shadow-sm shadow-black/20 ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border border-slate-700/70 bg-slate-800/50 px-2 py-1 shadow-sm shadow-black/20 ${className}`}
     >
       <button
         type="button"

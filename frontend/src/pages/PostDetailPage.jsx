@@ -24,6 +24,7 @@ import {
 } from "../api/posts.js";
 import { MediaApi } from "../api/media.js";
 import MediaCarousel from "../components/MediaCarousel.jsx";
+import MediaLightbox from "../components/MediaLightbox.jsx";
 import VoteControl from "../components/VoteControl.jsx";
 import { useUser } from "../auth/useUser.jsx";
 
@@ -48,6 +49,7 @@ export default function PostDetailPage() {
   const [attachedMediaId, setAttachedMediaId] = useState(null);
   const [attachedPreviewUrl, setAttachedPreviewUrl] = useState("");
   const [communityIconMediaId, setCommunityIconMediaId] = useState(null);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState({
     isOpen: false,
     commentId: null,
@@ -349,7 +351,27 @@ export default function PostDetailPage() {
                 )}
 
                 {post.media && post.media.length > 0 && (
-                  <div className="mt-6 rounded-2xl overflow-hidden border border-slate-700/50 bg-slate-950">
+                  <div
+                    className="mt-6 rounded-2xl overflow-hidden border border-slate-700/50 bg-slate-950 cursor-zoom-in"
+                    onClick={event => {
+                      event.stopPropagation();
+                      if (post.media.length === 1) {
+                        setLightboxOpen(true);
+                      }
+                    }}
+                    role={post.media.length === 1 ? "button" : undefined}
+                    tabIndex={post.media.length === 1 ? 0 : undefined}
+                    onKeyDown={event => {
+                      if (
+                        post.media.length === 1 &&
+                        (event.key === "Enter" || event.key === " ")
+                      ) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        setLightboxOpen(true);
+                      }
+                    }}
+                  >
                     {post.media.length === 1 ? (
                       <div className="relative w-full flex items-center justify-center overflow-hidden">
                         <div
@@ -407,6 +429,15 @@ export default function PostDetailPage() {
                 </div>
               </article>
             ) : null}
+
+            {post?.media?.length === 1 && (
+              <MediaLightbox
+                open={lightboxOpen}
+                src={MediaApi.getFullMediaUrl(post.media[0].id)}
+                alt={post.media[0].alt || "Post media"}
+                onClose={() => setLightboxOpen(false)}
+              />
+            )}
 
             <div className="mt-5 rounded-3xl border border-slate-700/80 bg-slate-900/70 p-4 shadow-lg shadow-black/20 transition-all hover:border-slate-600 focus-within:border-blue-500/50 focus-within:shadow-blue-500/10">
               <div className="flex items-center gap-3">

@@ -10,6 +10,7 @@ import { getPostNetVoteScore, PostsApi } from "../api/posts.js";
 import { MediaApi } from "../api/media.js";
 import { CommunitiesApi } from "../api/communities.js";
 import MediaCarousel from "./MediaCarousel.jsx";
+import MediaLightbox from "./MediaLightbox.jsx";
 import VoteControl from "./VoteControl.jsx";
 
 const communityIconCache = new Map();
@@ -28,7 +29,6 @@ export default function PostCard({
   onEdit,
   onDelete,
   isEditable = false,
-  isDeleting = false,
 }) {
   const navigate = useNavigate();
 
@@ -46,6 +46,7 @@ export default function PostCard({
   const [commentCount, setCommentCount] = useState(
     post.commentCount ?? post.comments ?? 0
   );
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const vote =
     post.vote ??
     (post.upvoted ? "UPVOTE" : post.downvoted ? "DOWNVOTE" : "NONE");
@@ -232,7 +233,27 @@ export default function PostCard({
             <h2 className="text-lg font-semibold mb-3">{title}</h2>
           )}
           {!isDeleted && post.media && post.media.length > 0 && (
-            <div className="mb-4 rounded-lg overflow-hidden border border-slate-700/30 bg-slate-950">
+            <div
+              className="mb-4 rounded-lg overflow-hidden border border-slate-700/30 bg-slate-950 cursor-zoom-in"
+              onClick={event => {
+                event.stopPropagation();
+                if (post.media.length === 1) {
+                  setLightboxOpen(true);
+                }
+              }}
+              role={post.media.length === 1 ? "button" : undefined}
+              tabIndex={post.media.length === 1 ? 0 : undefined}
+              onKeyDown={event => {
+                if (
+                  post.media.length === 1 &&
+                  (event.key === "Enter" || event.key === " ")
+                ) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  setLightboxOpen(true);
+                }
+              }}
+            >
               {post.media.length === 1 ? (
                 <div className="relative w-full flex items-center justify-center overflow-hidden">
                   <div
@@ -274,90 +295,85 @@ export default function PostCard({
               </div>
             </div>
           )}
-          <div className="flex flex-col gap-3 rounded-2xl bg-slate-950/30 p-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-wrap items-center gap-2">
-              <VoteControl
-                vote={vote}
-                score={score}
-                disabled={isDeleted}
-                onUpvote={event => {
-                  event.stopPropagation();
-                  handleVote("up");
-                }}
-                onDownvote={event => {
-                  event.stopPropagation();
-                  handleVote("down");
-                }}
-              />
+          <div className="flex flex-wrap items-center gap-2">
+            <VoteControl
+              vote={vote}
+              score={score}
+              disabled={isDeleted}
+              onUpvote={event => {
+                event.stopPropagation();
+                handleVote("up");
+              }}
+              onDownvote={event => {
+                event.stopPropagation();
+                handleVote("down");
+              }}
+            />
+            <button
+              type="button"
+              onClick={event => {
+                event.stopPropagation();
+                navigate(`/posts/${post.id}`);
+              }}
+              className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 bg-slate-800/50 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:border-slate-600 hover:bg-slate-700"
+              aria-label={`Open comments for post with ${commentCount} comments`}
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span className="text-sm text-slate-300">
+                {formatCompactNumber(commentCount)}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClickCapture={stopCardNavigation}
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-700/70 bg-slate-800/50 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:border-slate-600 hover:bg-slate-700"
+            >
+              <Share2 className="w-4 h-4" />
+              Share
+            </button>
+          </div>
+
+          {isEditable && (
+            <div className="flex flex-wrap items-center gap-2 pt-3 sm:pt-0 sm:pl-3">
               <button
                 type="button"
                 onClick={event => {
                   event.stopPropagation();
-                  navigate(`/posts/${post.id}`);
+                  onEdit?.(post);
                 }}
-                className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 bg-slate-800/50 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:border-slate-600 hover:bg-slate-700"
-                aria-label={`Open comments for post with ${commentCount} comments`}
+                aria-label="Edit post"
+                title="Edit post"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-700/70 bg-slate-800/70 text-slate-100 transition-colors hover:border-orange-500/50 hover:bg-slate-700 hover:text-orange-200"
               >
-                <MessageCircle className="w-4 h-4" />
-                <span className="text-sm text-slate-300">
-                  {formatCompactNumber(commentCount)}
-                </span>
+                <PencilLine className="h-4 w-4" />
               </button>
               <button
                 type="button"
-                onClickCapture={stopCardNavigation}
-                className="inline-flex items-center gap-1.5 rounded-full border border-slate-700/70 bg-slate-800/50 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:border-slate-600 hover:bg-slate-700"
+                onClick={event => {
+                  event.stopPropagation();
+                  onDelete?.(post);
+                }}
+                aria-label="Delete post"
+                title="Delete post"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-500/30 bg-red-500/10 text-red-200 transition-colors hover:border-red-400/50 hover:bg-red-500/20 hover:text-red-100"
               >
-                <Share2 className="w-4 h-4" />
-                Share
+                <Trash2 className="h-4 w-4" />
               </button>
             </div>
+          )}
 
-            {isEditable && (
-              <div className="flex flex-wrap items-center gap-2 pt-3 sm:pt-0 sm:pl-3">
-                <button
-                  type="button"
-                  onClick={event => {
-                    event.stopPropagation();
-                    onEdit?.(post);
-                  }}
-                  aria-label="Edit post"
-                  title="Edit post"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-700/70 bg-slate-800/70 text-slate-100 transition-colors hover:border-orange-500/50 hover:bg-slate-700 hover:text-orange-200"
-                >
-                  <PencilLine className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={event => {
-                    event.stopPropagation();
-                    onDelete?.(post.id);
-                  }}
-                  disabled={isDeleting}
-                  aria-label={isDeleting ? "Deleting post" : "Delete post"}
-                  title={isDeleting ? "Deleting post" : "Delete post"}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-500/30 bg-red-500/10 text-red-200 transition-colors hover:border-red-400/50 hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {isDeleting ? (
-                    <span className="text-[10px] font-semibold">...</span>
-                  ) : (
-                    <Trash2 className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-            )}
-          </div>
+          {post.media?.length === 1 && (
+            <MediaLightbox
+              open={lightboxOpen}
+              src={MediaApi.getFullMediaUrl(post.media[0].id)}
+              alt={post.media[0].alt || "Post media"}
+              onClose={() => setLightboxOpen(false)}
+            />
+          )}
         </div>
       </div>
     </article>
   );
-}
-
-function formatCompactNumber(value) {
-  return new Intl.NumberFormat("en", {
-    notation: "compact",
-    maximumFractionDigits: 1,
-  }).format(value);
 }
 
 function formatRelativeTime(value) {
@@ -383,4 +399,11 @@ function formatRelativeTime(value) {
 
   const deltaDays = Math.floor(deltaHours / 24);
   return `${deltaDays}d ago`;
+}
+
+function formatCompactNumber(value) {
+  return new Intl.NumberFormat("en", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
 }

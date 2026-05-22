@@ -2,10 +2,12 @@
 import { useState, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { MediaApi } from "../api/media.js";
+import MediaLightbox from "./MediaLightbox.jsx";
 
 export default function MediaCarousel({ media = [], className = "" }) {
   const [index, setIndex] = useState(0);
   const startX = useRef(null);
+  const [lightboxMedia, setLightboxMedia] = useState(null);
 
   if (!media || media.length === 0) return null;
 
@@ -66,6 +68,24 @@ export default function MediaCarousel({ media = [], className = "" }) {
           <div
             key={m.id}
             className="flex-none w-full relative flex items-center justify-center overflow-hidden"
+            onClick={event => {
+              if (m.type === "IMAGE" || m.type === "GIF") {
+                event.stopPropagation();
+                setLightboxMedia(m);
+              }
+            }}
+            role={m.type === "IMAGE" || m.type === "GIF" ? "button" : undefined}
+            tabIndex={m.type === "IMAGE" || m.type === "GIF" ? 0 : undefined}
+            onKeyDown={event => {
+              if (
+                (m.type === "IMAGE" || m.type === "GIF") &&
+                (event.key === "Enter" || event.key === " ")
+              ) {
+                event.preventDefault();
+                event.stopPropagation();
+                setLightboxMedia(m);
+              }
+            }}
           >
             {/* blurred background using the same media as a backdrop */}
             {(m.type === "IMAGE" || m.type === "GIF") && (
@@ -145,6 +165,13 @@ export default function MediaCarousel({ media = [], className = "" }) {
           </div>
         </>
       )}
+
+      <MediaLightbox
+        open={Boolean(lightboxMedia)}
+        src={lightboxMedia ? MediaApi.getFullMediaUrl(lightboxMedia.id) : ""}
+        alt={lightboxMedia?.alt || "Post media"}
+        onClose={() => setLightboxMedia(null)}
+      />
     </div>
   );
 }
