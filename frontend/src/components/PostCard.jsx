@@ -70,6 +70,21 @@ export default function PostCard({
     event.stopPropagation();
   };
 
+  const openCommunityProfile = event => {
+    event.stopPropagation();
+    const communitySlug = normalizeCommunitySlug(community);
+    if (communitySlug) {
+      navigate(`/r/${communitySlug}`);
+    }
+  };
+
+  const openUserProfile = event => {
+    event.stopPropagation();
+    if (author) {
+      navigate(`/u/${author}`);
+    }
+  };
+
   const handleVote = direction => {
     if (direction === "up") {
       onUpvote && onUpvote(post.id, vote === "UPVOTE" ? "NONE" : "UPVOTE");
@@ -245,14 +260,21 @@ export default function PostCard({
               ) : (
                 <div className="h-5 w-5 rounded-full bg-slate-700/70 border border-slate-600" />
               )}
-              <span className="font-semibold text-slate-200">{community}</span>
+              <button
+                type="button"
+                onClick={openCommunityProfile}
+                className="font-semibold text-slate-200 transition-colors hover:text-orange-400"
+                aria-label={`Open ${community} profile`}
+              >
+                {community}
+              </button>
             </div>
             <span className="text-slate-500">•</span>
             <button
               type="button"
-              onClick={() => navigate(`/u/${author}`)}
-              onClickCapture={stopCardNavigation}
-              className="text-slate-300 hover:text-orange-400 transition-colors font-medium"
+              onClick={openUserProfile}
+              className="text-slate-300 transition-colors font-medium hover:text-orange-400"
+              aria-label={`Open ${author} profile`}
             >
               posted by u/{author}
             </button>
