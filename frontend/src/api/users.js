@@ -46,14 +46,14 @@ export const UsersApi = {
     api.get("/users/me/communities", { params }).then(res => res.data),
 
   /**
-   * @param {{ page?: number, size?: number, sort?: string[]? }} params?
+   * @param {{ page?: number, size?: number }} params?
    * @returns {Promise<PagedModelPostDto>}
    */
   listUpvotedPosts: (params = {}) =>
     api.get("/users/me/upvoted", { params }).then(res => res.data),
 
   /**
-   * @param {{ page?: number, size?: number, sort?: string[]? }} params?
+   * @param {{ page?: number, size?: number }} params?
    * @returns {Promise<PagedModelPostDto>}
    */
   listDownvotedPosts: (params = {}) =>

@@ -5,11 +5,12 @@ import api from "./client";
 /** @typedef {import("./types").PagedModelCommentDto} PagedModelCommentDto */
 /** @typedef {import("./types").PagedModelCommunityDto} PagedModelCommunityDto */
 /** @typedef {import("./types").SearchTimeFilter} SearchTimeFilter */
+/** @typedef {import("./types").SearchSort} SearchSort */
 
 export const SearchApi = {
   /**
    * @param {string} q
-   * @param {{ page?: number, size?: number, sort?: string[]? }} params?
+   * @param {{ page?: number, size?: number }} params?
    * @returns {Promise<PagedModelCommunityDto>}
    */
   searchCommunities: (q, params = {}) =>
@@ -19,7 +20,7 @@ export const SearchApi = {
 
   /**
    * @param {string} q - search query
-   * @param {{ t?: SearchTimeFilter, c?: string, page?: number, size?: number, sort?: string[]? }}? params - time filter (t, default: "all"), community filter (c by name)
+   * @param {{ t?: SearchTimeFilter, c?: string, page?: number, size?: number, sort?: SearchSort }}? params - time filter (t, default: "all"), community filter (c by name)
    * @returns {Promise<PagedModelPostDto>}
    */
   searchPosts: (q, params = {}) =>
@@ -29,7 +30,7 @@ export const SearchApi = {
 
   /**
    * @param {string} q - search query
-   * @param {{ t?: SearchTimeFilter, c?: string, page?: number, size?: number, sort?: string[]? }}? params - time filter (t, default: "all"), community filter (c by name)
+   * @param {{ t?: SearchTimeFilter, c?: string, page?: number, size?: number, sort?: SearchSort }}? params - time filter (t, default: "all"), community filter (c by name)
    * @returns {Promise<PagedModelCommentDto>}
    */
   searchComments: (q, params = {}) =>
@@ -39,7 +40,7 @@ export const SearchApi = {
 
   /**
    * @param {string} q
-   * @param {{ page?: number, size?: number, sort?: string[]? }} params?
+   * @param {{ page?: number, size?: number }} params?
    * @returns {Promise<PagedModelUserDto>}
    */
   searchUsers: (q, params = {}) =>

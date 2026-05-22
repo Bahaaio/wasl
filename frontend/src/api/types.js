@@ -47,6 +47,10 @@
  */
 
 /**
+ * @typedef {"top" | "latest" | "hot"} SearchSort
+ */
+
+/**
  * @typedef {"all" | "year" | "month" | "week" | "day" | "hour"} SearchTimeFilter
  */
 
