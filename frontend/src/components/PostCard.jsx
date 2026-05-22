@@ -194,7 +194,7 @@ export default function PostCard({
           openPostDetail();
         }
       }}
-      className={`border rounded-2xl p-5 transition-all ${
+      className={`relative border rounded-2xl p-5 transition-all ${
         isDeleted
           ? "bg-slate-900/50 border-red-500/40 shadow-inner shadow-red-500/10"
           : "cursor-pointer bg-slate-900/70 border-slate-800 hover:border-slate-700 hover:shadow-lg hover:shadow-orange-500/5"
@@ -300,72 +300,74 @@ export default function PostCard({
               </div>
             </div>
           )}
-          <div className="flex flex-wrap items-center gap-2">
-            <VoteControl
-              vote={vote}
-              score={score}
-              disabled={isDeleted}
-              onUpvote={event => {
-                event.stopPropagation();
-                handleVote("up");
-              }}
-              onDownvote={event => {
-                event.stopPropagation();
-                handleVote("down");
-              }}
-            />
-            <button
-              type="button"
-              onClick={event => {
-                event.stopPropagation();
-                navigate(`/posts/${post.id}`);
-              }}
-              className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 bg-slate-800/50 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:border-slate-600 hover:bg-slate-700"
-              aria-label={`Open comments for post with ${commentCount} comments`}
-            >
-              <MessageCircle className="w-4 h-4" />
-              <span className="text-sm text-slate-300">
-                {formatCompactNumber(commentCount)}
-              </span>
-            </button>
-            <button
-              type="button"
-              onClickCapture={stopCardNavigation}
-              className="inline-flex items-center gap-1.5 rounded-full border border-slate-700/70 bg-slate-800/50 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:border-slate-600 hover:bg-slate-700"
-            >
-              <Share2 className="w-4 h-4" />
-              Share
-            </button>
-          </div>
-
-          {isEditable && (
-            <div className="flex flex-wrap items-center gap-2 pt-3 sm:pt-0 sm:pl-3">
+          <div className="flex items-center justify-between w-full">
+            <div className="flex flex-wrap items-center gap-2">
+              <VoteControl
+                vote={vote}
+                score={score}
+                disabled={isDeleted}
+                onUpvote={event => {
+                  event.stopPropagation();
+                  handleVote("up");
+                }}
+                onDownvote={event => {
+                  event.stopPropagation();
+                  handleVote("down");
+                }}
+              />
               <button
                 type="button"
                 onClick={event => {
                   event.stopPropagation();
-                  onEdit?.(post);
+                  navigate(`/posts/${post.id}`);
                 }}
-                aria-label="Edit post"
-                title="Edit post"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-700/70 bg-slate-800/70 text-slate-100 transition-colors hover:border-orange-500/50 hover:bg-slate-700 hover:text-orange-200"
+                className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 bg-slate-800/50 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:border-slate-600 hover:bg-slate-700"
+                aria-label={`Open comments for post with ${commentCount} comments`}
               >
-                <PencilLine className="h-4 w-4" />
+                <MessageCircle className="w-4 h-4" />
+                <span className="text-sm text-slate-300">
+                  {formatCompactNumber(commentCount)}
+                </span>
               </button>
               <button
                 type="button"
-                onClick={event => {
-                  event.stopPropagation();
-                  onDelete?.(post);
-                }}
-                aria-label="Delete post"
-                title="Delete post"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-500/30 bg-red-500/10 text-red-200 transition-colors hover:border-red-400/50 hover:bg-red-500/20 hover:text-red-100"
+                onClickCapture={stopCardNavigation}
+                className="inline-flex items-center gap-1.5 rounded-full border border-slate-700/70 bg-slate-800/50 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:border-slate-600 hover:bg-slate-700"
               >
-                <Trash2 className="h-4 w-4" />
+                <Share2 className="w-4 h-4" />
+                Share
               </button>
             </div>
-          )}
+
+            {isEditable && (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={event => {
+                    event.stopPropagation();
+                    onEdit?.(post);
+                  }}
+                  aria-label="Edit post"
+                  title="Edit post"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-700/70 bg-slate-800/70 text-slate-100 transition-colors hover:border-orange-500/50 hover:bg-slate-700 hover:text-orange-200"
+                >
+                  <PencilLine className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={event => {
+                    event.stopPropagation();
+                    onDelete?.(post);
+                  }}
+                  aria-label="Delete post"
+                  title="Delete post"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-500/30 bg-red-500/10 text-red-200 transition-colors hover:border-red-400/50 hover:bg-red-500/20 hover:text-red-100"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+          </div>
 
           {post.media?.length === 1 && (
             <MediaLightbox
