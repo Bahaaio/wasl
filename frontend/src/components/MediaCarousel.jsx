@@ -7,7 +7,13 @@ import MediaLightbox from "./MediaLightbox.jsx";
 export default function MediaCarousel({ media = [], className = "" }) {
   const [index, setIndex] = useState(0);
   const startX = useRef(null);
-  const [lightboxMedia, setLightboxMedia] = useState(null);
+  const [lightboxIndex, setLightboxIndex] = useState(null);
+  const lightboxMedia = media
+    .filter(item => item.type === "IMAGE" || item.type === "GIF")
+    .map(item => ({
+      ...item,
+      src: MediaApi.getFullMediaUrl(item.id),
+    }));
 
   if (!media || media.length === 0) return null;
 
@@ -58,10 +64,10 @@ export default function MediaCarousel({ media = [], className = "" }) {
       tabIndex={0}
     >
       <div
-        className="flex w-full will-change-transform"
+        className="flex w-full will-change-transform transform-gpu"
         style={{
           transform: `translateX(-${index * 100}%)`,
-          transition: "transform 300ms ease-out",
+          transition: "transform 480ms cubic-bezier(0.22, 1, 0.36, 1)",
         }}
       >
         {media.map(m => (
@@ -71,7 +77,9 @@ export default function MediaCarousel({ media = [], className = "" }) {
             onClick={event => {
               if (m.type === "IMAGE" || m.type === "GIF") {
                 event.stopPropagation();
-                setLightboxMedia(m);
+                setLightboxIndex(
+                  lightboxMedia.findIndex(item => item.id === m.id)
+                );
               }
             }}
             role={m.type === "IMAGE" || m.type === "GIF" ? "button" : undefined}
@@ -83,7 +91,9 @@ export default function MediaCarousel({ media = [], className = "" }) {
               ) {
                 event.preventDefault();
                 event.stopPropagation();
-                setLightboxMedia(m);
+                setLightboxIndex(
+                  lightboxMedia.findIndex(item => item.id === m.id)
+                );
               }
             }}
           >
@@ -167,10 +177,32 @@ export default function MediaCarousel({ media = [], className = "" }) {
       )}
 
       <MediaLightbox
-        open={Boolean(lightboxMedia)}
-        src={lightboxMedia ? MediaApi.getFullMediaUrl(lightboxMedia.id) : ""}
-        alt={lightboxMedia?.alt || "Post media"}
-        onClose={() => setLightboxMedia(null)}
+        open={lightboxIndex !== null}
+        src={
+          lightboxIndex !== null
+            ? MediaApi.getFullMediaUrl(lightboxMedia[lightboxIndex].id)
+            : ""
+        }
+        alt={
+          lightboxIndex !== null
+            ? lightboxMedia[lightboxIndex].alt || "Post media"
+            : "Post media"
+        }
+        media={lightboxMedia}
+        index={lightboxIndex ?? 0}
+        onClose={() => setLightboxIndex(null)}
+        onPrev={() => {
+          if (lightboxIndex !== null) {
+            setLightboxIndex(
+              (lightboxIndex - 1 + lightboxMedia.length) % lightboxMedia.length
+            );
+          }
+        }}
+        onNext={() => {
+          if (lightboxIndex !== null) {
+            setLightboxIndex((lightboxIndex + 1) % lightboxMedia.length);
+          }
+        }}
       />
     </div>
   );
