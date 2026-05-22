@@ -155,8 +155,11 @@ export default function SearchBar({ className = "", communityName = null }) {
           if (event.key === "Escape") {
             setIsOpen(false);
           }
-          if (event.key === "Enter" && results.posts.length > 0) {
-            goToPost(results.posts[0].id);
+          if (event.key === "Enter") {
+            // Open the dedicated search results page
+            if (query.trim().length > 0) {
+              navigate(`/search?q=${encodeURIComponent(query.trim())}`);
+            }
           }
         }}
         placeholder={

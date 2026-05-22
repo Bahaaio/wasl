@@ -1,0 +1,233 @@
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar.jsx";
+import SideBar from "../components/SideBar.jsx";
+import PostCard from "../components/PostCard.jsx";
+// SearchBar intentionally removed from this page — header shows query instead
+import { SearchApi } from "../api/search.js";
+import { MediaApi } from "../api/media.js";
+
+function useQuery() {
+  const { search } = useLocation();
+  return new URLSearchParams(search);
+}
+
+export default function SearchResults() {
+  const navigate = useNavigate();
+  const q = useQuery().get("q") || "";
+  const [query, setQuery] = useState(q);
+  const [activeTab, setActiveTab] = useState("posts");
+  const [isLoading, setIsLoading] = useState(false);
+  const [posts, setPosts] = useState([]);
+  const [communities, setCommunities] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [comments, setComments] = useState([]);
+
+  useEffect(() => {
+    setQuery(q);
+  }, [q]);
+
+  useEffect(() => {
+    if (!query) {
+      setPosts([]);
+      setCommunities([]);
+      setUsers([]);
+      setComments([]);
+      return;
+    }
+
+    const load = async () => {
+      setIsLoading(true);
+      try {
+        const [postsRes, commRes, usersRes, commentsRes] = await Promise.all([
+          SearchApi.searchPosts(query, { page: 0, size: 20 }),
+          SearchApi.searchCommunities(query, { page: 0, size: 10 }),
+          SearchApi.searchUsers(query, { page: 0, size: 10 }),
+          SearchApi.searchComments(query, { page: 0, size: 20 }),
+        ]);
+
+        setPosts(postsRes?.content ?? []);
+        setCommunities(commRes?.content ?? []);
+        setUsers(usersRes?.content ?? []);
+        setComments(commentsRes?.content ?? []);
+      } catch (err) {
+        console.error("Search error:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const id = window.setTimeout(load, 150);
+    return () => window.clearTimeout(id);
+  }, [query]);
+
+  const onSearch = value => {
+    setQuery(value);
+    navigate(`/search?q=${encodeURIComponent(value)}`);
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100">
+      <Navbar />
+      <div className="relative flex min-h-[calc(100vh-4rem)]">
+        <SideBar isOpen={true} setIsOpen={() => {}} />
+
+        <main className="flex-1 px-0 pt-24 pb-8">
+          <div className="w-full max-w-6xl mx-auto">
+            <div className="mb-6">
+              <h1 className="text-2xl font-semibold text-slate-100">
+                Search results for "{query}"
+              </h1>
+            </div>
+
+            <div className="mb-4">
+              <div className="flex items-center gap-3 flex-wrap">
+                <Tab
+                  label="Posts"
+                  active={activeTab === "posts"}
+                  onClick={() => setActiveTab("posts")}
+                />
+                <Tab
+                  label="Communities"
+                  active={activeTab === "communities"}
+                  onClick={() => setActiveTab("communities")}
+                />
+                <Tab
+                  label="Comments"
+                  active={activeTab === "comments"}
+                  onClick={() => setActiveTab("comments")}
+                />
+                <Tab
+                  label="Media"
+                  active={activeTab === "media"}
+                  onClick={() => setActiveTab("media")}
+                />
+                <Tab
+                  label="Profiles"
+                  active={activeTab === "profiles"}
+                  onClick={() => setActiveTab("profiles")}
+                />
+              </div>
+            </div>
+
+            <section>
+              {isLoading ? (
+                <div className="p-6 text-slate-400">Searching...</div>
+              ) : (
+                <div className="space-y-4">
+                  {activeTab === "posts" && posts.length === 0 && (
+                    <div className="p-6 text-slate-400">No posts found.</div>
+                  )}
+
+                  {activeTab === "posts" &&
+                    posts.map(post => (
+                      <div key={post.id} className="mb-4">
+                        <PostCard post={post} />
+                      </div>
+                    ))}
+
+                  {activeTab === "communities" && (
+                    <div className="grid grid-cols-1 gap-3">
+                      {communities.map(c => (
+                        <div key={c.id} className="flex items-center gap-3 p-3">
+                          {c.iconMediaId ? (
+                            <img
+                              src={MediaApi.getThumbnailMediaUrl(c.iconMediaId)}
+                              alt=""
+                              className="w-10 h-10 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-slate-700/50" />
+                          )}
+                          <div>
+                            <div className="text-sm font-semibold text-slate-100">
+                              r/{c.name}
+                            </div>
+                            <div className="text-xs text-slate-400">
+                              {c.description?.slice(0, 120)}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {activeTab === "comments" && (
+                    <div className="space-y-3">
+                      {comments.map(cm => (
+                        <div key={cm.id} className="p-3">
+                          <div className="text-sm text-slate-200 line-clamp-3">
+                            {cm.content}
+                          </div>
+                          <div className="text-xs text-slate-500 mt-2">
+                            In r/{cm.communityName} • {cm.username}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {activeTab === "media" && (
+                    <div className="grid grid-cols-1 gap-3">
+                      {posts
+                        .filter(p => (p.media || []).length > 0)
+                        .map(p => (
+                          <div key={p.id} className="p-3">
+                            <PostCard post={p} />
+                          </div>
+                        ))}
+                    </div>
+                  )}
+
+                  {activeTab === "profiles" && (
+                    <div className="space-y-3">
+                      {users.map(u => (
+                        <div key={u.id} className="flex items-center gap-3 p-3">
+                          {u.avatarMediaId ? (
+                            <img
+                              src={MediaApi.getThumbnailMediaUrl(
+                                u.avatarMediaId
+                              )}
+                              alt=""
+                              className="w-10 h-10 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-slate-700/50" />
+                          )}
+                          <div>
+                            <div className="text-sm font-semibold text-slate-100">
+                              u/{u.username}
+                            </div>
+                            <div className="text-xs text-slate-400">
+                              {u.bio?.slice(0, 120)}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </section>
+          </div>
+        </main>
+
+        {/* Right-hand communities aside removed per user request */}
+      </div>
+    </div>
+  );
+}
+
+function Tab({ label, active, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`px-3 py-2 rounded-full text-sm font-medium transition-colors ${
+        active ? "bg-slate-800 text-white" : "text-slate-400 hover:bg-slate-900"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}

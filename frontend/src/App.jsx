@@ -7,6 +7,7 @@ import CreateCommunityPage from "./pages/CreateCommunityPage.jsx";
 import PostDetailPage from "./pages/PostDetailPage.jsx";
 import UserProfile from "./pages/UserProfile.jsx";
 import CommunityProfilePage from "./pages/CommunityProfilePage.jsx";
+import SearchResults from "./pages/SearchResults.jsx";
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="/create-community" element={<CreateCommunityPage />} />
         <Route path="/r/:communitySlug" element={<CommunityProfilePage />} />
         <Route path="/u/:username" element={<UserProfile />} />
+        <Route path="/search" element={<SearchResults />} />
       </Routes>
     </AuthProvider>
   );

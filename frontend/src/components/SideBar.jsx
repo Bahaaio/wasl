@@ -72,7 +72,7 @@ export default function SideBar({ isOpen, setIsOpen }) {
       <aside
         id="posts-sidebar"
         ref={sidebarRef}
-        className={`sidebar-scroll fixed left-0 top-16 z-35 h-[calc(100vh-4rem)] w-64 max-w-[80vw] shrink-0 border-r border-slate-800 bg-slate-950 overflow-y-auto transition-transform duration-300 ease-out md:sticky md:top-16 md:h-[calc(100vh-4rem)] xl:w-72 ${
+        className={`sidebar-scroll fixed md:sticky left-0 top-16 bottom-0 md:bottom-auto md:h-[calc(100vh-4rem)] z-30 w-64 max-w-[80vw] shrink-0 border-r border-slate-800 bg-slate-950 overflow-y-auto transition-transform duration-300 ease-out xl:w-72 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         aria-hidden={!isOpen}
@@ -80,7 +80,7 @@ export default function SideBar({ isOpen, setIsOpen }) {
         <button
           type="button"
           onClick={() => setIsOpen(current => !current)}
-          className="fixed right-1 top-20 z-70 inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-500 bg-slate-950 text-slate-100 shadow-lg shadow-black/30 transition-colors hover:bg-slate-900 md:absolute md:right-1 md:top-6"
+          className="absolute right-1 top-6 z-50 inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-500 bg-slate-950 text-slate-100 shadow-lg shadow-black/30 transition-colors hover:bg-slate-900"
           aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
           aria-expanded={isOpen}
           aria-controls="posts-sidebar"
@@ -88,7 +88,7 @@ export default function SideBar({ isOpen, setIsOpen }) {
           <Menu className="w-5 h-5" />
         </button>
 
-        <div className="px-4 py-5 flex flex-col h-full">
+        <div className="px-4 py-5 flex flex-col min-h-full">
           <div className="mb-4 md:hidden">
             <p className="text-xs uppercase tracking-[0.25em] text-slate-500">
               Menu
