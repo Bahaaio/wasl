@@ -16,6 +16,11 @@ public interface PostVoteRepository extends JpaRepository<PostVote, PostVoteId> 
 
     void deleteAllByUserId(Long userId);
 
-    @Query("SELECT pv.post FROM PostVote pv WHERE pv.user.username = :username AND pv.upvote = :upvoted")
+    @Query("""
+        SELECT pv.post
+        FROM PostVote pv
+        WHERE pv.user.username = :username AND pv.upvote = :upvoted
+        ORDER BY pv.votedAt desc
+        """)
     Page<Post> findPostsByUsernameAndVote(String username, boolean upvoted, Pageable pageable);
 }
