@@ -20,6 +20,7 @@ export default function SearchBar({ className = "", communityName = null }) {
   const navigate = useNavigate();
   const wrapperRef = useRef(null);
   const requestIdRef = useRef(0);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -29,6 +30,7 @@ export default function SearchBar({ className = "", communityName = null }) {
     posts: [],
     users: [],
   });
+  // (keyboard) highlightedIndex is the index into `flattenedResults`
 
   const hasQuery = query.trim().length > 0;
   const isCommunityScoped = !!communityName;
@@ -50,6 +52,7 @@ export default function SearchBar({ className = "", communityName = null }) {
       Promise.resolve().then(() => {
         setResults({ communities: [], posts: [], users: [] });
         setIsLoading(false);
+        setHighlightedIndex(-1);
       });
       return;
     }
@@ -93,12 +96,15 @@ export default function SearchBar({ className = "", communityName = null }) {
             posts: postsRes?.content ?? [],
             users: usersRes?.content ?? [],
           });
+          // reset highlight when new results arrive
+          setHighlightedIndex(0);
         }
       } catch {
         if (requestIdRef.current !== currentRequestId) {
           return;
         }
         setResults({ communities: [], posts: [], users: [] });
+        setHighlightedIndex(-1);
       } finally {
         if (requestIdRef.current === currentRequestId) {
           setIsLoading(false);
@@ -116,6 +122,21 @@ export default function SearchBar({ className = "", communityName = null }) {
       results.users.length > 0,
     [results]
   );
+
+  // Flatten results for keyboard navigation
+  const flattenedResults = useMemo(() => {
+    const out = [];
+    (results.posts || []).forEach(p =>
+      out.push({ type: "post", id: p.id, item: p })
+    );
+    (results.users || []).forEach(u =>
+      out.push({ type: "user", id: u.id, item: u })
+    );
+    (results.communities || []).forEach(c =>
+      out.push({ type: "community", id: c.id, item: c })
+    );
+    return out;
+  }, [results]);
 
   const goToCommunity = communityName => {
     const slug = normalizeCommunitySlug(communityName);
@@ -136,6 +157,23 @@ export default function SearchBar({ className = "", communityName = null }) {
     navigate(`/u/${username}`);
   };
 
+  const activateFlatIndex = idx => {
+    if (idx < 0 || idx >= flattenedResults.length) return;
+    const entry = flattenedResults[idx];
+    if (!entry) return;
+    if (entry.type === "post") goToPost(entry.item.id);
+    else if (entry.type === "user") goToUser(entry.item.username);
+    else if (entry.type === "community") goToCommunity(entry.item.name);
+  };
+
+  useEffect(() => {
+    if (highlightedIndex < 0) return;
+    const el = wrapperRef.current?.querySelector(
+      `[data-search-index="${highlightedIndex}"]`
+    );
+    if (el) el.scrollIntoView({ block: "nearest" });
+  }, [highlightedIndex]);
+
   return (
     <div ref={wrapperRef} className={`relative w-full ${className}`}>
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -154,9 +192,32 @@ export default function SearchBar({ className = "", communityName = null }) {
         onKeyDown={event => {
           if (event.key === "Escape") {
             setIsOpen(false);
+            setHighlightedIndex(-1);
+            return;
           }
+
+          if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+            event.preventDefault();
+            if (!isOpen && hasQuery) setIsOpen(true);
+            const len = flattenedResults.length;
+            if (len === 0) return;
+            const dir = event.key === "ArrowDown" ? 1 : -1;
+            const next = (((highlightedIndex + dir) % len) + len) % len;
+            setHighlightedIndex(next);
+            return;
+          }
+
           if (event.key === "Enter") {
-            // Open the dedicated search results page
+            if (
+              isOpen &&
+              flattenedResults.length > 0 &&
+              highlightedIndex >= 0
+            ) {
+              event.preventDefault();
+              activateFlatIndex(highlightedIndex);
+              return;
+            }
+
             if (query.trim().length > 0) {
               navigate(`/search?q=${encodeURIComponent(query.trim())}`);
             }
@@ -185,29 +246,37 @@ export default function SearchBar({ className = "", communityName = null }) {
                   <p className="px-2 py-1 text-[11px] uppercase tracking-[0.12em] text-slate-500">
                     Communities
                   </p>
-                  {results.communities.map(community => (
-                    <button
-                      key={community.id}
-                      type="button"
-                      onClick={() => goToCommunity(community.name)}
-                      className="w-full flex items-center gap-2 rounded-lg px-2 py-2 text-left hover:bg-slate-800/80 transition-colors"
-                    >
-                      {community.iconMediaId ? (
-                        <img
-                          src={MediaApi.getThumbnailMediaUrl(
-                            community.iconMediaId
-                          )}
-                          alt={`${community.name} avatar`}
-                          className="h-6 w-6 rounded-full object-cover border border-slate-700"
-                        />
-                      ) : (
-                        <div className="h-6 w-6 rounded-full bg-slate-700/70 border border-slate-600" />
-                      )}
-                      <span className="text-sm text-slate-200">
-                        r/{normalizeCommunitySlug(community.name)}
-                      </span>
-                    </button>
-                  ))}
+                  {results.communities.map((community, idx) => {
+                    // find flattened index for highlighting
+                    const index = flattenedResults.findIndex(
+                      e => e.type === "community" && e.id === community.id
+                    );
+                    return (
+                      <button
+                        key={community.id}
+                        data-search-index={index}
+                        type="button"
+                        onMouseEnter={() => setHighlightedIndex(index)}
+                        onClick={() => goToCommunity(community.name)}
+                        className={`w-full flex items-center gap-2 rounded-lg px-2 py-2 text-left transition-colors ${highlightedIndex === index ? "bg-slate-800" : "hover:bg-slate-800/80"}`}
+                      >
+                        {community.iconMediaId ? (
+                          <img
+                            src={MediaApi.getThumbnailMediaUrl(
+                              community.iconMediaId
+                            )}
+                            alt={`${community.name} avatar`}
+                            className="h-6 w-6 rounded-full object-cover border border-slate-700"
+                          />
+                        ) : (
+                          <div className="h-6 w-6 rounded-full bg-slate-700/70 border border-slate-600" />
+                        )}
+                        <span className="text-sm text-slate-200">
+                          r/{normalizeCommunitySlug(community.name)}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
 
@@ -222,23 +291,30 @@ export default function SearchBar({ className = "", communityName = null }) {
                   <p className="px-2 py-1 text-[11px] uppercase tracking-[0.12em] text-slate-500">
                     {isCommunityScoped ? "Posts in this community" : "Posts"}
                   </p>
-                  {results.posts.map(post => (
-                    <button
-                      key={post.id}
-                      type="button"
-                      onClick={() => goToPost(post.id)}
-                      className="w-full rounded-lg px-2 py-2 text-left hover:bg-slate-800/80 transition-colors"
-                    >
-                      <p className="line-clamp-1 text-sm text-slate-200">
-                        {post.title}
-                      </p>
-                      {!isCommunityScoped && (
-                        <p className="mt-0.5 text-xs text-slate-400">
-                          r/{normalizeCommunitySlug(post.communityName)}
+                  {results.posts.map(post => {
+                    const index = flattenedResults.findIndex(
+                      e => e.type === "post" && e.id === post.id
+                    );
+                    return (
+                      <button
+                        key={post.id}
+                        data-search-index={index}
+                        type="button"
+                        onMouseEnter={() => setHighlightedIndex(index)}
+                        onClick={() => goToPost(post.id)}
+                        className={`w-full rounded-lg px-2 py-2 text-left transition-colors ${highlightedIndex === index ? "bg-slate-800" : "hover:bg-slate-800/80"}`}
+                      >
+                        <p className="line-clamp-1 text-sm text-slate-200">
+                          {post.title}
                         </p>
-                      )}
-                    </button>
-                  ))}
+                        {!isCommunityScoped && (
+                          <p className="mt-0.5 text-xs text-slate-400">
+                            r/{normalizeCommunitySlug(post.communityName)}
+                          </p>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
 
@@ -247,29 +323,36 @@ export default function SearchBar({ className = "", communityName = null }) {
                   <p className="px-2 py-1 text-[11px] uppercase tracking-[0.12em] text-slate-500">
                     Users
                   </p>
-                  {results.users.map(user => (
-                    <button
-                      key={user.id}
-                      type="button"
-                      onClick={() => goToUser(user.username)}
-                      className="w-full flex items-center gap-2 rounded-lg px-2 py-2 text-left hover:bg-slate-800/80 transition-colors"
-                    >
-                      {user.avatarMediaId ? (
-                        <img
-                          src={MediaApi.getThumbnailMediaUrl(
-                            user.avatarMediaId
-                          )}
-                          alt={`${user.username} avatar`}
-                          className="h-6 w-6 rounded-full object-cover border border-slate-700"
-                        />
-                      ) : (
-                        <div className="h-6 w-6 rounded-full bg-slate-700/70 border border-slate-600" />
-                      )}
-                      <span className="text-sm text-slate-200">
-                        u/{user.username}
-                      </span>
-                    </button>
-                  ))}
+                  {results.users.map(user => {
+                    const index = flattenedResults.findIndex(
+                      e => e.type === "user" && e.id === user.id
+                    );
+                    return (
+                      <button
+                        key={user.id}
+                        data-search-index={index}
+                        type="button"
+                        onMouseEnter={() => setHighlightedIndex(index)}
+                        onClick={() => goToUser(user.username)}
+                        className={`w-full flex items-center gap-2 rounded-lg px-2 py-2 text-left transition-colors ${highlightedIndex === index ? "bg-slate-800" : "hover:bg-slate-800/80"}`}
+                      >
+                        {user.avatarMediaId ? (
+                          <img
+                            src={MediaApi.getThumbnailMediaUrl(
+                              user.avatarMediaId
+                            )}
+                            alt={`${user.username} avatar`}
+                            className="h-6 w-6 rounded-full object-cover border border-slate-700"
+                          />
+                        ) : (
+                          <div className="h-6 w-6 rounded-full bg-slate-700/70 border border-slate-600" />
+                        )}
+                        <span className="text-sm text-slate-200">
+                          u/{user.username}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </>

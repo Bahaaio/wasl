@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar.jsx";
 import SideBar from "../components/SideBar.jsx";
+import SearchBar from "../components/SearchBar.jsx";
 import PostCard from "../components/PostCard.jsx";
 // SearchBar intentionally removed from this page — header shows query instead
 import { SearchApi } from "../api/search.js";
@@ -16,6 +17,7 @@ export default function SearchResults() {
   const navigate = useNavigate();
   const q = useQuery().get("q") || "";
   const [query, setQuery] = useState(q);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState("posts");
   const [isLoading, setIsLoading] = useState(false);
   const [posts, setPosts] = useState([]);
@@ -61,10 +63,7 @@ export default function SearchResults() {
     return () => window.clearTimeout(id);
   }, [query]);
 
-  const onSearch = value => {
-    setQuery(value);
-    navigate(`/search?q=${encodeURIComponent(value)}`);
-  };
+  // Search navigation is handled by `SearchBar` (Enter -> /search?q=...)
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
