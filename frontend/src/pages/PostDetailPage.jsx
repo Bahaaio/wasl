@@ -7,8 +7,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  ArrowBigUp,
-  ArrowBigDown,
   ChevronLeft,
   MessageCircle,
   Share2,
@@ -26,6 +24,7 @@ import {
 } from "../api/posts.js";
 import { MediaApi } from "../api/media.js";
 import MediaCarousel from "../components/MediaCarousel.jsx";
+import VoteControl from "../components/VoteControl.jsx";
 import { useUser } from "../auth/useUser.jsx";
 
 const communityIconCache = new Map();
@@ -245,25 +244,6 @@ export default function PostDetailPage() {
     };
   }, [post]);
 
-  const getVoteButtonClassName = direction => {
-    const baseClasses =
-      "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition-all";
-
-    if (direction === "UPVOTE") {
-      return `${baseClasses} ${
-        postVote === "UPVOTE"
-          ? "bg-orange-500/20 text-orange-200 ring-1 ring-orange-500/40 shadow-[0_0_0_1px_rgba(249,115,22,0.12)]"
-          : "bg-slate-800/70 text-slate-300 hover:bg-slate-700 hover:text-orange-300"
-      }`;
-    }
-
-    return `${baseClasses} ${
-      postVote === "DOWNVOTE"
-        ? "bg-indigo-500/20 text-indigo-200 ring-1 ring-indigo-500/40 shadow-[0_0_0_1px_rgba(99,102,241,0.12)]"
-        : "bg-slate-800/70 text-slate-300 hover:bg-slate-700 hover:text-indigo-300"
-    }`;
-  };
-
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <Navbar />
@@ -397,47 +377,21 @@ export default function PostDetailPage() {
                 )}
 
                 <div className="mt-4 flex flex-wrap items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handlePostVote(postVote === "UPVOTE" ? "NONE" : "UPVOTE")
-                    }
+                  <VoteControl
+                    vote={postVote}
+                    score={getPostNetVoteScore(post)}
                     disabled={isDeleted}
-                    className={getVoteButtonClassName("UPVOTE")}
-                    aria-pressed={postVote === "UPVOTE"}
-                    aria-label="Upvote post"
-                  >
-                    <ArrowBigUp
-                      className={`h-4 w-4 ${
-                        postVote === "UPVOTE"
-                          ? "text-orange-200"
-                          : "text-orange-400"
-                      }`}
-                    />
-                  </button>
-                  <span className="inline-flex min-w-11 items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/50 px-3 py-1.5 text-sm font-semibold text-slate-200">
-                    {formatCompactNumber(getPostNetVoteScore(post))}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() =>
+                    onUpvote={() =>
+                      handlePostVote(
+                        postVote === "UPVOTE" ? "NONE" : "UPVOTE"
+                      )
+                    }
+                    onDownvote={() =>
                       handlePostVote(
                         postVote === "DOWNVOTE" ? "NONE" : "DOWNVOTE"
                       )
                     }
-                    disabled={isDeleted}
-                    className={getVoteButtonClassName("DOWNVOTE")}
-                    aria-pressed={postVote === "DOWNVOTE"}
-                    aria-label="Downvote post"
-                  >
-                    <ArrowBigDown
-                      className={`h-4 w-4 ${
-                        postVote === "DOWNVOTE"
-                          ? "text-indigo-200"
-                          : "text-slate-400"
-                      }`}
-                    />
-                  </button>
+                  />
                   <button
                     type="button"
                     className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/70 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-700"
@@ -605,11 +559,4 @@ function formatRelativeTime(value) {
 
   const deltaDays = Math.floor(deltaHours / 24);
   return `${deltaDays}d ago`;
-}
-
-function formatCompactNumber(value) {
-  return new Intl.NumberFormat("en", {
-    notation: "compact",
-    maximumFractionDigits: 1,
-  }).format(value);
 }

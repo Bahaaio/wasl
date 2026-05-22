@@ -6,7 +6,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  ArrowBigUp,
   MessageCircle,
   PencilLine,
   Share2,
@@ -16,6 +15,7 @@ import { getPostNetVoteScore, PostsApi } from "../api/posts.js";
 import { MediaApi } from "../api/media.js";
 import { CommunitiesApi } from "../api/communities.js";
 import MediaCarousel from "./MediaCarousel.jsx";
+import VoteControl from "./VoteControl.jsx";
 
 const communityIconCache = new Map();
 const commentCountCache = new Map();
@@ -55,7 +55,6 @@ export default function PostCard({
     post.vote ??
     (post.upvoted ? "UPVOTE" : post.downvoted ? "DOWNVOTE" : "NONE");
   const time = post.createdAt ? formatRelativeTime(post.createdAt) : post.time;
-  const scoreLabel = formatCompactNumber(score);
   const isDeleted = post.softDeleted === true || post.deleted === true;
   const title = post.title;
   const body = isDeleted
@@ -200,54 +199,7 @@ export default function PostCard({
           : "cursor-pointer bg-slate-900/70 border-slate-800 hover:border-slate-700 hover:shadow-lg hover:shadow-orange-500/5"
       }`}
     >
-      <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-        {/* Vote Column */}
-        <div
-          className={`flex flex-row sm:flex-col items-center gap-2 sm:gap-1 shrink-0 rounded-xl p-2 ${
-            isDeleted
-              ? "text-slate-500 bg-slate-900/60 border border-red-500/30"
-              : "text-slate-400 bg-slate-800/50"
-          }`}
-        >
-          <button
-            type="button"
-            onClick={event => {
-              event.stopPropagation();
-              handleVote("up");
-            }}
-            disabled={isDeleted}
-            className={`p-1 rounded transition-colors ${
-              vote === "UPVOTE"
-                ? "text-orange-500 bg-orange-500/10"
-                : isDeleted
-                  ? "cursor-not-allowed text-slate-500"
-                  : "hover:text-orange-400 hover:bg-slate-700"
-            }`}
-            aria-label="Upvote"
-          >
-            <ArrowBigUp className="w-5 h-5" />
-          </button>
-          <span className="text-sm font-semibold">{scoreLabel}</span>
-          <button
-            type="button"
-            onClick={event => {
-              event.stopPropagation();
-              handleVote("down");
-            }}
-            disabled={isDeleted}
-            className={`p-1 rounded transition-colors ${
-              vote === "DOWNVOTE"
-                ? "text-indigo-500 bg-indigo-500/10"
-                : isDeleted
-                  ? "cursor-not-allowed text-slate-500"
-                  : "hover:text-indigo-400 hover:bg-slate-700"
-            }`}
-            aria-label="Downvote"
-          >
-            <ArrowBigUp className="w-5 h-5 rotate-180" />
-          </button>
-        </div>
-
+      <div className="flex flex-col gap-4">
         <div className="flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-400 mb-2">
             <div className="inline-flex items-center gap-2">
@@ -329,6 +281,19 @@ export default function PostCard({
           )}
           <div className="flex flex-col gap-3 rounded-2xl bg-slate-950/30 p-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-wrap items-center gap-2">
+              <VoteControl
+                vote={vote}
+                score={score}
+                disabled={isDeleted}
+                onUpvote={event => {
+                  event.stopPropagation();
+                  handleVote("up");
+                }}
+                onDownvote={event => {
+                  event.stopPropagation();
+                  handleVote("down");
+                }}
+              />
               <button
                 type="button"
                 onClick={event => {
