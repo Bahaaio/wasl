@@ -11,64 +11,7 @@ import { CommentsApi } from "../api/comments.js";
 import { UsersApi } from "../api/users.js";
 import { PostsApi } from "../api/posts.js";
 
-// Local storage key for client-side vote cache
-const LOCAL_VOTES_KEY = "wasl.localPostVotes";
-
-function readLocalVotes() {
-  try {
-    return JSON.parse(localStorage.getItem(LOCAL_VOTES_KEY) || "{}");
-  } catch {
-    return {};
-  }
-}
-
-function writeLocalVotes(map) {
-  try {
-    localStorage.setItem(LOCAL_VOTES_KEY, JSON.stringify(map));
-  } catch {
-    /* ignore */
-  }
-}
-
-function setPostLocalVote(postId, action) {
-  const map = readLocalVotes();
-  if (action === "NONE") {
-    delete map[String(postId)];
-  } else {
-    map[String(postId)] = action;
-  }
-  writeLocalVotes(map);
-}
-
-function applyLocalVotesToPosts(posts) {
-  const map = readLocalVotes();
-  return (posts || []).map(p => {
-    const action = map[String(p.id)];
-    if (!action) return p;
-
-    const previousVote =
-      p.vote ?? (p.upvoted ? "UPVOTE" : p.downvoted ? "DOWNVOTE" : "NONE");
-
-    let scoreDelta;
-    if (previousVote === action) scoreDelta = 0;
-    else if (previousVote === "NONE") scoreDelta = action === "UPVOTE" ? 1 : -1;
-    else if (action === "NONE") scoreDelta = previousVote === "UPVOTE" ? -1 : 1;
-    else scoreDelta = action === "UPVOTE" ? 2 : -2;
-
-    const nextScore =
-      typeof p.score === "number" && Number.isFinite(p.score)
-        ? p.score + scoreDelta
-        : p.score;
-
-    return {
-      ...p,
-      vote: action,
-      upvoted: action === "UPVOTE",
-      downvoted: action === "DOWNVOTE",
-      score: nextScore,
-    };
-  });
-}
+// No persistent client-side vote cache; rely on server and component state.
 
 function sortPostsByCreatedAtDesc(posts) {
   return (posts || []).slice().sort((a, b) => {
@@ -155,7 +98,7 @@ export default function UserProfile() {
         sort: ["createdAt,desc"],
       });
       const loaded = sortPostsByCreatedAtDesc(response?.content ?? []);
-      setPosts(applyLocalVotesToPosts(loaded));
+      setPosts(loaded);
     } catch (err) {
       console.error("Failed to load profile posts:", err);
       setPosts([]);
@@ -285,39 +228,7 @@ export default function UserProfile() {
     }
   }, [activeTab, isOwnProfile]);
 
-  // Re-apply local votes to posts whenever we return to the posts tab.
-  // This ensures vote button highlights reflect local state after navigating
-  // to a post detail and back without forcing a full reload.
-  useEffect(() => {
-    if (activeTab !== "posts") return;
-    // Defer state update to avoid synchronous setState inside effect
-    Promise.resolve().then(() =>
-      setPosts(current => applyLocalVotesToPosts(current))
-    );
-  }, [activeTab]);
-
-  // Re-apply local votes when navigation or storage events occur so vote
-  // highlights stay in sync after visiting a post detail and returning.
-  useEffect(() => {
-    const reapPLY = () =>
-      Promise.resolve().then(() =>
-        setPosts(current => applyLocalVotesToPosts(current))
-      );
-
-    const onFocus = () => reapPLY();
-    const onPop = () => reapPLY();
-    const onStorage = () => reapPLY();
-
-    window.addEventListener("focus", onFocus);
-    window.addEventListener("popstate", onPop);
-    window.addEventListener("storage", onStorage);
-
-    return () => {
-      window.removeEventListener("focus", onFocus);
-      window.removeEventListener("popstate", onPop);
-      window.removeEventListener("storage", onStorage);
-    };
-  }, []);
+  // No client-side persistent vote cache; rely on server state.
 
   useEffect(
     () => () => {
@@ -334,7 +245,6 @@ export default function UserProfile() {
   const handleVote = async (postId, action) => {
     try {
       await PostsApi.votePost(postId, action);
-      setPostLocalVote(postId, action);
       setPosts(currentPosts =>
         currentPosts.map(post => {
           if (post.id !== postId) {

@@ -8,64 +8,7 @@ import { PostsApi } from "../api/posts.js";
 import { UsersApi } from "../api/users.js";
 import { useUser } from "../auth/useUser.jsx";
 
-// Local storage key for client-side vote cache
-const LOCAL_VOTES_KEY = "wasl.localPostVotes";
-
-function readLocalVotes() {
-  try {
-    return JSON.parse(localStorage.getItem(LOCAL_VOTES_KEY) || "{}");
-  } catch {
-    return {};
-  }
-}
-
-function writeLocalVotes(map) {
-  try {
-    localStorage.setItem(LOCAL_VOTES_KEY, JSON.stringify(map));
-  } catch {
-    /* ignore */
-  }
-}
-
-function setPostLocalVote(postId, action) {
-  const map = readLocalVotes();
-  if (action === "NONE") {
-    delete map[String(postId)];
-  } else {
-    map[String(postId)] = action;
-  }
-  writeLocalVotes(map);
-}
-
-function applyLocalVotesToPosts(posts) {
-  const map = readLocalVotes();
-  return (posts || []).map(p => {
-    const action = map[String(p.id)];
-    if (!action) return p;
-
-    const previousVote =
-      p.vote ?? (p.upvoted ? "UPVOTE" : p.downvoted ? "DOWNVOTE" : "NONE");
-
-    let scoreDelta;
-    if (previousVote === action) scoreDelta = 0;
-    else if (previousVote === "NONE") scoreDelta = action === "UPVOTE" ? 1 : -1;
-    else if (action === "NONE") scoreDelta = previousVote === "UPVOTE" ? -1 : 1;
-    else scoreDelta = action === "UPVOTE" ? 2 : -2;
-
-    const nextScore =
-      typeof p.score === "number" && Number.isFinite(p.score)
-        ? p.score + scoreDelta
-        : p.score;
-
-    return {
-      ...p,
-      vote: action,
-      upvoted: action === "UPVOTE",
-      downvoted: action === "DOWNVOTE",
-      score: nextScore,
-    };
-  });
-}
+// No client-side persistence for votes — rely on server state.
 
 export default function PostsPage() {
   const navigate = useNavigate();
@@ -120,14 +63,13 @@ export default function PostsPage() {
           sort: ["createdAt,desc"],
         });
 
-        // sort and apply local votes locally (no api changes required)
+        // sort by createdAt desc from server response
         const sorted = (response?.content ?? []).slice().sort((a, b) => {
           const at = new Date(a.createdAt).getTime();
           const bt = new Date(b.createdAt).getTime();
           return bt - at;
         });
-
-        setPosts(applyLocalVotesToPosts(sorted));
+        setPosts(sorted);
       } catch (err) {
         console.error("Failed to fetch posts:", err);
         setError("Failed to load posts.");
@@ -155,14 +97,12 @@ export default function PostsPage() {
       const bt = new Date(b.createdAt).getTime();
       return bt - at;
     });
-
-    setPosts(applyLocalVotesToPosts(sorted));
+    setPosts(sorted);
   };
 
   const handleVote = async (postId, action) => {
     try {
       await PostsApi.votePost(postId, action);
-      setPostLocalVote(postId, action);
       await refreshPosts();
     } catch (err) {
       console.error("Failed to vote on post:", err);

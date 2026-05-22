@@ -26,92 +26,7 @@ import { useUser } from "../auth/useUser.jsx";
 
 const communityIconCache = new Map();
 
-// Local storage key for client-side vote cache (PostDetail uses it too)
-const LOCAL_VOTES_KEY = "wasl.localPostVotes";
-
-function readLocalVotes() {
-  try {
-    return JSON.parse(localStorage.getItem(LOCAL_VOTES_KEY) || "{}");
-  } catch {
-    return {};
-  }
-}
-
-function writeLocalVotes(map) {
-  try {
-    localStorage.setItem(LOCAL_VOTES_KEY, JSON.stringify(map));
-  } catch {
-    /* ignore */
-  }
-}
-
-function setPostLocalVote(postId, action) {
-  const map = readLocalVotes();
-  if (action === "NONE") {
-    delete map[String(postId)];
-  } else {
-    map[String(postId)] = action;
-  }
-  writeLocalVotes(map);
-}
-
-// Comment-local vote cache (keeps client-side vote intent for comments)
-const LOCAL_COMMENT_VOTES_KEY = "wasl.localCommentVotes";
-
-function readCommentLocalVotes() {
-  try {
-    return JSON.parse(localStorage.getItem(LOCAL_COMMENT_VOTES_KEY) || "{}");
-  } catch {
-    return {};
-  }
-}
-
-function writeCommentLocalVotes(map) {
-  try {
-    localStorage.setItem(LOCAL_COMMENT_VOTES_KEY, JSON.stringify(map));
-  } catch {
-    /* ignore */
-  }
-}
-
-function setCommentLocalVote(commentId, action) {
-  const map = readCommentLocalVotes();
-  if (action === "NONE") {
-    delete map[String(commentId)];
-  } else {
-    map[String(commentId)] = action;
-  }
-  writeCommentLocalVotes(map);
-}
-
-function applyLocalVotesToComments(comments) {
-  const map = readCommentLocalVotes();
-  return (comments || []).map(c => {
-    const action = map[String(c.id)];
-    if (!action) return c;
-
-    const previousVote =
-      c.vote ?? (c.upvoted ? "UPVOTE" : c.downvoted ? "DOWNVOTE" : "NONE");
-    let scoreDelta;
-    if (previousVote === action) scoreDelta = 0;
-    else if (previousVote === "NONE") scoreDelta = action === "UPVOTE" ? 1 : -1;
-    else if (action === "NONE") scoreDelta = previousVote === "UPVOTE" ? -1 : 1;
-    else scoreDelta = action === "UPVOTE" ? 2 : -2;
-
-    const nextScore =
-      typeof c.score === "number" && Number.isFinite(c.score)
-        ? c.score + scoreDelta
-        : c.score;
-
-    return {
-      ...c,
-      vote: action,
-      upvoted: action === "UPVOTE",
-      downvoted: action === "DOWNVOTE",
-      score: nextScore,
-    };
-  });
-}
+// No client-side persistent vote cache in localStorage; use server and component state only
 
 function normalizeCommunitySlug(value) {
   return String(value || "")
@@ -149,7 +64,7 @@ export default function PostDetailPage() {
       ]);
 
       setPost(postResponse);
-      setComments(applyLocalVotesToComments(commentsResponse?.comments ?? []));
+      setComments(commentsResponse?.comments ?? []);
     } catch (err) {
       console.error("Failed to load post detail:", err);
       setError("Failed to load post details.");
@@ -179,7 +94,6 @@ export default function PostDetailPage() {
 
     try {
       await PostsApi.votePost(post.id, action);
-      setPostLocalVote(post.id, action);
       await loadPost();
     } catch (err) {
       console.error("Failed to vote on post:", err);
@@ -189,12 +103,11 @@ export default function PostDetailPage() {
   const handleCommentVote = async (commentId, action) => {
     try {
       await CommentsApi.voteComment(commentId, action);
-      setCommentLocalVote(commentId, action);
       const commentsResponse = await PostsApi.listPostComments(postId, {
         page: 0,
         size: 20,
       });
-      setComments(applyLocalVotesToComments(commentsResponse?.comments ?? []));
+      setComments(commentsResponse?.comments ?? []);
     } catch (err) {
       console.error("Failed to vote on comment:", err);
     }
