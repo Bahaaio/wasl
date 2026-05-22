@@ -47,7 +47,7 @@
  */
 
 /**
- * @typedef {"top" | "latest" | "hot"} SearchSort
+ * @typedef {"top" | "latest" | "hot"} SortOrder
  */
 
 /**
@@ -221,10 +221,6 @@
  * @typedef {Object} PagedModelCommentDto
  * @property {CommentDto[]} content
  * @property {PageMetadata} page
- */
-
-/**
- * @typedef {"latest" | "top" | "hot"} FeedSort
  */
 
 /**
