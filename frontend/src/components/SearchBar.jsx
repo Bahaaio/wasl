@@ -96,8 +96,9 @@ export default function SearchBar({ className = "", communityName = null }) {
             posts: postsRes?.content ?? [],
             users: usersRes?.content ?? [],
           });
-          // reset highlight when new results arrive
-          setHighlightedIndex(0);
+          // do not auto-highlight the first result; wait for explicit
+          // keyboard (arrow) or mouse navigation before setting highlight
+          setHighlightedIndex(-1);
         }
       } catch {
         if (requestIdRef.current !== currentRequestId) {
@@ -208,6 +209,7 @@ export default function SearchBar({ className = "", communityName = null }) {
           }
 
           if (event.key === "Enter") {
+            // If the menu is open and a result is highlighted, activate it.
             if (
               isOpen &&
               flattenedResults.length > 0 &&
@@ -218,7 +220,16 @@ export default function SearchBar({ className = "", communityName = null }) {
               return;
             }
 
-            if (query.trim().length > 0) {
+            // If the menu is open but the user hasn't moved highlight (still -1),
+            // treat Enter as submit -> go to search results page.
+            if (isOpen && highlightedIndex === -1 && query.trim().length > 0) {
+              event.preventDefault();
+              navigate(`/search?q=${encodeURIComponent(query.trim())}`);
+              return;
+            }
+
+            // Fallback: when menu closed, still allow Enter to go to search results.
+            if (!isOpen && query.trim().length > 0) {
               navigate(`/search?q=${encodeURIComponent(query.trim())}`);
             }
           }
@@ -246,7 +257,7 @@ export default function SearchBar({ className = "", communityName = null }) {
                   <p className="px-2 py-1 text-[11px] uppercase tracking-[0.12em] text-slate-500">
                     Communities
                   </p>
-                  {results.communities.map((community, idx) => {
+                  {results.communities.map(community => {
                     // find flattened index for highlighting
                     const index = flattenedResults.findIndex(
                       e => e.type === "community" && e.id === community.id
