@@ -1,10 +1,11 @@
-package com.github.bahaaio.wasl.community.config;
+package com.github.bahaaio.wasl.bootstrap;
 
 import com.github.bahaaio.wasl.community.model.CommunityCategory;
 import com.github.bahaaio.wasl.community.repository.CommunityCategoryRepository;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 
 import java.util.List;
 
@@ -14,9 +15,10 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Seeder to initialize community categories if they don't exist.
  */
-@Configuration
-@RequiredArgsConstructor
 @Slf4j
+@RequiredArgsConstructor
+@Order(2)
+@Configuration
 public class CommunityCategorySeeder implements CommandLineRunner {
     private static final List<String> CATEGORY_NAMES = List.of(
         "Technology",
