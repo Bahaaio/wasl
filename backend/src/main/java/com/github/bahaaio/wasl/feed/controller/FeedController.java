@@ -30,9 +30,12 @@ public class FeedController {
         @RequestParam(value = "cursorCreatedAt", required = false) Instant cursorCreatedAt,
         @RequestParam(value = "cursorId", required = false) Long cursorId,
         @RequestParam(value = "cursorScore", required = false) Long cursorScore,
-        @ParameterObject Pageable pageable
+        @RequestParam(value = "page", defaultValue = "0") int page,
+        @RequestParam(value = "size", defaultValue = "20") int size
     ) {
         var username = authentication != null ? authentication.getName() : null;
+        var pageable = Pageable.ofSize(size).withPage(page);
+
         return ResponseEntity.ok(
             feedService.getFeed(username, sort, cursorCreatedAt, cursorId, cursorScore, pageable)
         );
