@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import AppLayout from "../components/AppLayout.jsx";
 import PostCard from "../components/PostCard.jsx";
 import { SearchApi } from "../api/search.js";
@@ -114,7 +114,11 @@ export default function SearchResults() {
                   <div className="p-6 text-slate-400">No content shown.</div>
                 ) : (
                   communities.map(c => (
-                    <div key={c.id} className="flex items-center gap-3 p-3">
+                    <Link
+                      key={c.id}
+                      to={`/r/${encodeURIComponent(c.name)}`}
+                      className="flex items-center gap-3 rounded-xl p-3 transition-colors hover:bg-slate-900"
+                    >
                       {c.iconMediaId ? (
                         <img
                           src={MediaApi.getThumbnailMediaUrl(c.iconMediaId)}
@@ -132,7 +136,7 @@ export default function SearchResults() {
                           {c.description?.slice(0, 120)}
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   ))
                 )}
               </div>
@@ -177,7 +181,11 @@ export default function SearchResults() {
                   <div className="p-6 text-slate-400">No content shown.</div>
                 ) : (
                   users.map(u => (
-                    <div key={u.id} className="flex items-center gap-3 p-3">
+                    <Link
+                      key={u.id}
+                      to={`/u/${encodeURIComponent(u.username)}`}
+                      className="flex items-center gap-3 rounded-xl p-3 transition-colors hover:bg-slate-900"
+                    >
                       {u.avatarMediaId ? (
                         <img
                           src={MediaApi.getThumbnailMediaUrl(u.avatarMediaId)}
@@ -195,7 +203,7 @@ export default function SearchResults() {
                           {u.bio?.slice(0, 120)}
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   ))
                 )}
               </div>
