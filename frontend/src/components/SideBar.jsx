@@ -120,6 +120,10 @@ function SideBarContent({
   openSections,
   toggleSection,
   joinedCommunities,
+  visibleCommunities,
+  canShowMoreCommunities,
+  showAllCommunities,
+  onToggleCommunities,
   isLoadingCommunities,
   communityCountText,
   onNavigate,
@@ -173,13 +177,22 @@ function SideBarContent({
             </div>
           ) : isLoggedIn && joinedCommunities.length > 0 ? (
             <div className="space-y-1">
-              {joinedCommunities.map(community => (
+              {visibleCommunities.map(community => (
                 <CommunityItem
                   key={community.id || community.name}
                   community={community}
                   onClick={onNavigate}
                 />
               ))}
+              {canShowMoreCommunities && (
+                <button
+                  type="button"
+                  onClick={onToggleCommunities}
+                  className="mt-2 w-full rounded-xl border border-slate-800 bg-slate-900/70 px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:border-slate-700 hover:bg-slate-800"
+                >
+                  {showAllCommunities ? "Show less" : "Show more"}
+                </button>
+              )}
             </div>
           ) : (
             <div className="rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-3 text-sm text-slate-400">
@@ -205,6 +218,7 @@ export default function SideBar() {
   });
   const [joinedCommunities, setJoinedCommunities] = useState([]);
   const [isLoadingCommunities, setIsLoadingCommunities] = useState(false);
+  const [showAllCommunities, setShowAllCommunities] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -277,6 +291,16 @@ export default function SideBar() {
     setIsDrawerOpen(false);
   };
 
+  const visibleCommunities = useMemo(() => {
+    if (showAllCommunities) {
+      return joinedCommunities;
+    }
+
+    return joinedCommunities.slice(0, 3);
+  }, [joinedCommunities, showAllCommunities]);
+
+  const canShowMoreCommunities = joinedCommunities.length > 3;
+
   const communityCountText = useMemo(() => {
     if (!isLoggedIn) {
       return "Log in to see your communities";
@@ -293,6 +317,10 @@ export default function SideBar() {
     openSections,
     toggleSection,
     joinedCommunities,
+    visibleCommunities,
+    canShowMoreCommunities,
+    showAllCommunities,
+    onToggleCommunities: () => setShowAllCommunities(previous => !previous),
     isLoadingCommunities,
     communityCountText,
     onNavigate: handleNavigate,
