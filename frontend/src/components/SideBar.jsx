@@ -149,13 +149,6 @@ function SideBarContent({
       >
         <div className="space-y-2">
           <NavItem
-            to="/create-post"
-            icon={<Plus className="h-4 w-4" />}
-            label="Create Post"
-            active={location.pathname === "/create-post"}
-            onClick={onNavigate}
-          />
-          <NavItem
             to="/create-community"
             icon={<Plus className="h-4 w-4" />}
             label="Create Community"

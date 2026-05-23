@@ -9,12 +9,8 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
   CalendarDays,
-  ChevronDown,
   Ellipsis,
   Globe,
-  Pin,
-  Plus,
-  Rows3,
   Shield,
   ShieldCheck,
 } from "lucide-react";
@@ -91,9 +87,6 @@ export default function CommunityProfilePage() {
         : communityFromState?.visibility || "public",
   };
 
-  const highlights = Array.isArray(communityFromState?.highlights)
-    ? communityFromState.highlights
-    : [];
   const rules = Array.isArray(communityFromState?.rules)
     ? communityFromState.rules
     : [];
@@ -102,7 +95,6 @@ export default function CommunityProfilePage() {
     : [];
   const memberCount =
     communityData?.subscribersCount ?? communityFromState?.memberCount;
-  const onlineCount = communityFromState?.onlineCount;
   const createdAtLabel =
     communityFromState?.createdAtLabel ||
     formatDateLabel(communityData?.createdAt);
@@ -187,15 +179,6 @@ export default function CommunityProfilePage() {
       mounted = false;
     };
   }, [slug, isLoggedIn]);
-
-  const handleCreatePost = () => {
-    setActionError("");
-    if (!isJoined) {
-      setActionError("Join this community before creating a post.");
-      return;
-    }
-    navigate("/create-post");
-  };
 
   const handleJoinToggle = async () => {
     setActionError("");
@@ -414,18 +397,12 @@ export default function CommunityProfilePage() {
                 </div>
 
                 <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-slate-800/90 pt-4">
-                  <div className="grid grid-cols-3 gap-6 text-sm">
+                  <div className="grid grid-cols-2 gap-6 text-sm">
                     <div>
                       <p className="text-xl font-bold text-white">
                         {memberCount ?? "-"}
                       </p>
                       <p className="text-slate-400">members</p>
-                    </div>
-                    <div>
-                      <p className="text-xl font-bold text-white">
-                        {onlineCount ?? "-"}
-                      </p>
-                      <p className="text-slate-400">online</p>
                     </div>
                     <div>
                       <p className="inline-flex items-center gap-2 text-slate-300">
@@ -441,14 +418,6 @@ export default function CommunityProfilePage() {
 
                   <div className="flex items-center gap-3">
                     <CommunityRoleBanner communityName={slug} />
-                    <button
-                      type="button"
-                      onClick={handleCreatePost}
-                      className="inline-flex items-center gap-2 rounded-full border border-slate-600 bg-slate-800 px-5 py-2.5 text-sm font-semibold text-white transition hover:border-orange-400/60 hover:bg-slate-700"
-                    >
-                      <Plus className="h-4 w-4" />
-                      <span>Create Post</span>
-                    </button>
                     <button
                       type="button"
                       onClick={handleJoinToggle}
@@ -483,82 +452,13 @@ export default function CommunityProfilePage() {
                   <SearchBar communityName={slug} className="max-w-full" />
                 </div>
 
-                <div className="mb-4 flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3 text-sm font-semibold text-slate-300">
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      className="inline-flex items-center gap-1.5"
-                    >
-                      <span>Best</span>
-                      <ChevronDown className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      className="inline-flex items-center gap-1.5 text-slate-500 hover:text-orange-300"
-                    >
-                      <Rows3 className="h-4 w-4" />
-                      <ChevronDown className="h-4 w-4" />
-                    </button>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleCreatePost}
-                    className="rounded-full border border-slate-700/80 bg-slate-800/70 px-4 py-1.5 text-xs font-semibold tracking-wide text-slate-300 transition-colors hover:border-orange-500/40 hover:text-orange-200"
-                  >
-                    New Post
-                  </button>
-                </div>
-
                 {(pageError || actionError) && (
                   <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
                     {pageError || actionError}
                   </div>
                 )}
 
-                <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-4">
-                  <div className="mb-3 flex items-center justify-between">
-                    <div className="inline-flex items-center gap-2 text-slate-100">
-                      <Pin className="h-4 w-4" />
-                      <span className="text-2xl font-semibold">
-                        Community highlights
-                      </span>
-                    </div>
-                    <ChevronDown className="h-4 w-4 text-slate-500" />
-                  </div>
-
-                  {highlights.length === 0 ? (
-                    <div className="rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-6 text-sm text-slate-400">
-                      No highlights yet.
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-                      {highlights.map((item, index) => (
-                        <article
-                          key={`${item.title || "highlight"}-${index}`}
-                          className="relative min-h-48 overflow-hidden rounded-3xl border border-slate-700 bg-black p-4 transition hover:border-orange-500/60"
-                        >
-                          <h3 className="relative z-10 text-xl font-bold leading-tight text-white">
-                            {item.title || "Community update"}
-                          </h3>
-                          <p className="relative z-10 mt-3 text-sm text-slate-300">
-                            {item.date || "-"}
-                          </p>
-                          <div className="relative z-10 mt-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-orange-400 text-slate-900">
-                            {index === 0 ? (
-                              <Shield className="h-5 w-5" />
-                            ) : (
-                              <Globe className="h-5 w-5" />
-                            )}
-                          </div>
-                          <div className="absolute inset-0 bg-black/60" />
-                        </article>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="mt-4 space-y-3">
+                <div className="space-y-3">
                   {isLoading ? (
                     <article className="rounded-xl border border-slate-800 bg-slate-900/80 p-6 text-slate-400">
                       Loading community posts...
@@ -606,23 +506,13 @@ export default function CommunityProfilePage() {
                       </div>
                     </div>
 
-                    <div className="mt-5 grid grid-cols-2 gap-4 border-t border-slate-800 pt-4">
-                      <div>
-                        <p className="text-2xl font-extrabold text-white">
-                          {memberCount ?? "-"}
-                        </p>
-                        <p className="text-xs uppercase tracking-wider text-slate-400">
-                          members
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-2xl font-extrabold text-white">
-                          {onlineCount ?? "-"}
-                        </p>
-                        <p className="text-xs uppercase tracking-wider text-slate-400">
-                          online
-                        </p>
-                      </div>
+                    <div className="mt-5 border-t border-slate-800 pt-4">
+                      <p className="text-2xl font-extrabold text-white">
+                        {memberCount ?? "-"}
+                      </p>
+                      <p className="text-xs uppercase tracking-wider text-slate-400">
+                        members
+                      </p>
                     </div>
                   </div>
                 </div>

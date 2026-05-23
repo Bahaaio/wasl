@@ -86,7 +86,6 @@ export default function CreateCommunityPage() {
   }, []);
   const [form, setForm] = useState({
     name: "",
-    displayName: "",
     description: "",
     category: "Technology",
     visibility: "public",
@@ -107,7 +106,6 @@ export default function CreateCommunityPage() {
   const canContinueStepOne =
     communitySlug.length >= 3 &&
     communitySlug.length <= 21 &&
-    form.displayName.trim().length >= 3 &&
     form.description.trim().length >= 20;
 
   const handleChange = event => {
@@ -127,7 +125,7 @@ export default function CreateCommunityPage() {
   const handleNext = () => {
     if (step === 1 && !canContinueStepOne) {
       setFormError(
-        "Choose a valid community name, display name, and description first."
+        "Choose a valid community name and description first."
       );
       return;
     }
@@ -148,7 +146,7 @@ export default function CreateCommunityPage() {
 
     if (!canContinueStepOne) {
       setFormError(
-        "Choose a valid community name, display name, and description first."
+        "Choose a valid community name and description first."
       );
       setStep(1);
       return;
@@ -175,7 +173,7 @@ export default function CreateCommunityPage() {
         // Map server response into local shape used by the UI
         const nextCommunity = {
           slug: created.name || communitySlug,
-          displayName: form.displayName.trim(),
+          displayName: communitySlug,
           description: created.description || form.description.trim(),
           category: created.categoryName || form.category,
           visibility: created.isPublic ? "public" : "private",
@@ -320,7 +318,6 @@ export default function CreateCommunityPage() {
                                 setStep(1);
                                 setForm({
                                   name: "",
-                                  displayName: "",
                                   description: "",
                                   category: "Technology",
                                   visibility: "public",
@@ -362,21 +359,6 @@ export default function CreateCommunityPage() {
                             <p className="mt-2 text-xs text-slate-500">
                               3 to 21 characters, no spaces or special symbols.
                             </p>
-                          </div>
-
-                          <div>
-                            <label className="mb-2 block text-sm font-medium text-slate-300">
-                              Display name
-                            </label>
-                            <input
-                              type="text"
-                              name="displayName"
-                              value={form.displayName}
-                              onChange={handleChange}
-                              placeholder="A friendly name for your community"
-                              className="w-full rounded-2xl border border-slate-700 bg-slate-950/80 px-4 py-4 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 transition-all"
-                              maxLength="60"
-                            />
                           </div>
 
                           <div>
@@ -493,8 +475,7 @@ export default function CreateCommunityPage() {
                                   r/{communitySlug || "yourcommunity"}
                                 </h2>
                                 <p className="mt-2 text-slate-400">
-                                  {form.displayName ||
-                                    "Your community display name"}
+                                  r/{communitySlug || "yourcommunity"}
                                 </p>
                                 <p className="mt-3 text-sm text-slate-300 leading-relaxed">
                                   {form.description ||

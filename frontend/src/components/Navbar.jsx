@@ -4,7 +4,6 @@ import {
   MessageSquare,
   Menu,
   Edit3,
-  Plus,
   LogOut,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -100,17 +99,6 @@ export default function Navbar({ transparentMode = false }) {
             </div>
 
             <div className="flex flex-1 items-center justify-end gap-3 sm:gap-4">
-              {isLoggedIn && (
-                <button
-                  type="button"
-                  onClick={() => navigate("/create-post")}
-                  className="hidden sm:inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-semibold text-slate-100 transition-colors hover:border-orange-500/50 hover:bg-slate-800"
-                >
-                  <Plus className="h-4 w-4" />
-                  Create Post
-                </button>
-              )}
-
               <div className="relative" ref={profileRef}>
                 {isLoggedIn ? (
                   <button
