@@ -994,16 +994,7 @@ export default function UserProfile() {
               </h1>
             </div>
 
-            <div className="mt-4 flex flex-wrap gap-2 sm:absolute sm:right-6 sm:top-5 sm:mt-0">
-              {isOwnProfile && (
-                <button className="px-4 py-2 bg-slate-800/80 text-slate-100 rounded-lg border border-slate-700 hover:bg-slate-700 hover:border-orange-500/50 transition-all">
-                  Edit profile
-                </button>
-              )}
-              <button className="px-4 py-2 bg-linear-to-r from-orange-500 to-red-600 text-white rounded-lg hover:from-orange-400 hover:to-red-500 shadow-lg hover:shadow-orange-500/50 transition-all">
-                {isOwnProfile ? "Your Profile" : "Follow"}
-              </button>
-            </div>
+            <div className="mt-4 sm:absolute sm:right-6 sm:top-5 sm:mt-0" />
           </div>
 
           {/* Tabs */}
