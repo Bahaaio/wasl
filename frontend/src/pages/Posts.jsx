@@ -1,17 +1,13 @@
 /** @typedef {import("../api/types.js").PostDto} PostDto */
-/** @typedef {import("../api/types.js").PostFeedResponse} PostFeedResponse */
 import { useEffect, useState } from "react";
 import AppLayout from "../components/AppLayout.jsx";
 import PostCard from "../components/PostCard.jsx";
 import { FeedApi } from "../api/feed.js";
 import { PostsApi } from "../api/posts.js";
-import { useUser } from "../auth/useUser.jsx";
-import { getAccessToken } from "../auth/store.js";
 
 // No client-side persistence for votes — rely on server state.
 
 export default function PostsPage() {
-  const { user } = useUser();
   const [posts, setPosts] = useState([]);
   const [page, setPage] = useState(0);
   const [hasNext, setHasNext] = useState(false);
