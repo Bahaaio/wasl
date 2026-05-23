@@ -451,7 +451,7 @@ export default function CreatePostPage() {
   return (
     <>
       <AuthModal isOpen={showAuthModal} onClose={handleAuthModalClose} />
-      <AppLayout contentMaxWidth="max-w-2xl">
+      <AppLayout contentMaxWidth="max-w-2xl" showSidebar={false}>
           {/* Header with Create post and Drafts */}
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-3">

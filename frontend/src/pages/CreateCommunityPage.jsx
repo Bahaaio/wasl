@@ -212,6 +212,7 @@ export default function CreateCommunityPage() {
       contentMaxWidth="max-w-6xl"
       className="text-slate-50 selection:bg-orange-500/30"
       mainClassName="relative pb-16"
+      showSidebar={false}
     >
       {showAuthModal && <AuthModal onClose={handleAuthModalClose} />}
 

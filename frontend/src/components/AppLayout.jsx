@@ -7,6 +7,7 @@ export default function AppLayout({
   contentClassName = "",
   mainClassName = "",
   className = "",
+  showSidebar = true,
 }) {
   return (
     <div
@@ -14,13 +15,15 @@ export default function AppLayout({
     >
       <Navbar />
 
-      <div className="flex min-h-[calc(100vh-4rem)] w-full flex-1 items-stretch gap-6 pt-16">
-        {/* Sidebar column — stretches with page so sticky sidebar can follow scroll */}
-        <div className="w-0 shrink-0 lg:w-64">
-          <SideBar />
-        </div>
+      <div
+        className={`flex min-h-[calc(100vh-4rem)] w-full flex-1 items-stretch pt-16 ${showSidebar ? "gap-6" : ""}`}
+      >
+        {showSidebar && (
+          <div className="w-0 shrink-0 lg:w-64">
+            <SideBar />
+          </div>
+        )}
 
-        {/* Feed column — style posts/pages here, independent of sidebar */}
         <div className="flex min-w-0 flex-1 justify-center px-4 pb-8 pt-4 sm:px-6 lg:px-8">
           <main className={`flex w-full justify-center ${mainClassName}`}>
             <div className={`w-full ${contentMaxWidth} ${contentClassName}`}>

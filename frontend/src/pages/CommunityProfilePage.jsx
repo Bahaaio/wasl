@@ -330,6 +330,7 @@ export default function CommunityProfilePage() {
       contentMaxWidth="max-w-none"
       className="selection:bg-orange-500/30"
       mainClassName="pb-12"
+      showSidebar={false}
     >
         <input
           ref={bannerInputRef}
