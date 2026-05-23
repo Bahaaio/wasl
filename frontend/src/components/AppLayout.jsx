@@ -14,9 +14,9 @@ export default function AppLayout({
     >
       <Navbar />
 
-      <div className="flex min-h-[calc(100vh-4rem)] w-full flex-1 items-start gap-6 pt-16">
-        {/* Sidebar column — style in SideBar.jsx only */}
-        <div className="shrink-0">
+      <div className="flex min-h-[calc(100vh-4rem)] w-full flex-1 items-stretch gap-6 pt-16">
+        {/* Sidebar column — stretches with page so sticky sidebar can follow scroll */}
+        <div className="w-0 shrink-0 lg:w-64">
           <SideBar />
         </div>
 

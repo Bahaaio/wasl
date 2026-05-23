@@ -350,7 +350,7 @@ export default function SideBar() {
       </aside>
 
       <aside
-        className="sidebar-scroll sticky top-16 hidden h-[calc(100vh-4rem)] w-64 shrink-0 flex-col overflow-y-auto pb-4 pt-4 lg:flex"
+        className="sidebar-scroll sticky top-16 z-10 hidden h-[calc(100vh-4rem)] w-64 flex-col overflow-y-auto self-start pb-4 pt-4 lg:flex"
         aria-label="Sidebar navigation"
       >
         <SideBarContent {...contentProps} />
