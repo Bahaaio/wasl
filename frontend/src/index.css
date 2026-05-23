@@ -1,6 +1,14 @@
 @import "tailwindcss";
 
+html,
+#root {
+  min-height: 100%;
+  background-color: #020617;
+}
+
 body {
+  min-height: 100%;
+  background-color: #020617;
   font-family: "Sora", "Segoe UI", sans-serif;
   scrollbar-width: thin;
   scrollbar-color: rgba(148, 163, 184, 0) transparent;

@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar.jsx";
 import SideBar from "../components/SideBar.jsx";
-import SearchBar from "../components/SearchBar.jsx";
 import PostCard from "../components/PostCard.jsx";
-// SearchBar intentionally removed from this page — header shows query instead
 import { SearchApi } from "../api/search.js";
 import { MediaApi } from "../api/media.js";
 
@@ -14,20 +12,13 @@ function useQuery() {
 }
 
 export default function SearchResults() {
-  const navigate = useNavigate();
-  const q = useQuery().get("q") || "";
-  const [query, setQuery] = useState(q);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const query = useQuery().get("q") || "";
   const [activeTab, setActiveTab] = useState("posts");
   const [isLoading, setIsLoading] = useState(false);
   const [posts, setPosts] = useState([]);
   const [communities, setCommunities] = useState([]);
   const [users, setUsers] = useState([]);
   const [comments, setComments] = useState([]);
-
-  useEffect(() => {
-    setQuery(q);
-  }, [q]);
 
   useEffect(() => {
     if (!query) {
@@ -63,16 +54,13 @@ export default function SearchResults() {
     return () => window.clearTimeout(id);
   }, [query]);
 
-  // Search navigation is handled by `SearchBar` (Enter -> /search?q=...)
-
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
+    <div className="min-h-dvh bg-slate-950 text-slate-100">
       <Navbar />
-      <div className="relative flex min-h-[calc(100vh-4rem)]">
-        <SideBar isOpen={true} setIsOpen={() => {}} />
-
-        <main className="flex-1 px-0 pt-24 pb-8">
-          <div className="w-full max-w-6xl mx-auto">
+      <div className="lg:flex lg:items-start">
+        <SideBar />
+        <main className="min-h-[calc(100dvh-4rem)] px-4 pb-8 pt-24 sm:px-6 lg:min-w-0 lg:flex-1 lg:px-8">
+          <div className="mx-auto w-full max-w-6xl">
             <div className="mb-6">
               <h1 className="text-2xl font-semibold text-slate-100">
                 Search results for "{query}"
@@ -80,7 +68,7 @@ export default function SearchResults() {
             </div>
 
             <div className="mb-4">
-              <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex flex-wrap items-center gap-3">
                 <Tab
                   label="Posts"
                   active={activeTab === "posts"}
@@ -158,7 +146,7 @@ export default function SearchResults() {
                           <div className="text-sm text-slate-200 line-clamp-3">
                             {cm.content}
                           </div>
-                          <div className="text-xs text-slate-500 mt-2">
+                          <div className="mt-2 text-xs text-slate-500">
                             In r/{cm.communityName} • {cm.username}
                           </div>
                         </div>
@@ -210,8 +198,6 @@ export default function SearchResults() {
             </section>
           </div>
         </main>
-
-        {/* Right-hand communities aside removed per user request */}
       </div>
     </div>
   );

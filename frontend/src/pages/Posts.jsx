@@ -2,8 +2,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar.jsx";
-import PostCard from "../components/PostCard.jsx";
 import SideBar from "../components/SideBar.jsx";
+import PostCard from "../components/PostCard.jsx";
 import { PostsApi } from "../api/posts.js";
 import { UsersApi } from "../api/users.js";
 import { useUser } from "../auth/useUser.jsx";
@@ -13,9 +13,6 @@ import { useUser } from "../auth/useUser.jsx";
 export default function PostsPage() {
   const navigate = useNavigate();
   const { user } = useUser();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(
-    () => window.innerWidth >= 1024
-  );
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -113,12 +110,11 @@ export default function PostsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
+    <div className="min-h-dvh bg-slate-950 text-slate-100">
       <Navbar />
-      <div className="relative flex min-h-[calc(100vh-4rem)]">
-        <SideBar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
-
-        <main className="flex-1 px-4 sm:px-6 lg:px-8 pt-24 pb-0 lg:pr-96">
+      <div className="lg:flex lg:items-start">
+        <SideBar />
+        <main className="min-h-[calc(100dvh-4rem)] px-4 pb-0 pt-24 sm:px-6 lg:min-w-0 lg:flex-1 lg:px-8">
           <div className="max-w-3xl space-y-4">
             {!user?.username ? (
               <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 text-slate-300">
@@ -159,27 +155,6 @@ export default function PostsPage() {
             )}
           </div>
         </main>
-
-        <aside className="hidden lg:block w-80 shrink-0 fixed right-0 top-16 h-[calc(100vh-4rem)] pr-6">
-          <div className="h-full space-y-4 pt-8 pb-6">
-            <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg shadow-black/20">
-              <h3 className="text-lg font-semibold text-white mb-3">
-                Trending now
-              </h3>
-              <div className="space-y-3 text-sm text-slate-300">
-                <p className="rounded-xl bg-slate-950/60 px-3 py-3 border border-slate-800">
-                  #ReactOptimization
-                </p>
-                <p className="rounded-xl bg-slate-950/60 px-3 py-3 border border-slate-800">
-                  #FrontendTips
-                </p>
-                <p className="rounded-xl bg-slate-950/60 px-3 py-3 border border-slate-800">
-                  #UIAnimation
-                </p>
-              </div>
-            </section>
-          </div>
-        </aside>
       </div>
     </div>
   );

@@ -1,202 +1,322 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ChevronDown,
-  CircleHelp,
-  Compass,
-  Flame,
+  ChevronRight,
   Home,
   Menu,
-  Newspaper,
-  Share2,
+  Plus,
+  X,
   Users,
-  BookOpen,
-  Rocket,
 } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { useUser } from "../auth/useUser.jsx";
+import { UsersApi } from "../api/users.js";
+import { MediaApi } from "../api/media.js";
 
-export default function SideBar({ isOpen, setIsOpen }) {
-  const [resourcesOpen, setResourcesOpen] = useState(true);
-  const sidebarRef = useRef(null);
+function normalizeCommunitySlug(value) {
+  return String(value || "")
+    .trim()
+    .replace(/^r\//i, "");
+}
 
-  useEffect(() => {
-    const sidebar = sidebarRef.current;
-    if (!sidebar) {
-      return undefined;
+async function loadAllSubscribedCommunities() {
+  const firstPage = await UsersApi.listSubscribedCommunities({
+    page: 0,
+    size: 100,
+    sort: ["name,asc"],
+  });
+
+  let nextCommunities = firstPage?.content ?? [];
+  const totalPages = firstPage?.page?.totalPages ?? 1;
+
+  if (totalPages > 1) {
+    const pageRequests = [];
+
+    for (let pageNumber = 1; pageNumber < totalPages; pageNumber += 1) {
+      pageRequests.push(
+        UsersApi.listSubscribedCommunities({
+          page: pageNumber,
+          size: 100,
+          sort: ["name,asc"],
+        })
+      );
     }
 
-    let timeoutId;
-    const handleScroll = () => {
-      sidebar.classList.add("sidebar-scroll--active");
-      if (timeoutId) {
-        window.clearTimeout(timeoutId);
-      }
-      timeoutId = window.setTimeout(() => {
-        sidebar.classList.remove("sidebar-scroll--active");
-      }, 900);
-    };
+    const otherPages = await Promise.all(pageRequests);
+    const additional = otherPages.flatMap(page => page?.content ?? []);
+    nextCommunities = [...nextCommunities, ...additional];
+  }
 
-    sidebar.addEventListener("scroll", handleScroll, { passive: true });
+  return nextCommunities;
+}
 
-    return () => {
-      sidebar.removeEventListener("scroll", handleScroll);
-      if (timeoutId) {
-        window.clearTimeout(timeoutId);
-      }
-    };
-  }, []);
-
+function Section({ title, open, onToggle, children }) {
   return (
-    <>
-      {!isOpen && (
-        <button
-          type="button"
-          onClick={() => setIsOpen(true)}
-          className="fixed left-0 top-24 z-40 inline-flex h-12 w-10 items-center justify-center rounded-r-full border border-l-0 border-slate-800 bg-slate-900/95 text-slate-100 shadow-lg shadow-black/30 transition-colors hover:bg-slate-800"
-          aria-label="Open sidebar"
-          aria-expanded={isOpen}
-          aria-controls="posts-sidebar"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
-      )}
-
-      <div
-        className={`fixed inset-0 top-16 z-30 bg-slate-950/70 backdrop-blur-sm transition-opacity md:hidden ${
-          isOpen
-            ? "opacity-100 pointer-events-auto"
-            : "opacity-0 pointer-events-none"
-        }`}
-        onClick={() => setIsOpen(false)}
-        aria-hidden="true"
-      />
-
-      <aside
-        id="posts-sidebar"
-        ref={sidebarRef}
-        className={`sidebar-scroll fixed md:sticky left-0 top-16 bottom-0 md:bottom-auto md:h-[calc(100vh-4rem)] z-30 w-64 max-w-[80vw] shrink-0 border-r border-slate-800 bg-slate-950 overflow-y-auto transition-transform duration-300 ease-out xl:w-72 ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-        aria-hidden={!isOpen}
+    <section className="rounded-2xl border border-slate-800 bg-slate-900/80 overflow-hidden">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left"
       >
-        <button
-          type="button"
-          onClick={() => setIsOpen(current => !current)}
-          className="absolute right-1 top-6 z-50 inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-500 bg-slate-950 text-slate-100 shadow-lg shadow-black/30 transition-colors hover:bg-slate-900"
-          aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
-          aria-expanded={isOpen}
-          aria-controls="posts-sidebar"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
-
-        <div className="px-4 py-5 flex flex-col min-h-full">
-          <div className="mb-4 md:hidden">
-            <p className="text-xs uppercase tracking-[0.25em] text-slate-500">
-              Menu
-            </p>
-          </div>
-          <nav className="space-y-8 flex-1">
-            <div className="space-y-1">
-              <SidebarItem
-                icon={<Home className="w-5 h-5" />}
-                label="Home"
-                active
-              />
-              <SidebarItem
-                icon={<Compass className="w-5 h-5" />}
-                label="Popular"
-              />
-              <SidebarItem
-                icon={<Newspaper className="w-5 h-5" />}
-                label="News"
-              />
-              <SidebarItem
-                icon={<Rocket className="w-5 h-5" />}
-                label="Explore"
-              />
-            </div>
-
-            <div className="border-t border-slate-800 pt-6">
-              <button
-                type="button"
-                onClick={() => setResourcesOpen(!resourcesOpen)}
-                className="w-full flex items-center justify-between mb-4 px-2 hover:opacity-80 transition-opacity"
-              >
-                <p className="text-xs uppercase tracking-[0.25em] text-slate-500">
-                  Resources
-                </p>
-                <ChevronDown
-                  className={`w-4 h-4 text-slate-500 transition-transform ${resourcesOpen ? "rotate-180" : ""}`}
-                />
-              </button>
-              {resourcesOpen && (
-                <div className="space-y-1">
-                  <SidebarItem
-                    icon={<CircleHelp className="w-5 h-5" />}
-                    label="About WASL"
-                  />
-                  <SidebarItem
-                    icon={<Share2 className="w-5 h-5" />}
-                    label="Advertise"
-                  />
-                  <SidebarItem
-                    icon={<BookOpen className="w-5 h-5" />}
-                    label="Developer Platform"
-                  />
-                  <SidebarItem
-                    icon={<Flame className="w-5 h-5" />}
-                    label="WASL Pro"
-                    badge="BETA"
-                  />
-                  <SidebarItem
-                    icon={<CircleHelp className="w-5 h-5" />}
-                    label="Help"
-                  />
-                  <SidebarItem
-                    icon={<BookOpen className="w-5 h-5" />}
-                    label="Blog"
-                  />
-                  <SidebarItem
-                    icon={<Users className="w-5 h-5" />}
-                    label="Careers"
-                  />
-                  <SidebarItem
-                    icon={<Share2 className="w-5 h-5" />}
-                    label="Press"
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="border-t border-slate-800 pt-6">
-              <SidebarItem
-                icon={<Flame className="w-5 h-5" />}
-                label="Best of WASL"
-              />
-            </div>
-          </nav>
-        </div>
-      </aside>
-    </>
+        <span className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
+          {title}
+        </span>
+        <ChevronDown
+          className={`h-4 w-4 text-slate-500 transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+      {open && (
+        <div className="border-t border-slate-800/80 p-3">{children}</div>
+      )}
+    </section>
   );
 }
 
-function SidebarItem({ icon, label, active = false, badge }) {
+function NavItem({ to, icon, label, active, onClick }) {
   return (
-    <button
-      type="button"
-      className={`w-full flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-colors ${
+    <Link
+      to={to}
+      onClick={onClick}
+      className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition-colors ${
         active
           ? "bg-slate-800 text-white"
           : "text-slate-300 hover:bg-slate-900 hover:text-white"
       }`}
     >
       <span className={active ? "text-white" : "text-slate-400"}>{icon}</span>
-      <span className="font-medium flex-1">{label}</span>
-      {badge && (
-        <span className="text-[10px] font-bold tracking-wider text-orange-500">
-          {badge}
-        </span>
+      <span className="font-medium">{label}</span>
+      <ChevronRight className="ml-auto h-4 w-4 text-slate-500" />
+    </Link>
+  );
+}
+
+function CommunityItem({ community, onClick }) {
+  const slug = normalizeCommunitySlug(community?.name);
+  return (
+    <Link
+      to={`/r/${encodeURIComponent(slug)}`}
+      onClick={onClick}
+      className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-slate-300 transition-colors hover:bg-slate-900 hover:text-white"
+    >
+      {community?.iconMediaId ? (
+        <img
+          src={MediaApi.getThumbnailMediaUrl(community.iconMediaId)}
+          alt=""
+          className="h-8 w-8 rounded-full object-cover ring-1 ring-slate-700"
+        />
+      ) : (
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 ring-1 ring-slate-700">
+          <Users className="h-4 w-4 text-slate-400" />
+        </div>
       )}
-    </button>
+      <span className="min-w-0 flex-1 truncate font-medium">r/{slug}</span>
+    </Link>
+  );
+}
+
+export default function SideBar() {
+  const location = useLocation();
+  const { isLoggedIn } = useUser();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    return window.innerWidth >= 1024;
+  });
+  const [openSections, setOpenSections] = useState({
+    browse: true,
+    create: true,
+    communities: true,
+  });
+  const [joinedCommunities, setJoinedCommunities] = useState([]);
+  const [isLoadingCommunities, setIsLoadingCommunities] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDrawerOpen(window.innerWidth >= 1024);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadCommunities = async () => {
+      if (!isLoggedIn) {
+        setJoinedCommunities([]);
+        setIsLoadingCommunities(false);
+        return;
+      }
+
+      setIsLoadingCommunities(true);
+
+      try {
+        const communities = await loadAllSubscribedCommunities();
+        if (mounted) {
+          setJoinedCommunities(communities);
+        }
+      } catch (error) {
+        console.error("Failed to load subscribed communities:", error);
+        if (mounted) {
+          setJoinedCommunities([]);
+        }
+      } finally {
+        if (mounted) {
+          setIsLoadingCommunities(false);
+        }
+      }
+    };
+
+    loadCommunities();
+
+    return () => {
+      mounted = false;
+    };
+  }, [isLoggedIn]);
+
+  const toggleSection = key => {
+    setOpenSections(previous => ({
+      ...previous,
+      [key]: !previous[key],
+    }));
+  };
+
+  const handleNavigate = () => {
+    setIsDrawerOpen(false);
+  };
+
+  const communityCountText = useMemo(() => {
+    if (!isLoggedIn) {
+      return "Log in to see your communities";
+    }
+
+    return joinedCommunities.length > 0
+      ? `${joinedCommunities.length} joined communities`
+      : "No joined communities yet";
+  }, [joinedCommunities.length, isLoggedIn]);
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setIsDrawerOpen(true)}
+        className="fixed left-4 top-20 z-40 inline-flex h-12 w-12 items-center justify-center rounded-full border border-slate-800 bg-slate-900/95 text-slate-100 shadow-lg shadow-black/30 transition-colors hover:bg-slate-800 lg:hidden"
+        aria-label="Open sidebar"
+        aria-expanded={isDrawerOpen}
+      >
+        <Menu className="h-5 w-5" />
+      </button>
+
+      <div
+        className={`fixed inset-0 top-16 z-30 bg-slate-950/70 backdrop-blur-sm transition-opacity lg:hidden ${
+          isDrawerOpen
+            ? "pointer-events-auto opacity-100"
+            : "pointer-events-none opacity-0"
+        }`}
+        onClick={() => setIsDrawerOpen(false)}
+        aria-hidden="true"
+      />
+
+      <aside
+        className={`fixed inset-x-0 top-16 z-30 h-[calc(100dvh-4rem)] w-full -translate-x-full border-r border-slate-800 bg-slate-950/95 shadow-2xl shadow-black/30 transition-transform duration-300 ease-out lg:static lg:h-auto lg:w-80 lg:translate-x-0 lg:shadow-none ${
+          isDrawerOpen ? "translate-x-0" : ""
+        }`}
+      >
+        <div className="flex items-center justify-between border-b border-slate-800 px-4 py-4 lg:hidden">
+          <span className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
+            Menu
+          </span>
+          <button
+            type="button"
+            onClick={() => setIsDrawerOpen(false)}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-700 bg-slate-900 text-slate-200"
+            aria-label="Close sidebar"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="h-full overflow-y-auto px-4 py-4">
+          <div className="space-y-4">
+            <Section
+              title="Browse"
+              open={openSections.browse}
+              onToggle={() => toggleSection("browse")}
+            >
+              <div className="space-y-2">
+                <NavItem
+                  to="/posts"
+                  icon={<Home className="h-4 w-4" />}
+                  label="Posts"
+                  active={location.pathname === "/posts"}
+                  onClick={handleNavigate}
+                />
+              </div>
+            </Section>
+
+            <Section
+              title="Create"
+              open={openSections.create}
+              onToggle={() => toggleSection("create")}
+            >
+              <div className="space-y-2">
+                <NavItem
+                  to="/create-post"
+                  icon={<Plus className="h-4 w-4" />}
+                  label="Create Post"
+                  active={location.pathname === "/create-post"}
+                  onClick={handleNavigate}
+                />
+                <NavItem
+                  to="/create-community"
+                  icon={<Plus className="h-4 w-4" />}
+                  label="Create Community"
+                  active={location.pathname === "/create-community"}
+                  onClick={handleNavigate}
+                />
+              </div>
+            </Section>
+
+            <Section
+              title={`Communities ${isLoggedIn ? `(${joinedCommunities.length})` : ""}`}
+              open={openSections.communities}
+              onToggle={() => toggleSection("communities")}
+            >
+              <div className="space-y-3">
+                <p className="px-1 text-xs leading-relaxed text-slate-500">
+                  {communityCountText}
+                </p>
+                {isLoadingCommunities ? (
+                  <div className="px-1 py-2 text-sm text-slate-400">
+                    Loading communities...
+                  </div>
+                ) : isLoggedIn && joinedCommunities.length > 0 ? (
+                  <div className="space-y-1">
+                    {joinedCommunities.map(community => (
+                      <CommunityItem
+                        key={community.id || community.name}
+                        community={community}
+                        onClick={handleNavigate}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-3 text-sm text-slate-400">
+                    {isLoggedIn
+                      ? "You have not joined any communities yet."
+                      : "Log in to see communities you belong to."}
+                  </div>
+                )}
+              </div>
+            </Section>
+          </div>
+        </div>
+      </aside>
+    </>
   );
 }

@@ -71,9 +71,6 @@ export default function CommunityProfilePage() {
   const [communityPosts, setCommunityPosts] = useState([]);
   const avatarInputRef = useRef(null);
   const bannerInputRef = useRef(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(
-    () => window.innerWidth >= 1024
-  );
 
   const communityFromState = location.state?.community;
   const slug = (communitySlug || "yourcommunity").toLowerCase();
@@ -332,26 +329,25 @@ export default function CommunityProfilePage() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-orange-500/30">
       <Navbar />
+      <div className="lg:flex lg:items-start">
+        <SideBar />
 
-      <input
-        ref={bannerInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={handleBannerUpload}
-      />
-      <input
-        ref={avatarInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={handleAvatarUpload}
-      />
+        <input
+          ref={bannerInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleBannerUpload}
+        />
+        <input
+          ref={avatarInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleAvatarUpload}
+        />
 
-      <div className="relative flex min-h-[calc(100vh-4rem)]">
-        <SideBar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
-
-        <main className="flex-1 px-4 pb-12 pt-20 sm:px-6 lg:px-8">
+        <main className="min-h-[calc(100vh-4rem)] px-4 pb-12 pt-20 sm:px-6 lg:min-w-0 lg:flex-1 lg:px-8">
           <div className="mx-auto max-w-350">
             <section className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/70 shadow-2xl shadow-black/30">
               <div className="relative h-36 sm:h-44">

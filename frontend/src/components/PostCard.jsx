@@ -298,7 +298,7 @@ export default function PostCard({
                   type="button"
                   onClick={event => {
                     event.stopPropagation();
-                    onDelete?.(post);
+                    onDelete?.(post?.id);
                   }}
                   aria-label="Delete post"
                   title="Delete post"
