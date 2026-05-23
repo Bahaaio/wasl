@@ -43,12 +43,7 @@ export default function PostsPage() {
 
   useEffect(() => {
     const fetchPosts = async () => {
-      const token = getAccessToken();
-
-      if (authBlocked) {
-        setIsLoading(false);
-        return;
-      }
+   
 
       setIsLoading(true);
       setError(null);
