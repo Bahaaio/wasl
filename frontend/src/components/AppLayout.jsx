@@ -21,8 +21,8 @@ export default function AppLayout({
         </div>
 
         {/* Feed column — style posts/pages here, independent of sidebar */}
-        <div className="flex min-w-0 flex-1 justify-start pb-8 pl-2 pt-4 pr-4 sm:pl-4 sm:pr-6 lg:pl-6 lg:pr-8">
-          <main className={`flex w-full justify-start ${mainClassName}`}>
+        <div className="flex min-w-0 flex-1 justify-center px-4 pb-8 pt-4 sm:px-6 lg:px-8">
+          <main className={`flex w-full justify-center ${mainClassName}`}>
             <div className={`w-full ${contentMaxWidth} ${contentClassName}`}>
               {children}
             </div>
