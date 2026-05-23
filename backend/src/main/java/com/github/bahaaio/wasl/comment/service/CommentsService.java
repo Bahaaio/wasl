@@ -155,6 +155,8 @@ public class CommentsService {
         if (request.mediaId() != null) {
             if (media != null) mediaService.deleteMediaById(media.id());
             media = mediaService.attachMedia(request.mediaId(), MediaOwnerType.COMMENT, id, username);
+        } else {
+          mediaService.deleteMediaByOwnerId(id, MediaOwnerType.COMMENT);
         }
 
         var vote = voteService.getCommentVoteByUsername(id, username);
