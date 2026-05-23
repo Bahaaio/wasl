@@ -6,7 +6,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, ImagePlus, Link2, BarChart3, ArrowLeft } from "lucide-react";
-import axios from "axios";
+// axios not needed here; API helpers are used instead
 import Navbar from "../components/Navbar.jsx";
 import RichTextEditor from "../components/RichTextEditor.jsx";
 import AuthModal from "../components/AuthModal.jsx";
@@ -14,7 +14,7 @@ import { PostsApi } from "../api/posts.js";
 import { MediaApi } from "../api/media.js";
 import { useUser } from "../auth/useUser.jsx";
 import { UsersApi } from "../api/users.js";
-import { getAccessToken } from "../auth/store.js";
+// getAccessToken is provided to API interceptor; not needed directly here
 
 function stripCommunityPrefix(value) {
   return value.replace(/^r\//i, "").trim();
@@ -172,7 +172,9 @@ export default function CreatePostPage() {
             setCreatePostForm(prev => ({
               ...prev,
               images: prev.images.map(img =>
-                img.preview === preview ? { ...img, uploading: false, mediaId: id } : img
+                img.preview === preview
+                  ? { ...img, uploading: false, mediaId: id }
+                  : img
               ),
             }));
           })
@@ -180,7 +182,9 @@ export default function CreatePostPage() {
             setCreatePostForm(prev => ({
               ...prev,
               images: prev.images.map(img =>
-                img.preview === preview ? { ...img, uploading: false, error: true } : img
+                img.preview === preview
+                  ? { ...img, uploading: false, error: true }
+                  : img
               ),
             }));
           });
@@ -399,7 +403,13 @@ export default function CreatePostPage() {
                 if (!id) return;
                 // build mediaIds list in original order using snapshot
                 const finalIds = imagesSnapshot
-                  .map(s => (s.mediaId ? s.mediaId : s.preview === snap.preview ? id : null))
+                  .map(s =>
+                    s.mediaId
+                      ? s.mediaId
+                      : s.preview === snap.preview
+                        ? id
+                        : null
+                  )
                   .filter(Boolean);
                 // PATCH post to attach new media
                 return PostsApi.patchPost(created.id, { mediaIds: finalIds });
@@ -673,7 +683,11 @@ export default function CreatePostPage() {
                         </div>
                       ) : (
                         <img
-                          src={img.mediaId ? MediaApi.getFullMediaUrl(img.mediaId) : img.preview}
+                          src={
+                            img.mediaId
+                              ? MediaApi.getFullMediaUrl(img.mediaId)
+                              : img.preview
+                          }
                           alt={`Upload ${index + 1}`}
                           className="w-full h-32 object-cover rounded-lg"
                         />
