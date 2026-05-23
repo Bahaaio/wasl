@@ -18,6 +18,7 @@ import AppLayout from "../components/AppLayout.jsx";
 import PostCard from "../components/PostCard.jsx";
 import CameraButton from "../components/CameraButton.jsx";
 import SearchBar from "../components/SearchBar.jsx";
+import AuthModal from "../components/AuthModal.jsx";
 import { CommunitiesApi } from "../api/communities.js";
 import CommunityRoleBanner from "../components/CommunityRoleBanner.jsx";
 import { MediaApi } from "../api/media.js";
@@ -64,6 +65,7 @@ export default function CommunityProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [communityData, setCommunityData] = useState(null);
   const [communityPosts, setCommunityPosts] = useState([]);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const avatarInputRef = useRef(null);
   const bannerInputRef = useRef(null);
 
@@ -184,7 +186,7 @@ export default function CommunityProfilePage() {
     setActionError("");
 
     if (!isLoggedIn) {
-      setActionError("Log in first to join this community.");
+      setShowAuthModal(true);
       return;
     }
 
@@ -309,12 +311,17 @@ export default function CommunityProfilePage() {
   };
 
   return (
-    <AppLayout
-      contentMaxWidth="max-w-none"
-      className="selection:bg-orange-500/30"
-      mainClassName="pb-12"
-      showSidebar={false}
-    >
+    <>
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
+      <AppLayout
+        contentMaxWidth="max-w-none"
+        className="selection:bg-orange-500/30"
+        mainClassName="pb-12"
+        showSidebar={false}
+      >
         <input
           ref={bannerInputRef}
           type="file"
@@ -330,242 +337,238 @@ export default function CommunityProfilePage() {
           onChange={handleAvatarUpload}
         />
 
-          <div className="mx-auto w-full max-w-6xl">
-            <section className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/70 shadow-2xl shadow-black/30">
-              <div className="relative h-36 sm:h-44">
-                <img
-                  src={bannerUrl}
-                  alt="Community banner"
-                  className="h-full w-full object-cover"
-                />
-                <div className="absolute inset-0 bg-slate-950/65" />
-                <button
-                  type="button"
-                  onClick={handleBack}
-                  className="absolute left-3 top-3 z-20 inline-flex items-center justify-center rounded-full border border-slate-700/50 bg-slate-800/50 p-2.5 text-slate-400 shadow-lg shadow-black/30 backdrop-blur transition-all duration-300 hover:bg-linear-to-br hover:from-orange-500/30 hover:to-red-600/30 hover:text-orange-400 hover:shadow-lg hover:shadow-orange-500/20 hover:border-orange-500/50"
-                  aria-label="Go back"
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                </button>
-                <CameraButton
-                  onClick={() => bannerInputRef.current?.click()}
-                  ariaLabel="Upload community banner"
-                  disabled={isUploadingBanner || !isLoggedIn}
-                  className="absolute right-3 top-3 z-20"
-                />
-              </div>
+        <div className="mx-auto w-full max-w-6xl">
+          <section className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/70 shadow-2xl shadow-black/30">
+            <div className="relative h-36 sm:h-44">
+              <img
+                src={bannerUrl}
+                alt="Community banner"
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-slate-950/65" />
+              <button
+                type="button"
+                onClick={handleBack}
+                className="absolute left-3 top-3 z-20 inline-flex items-center justify-center rounded-full border border-slate-700/50 bg-slate-800/50 p-2.5 text-slate-400 shadow-lg shadow-black/30 backdrop-blur transition-all duration-300 hover:bg-linear-to-br hover:from-orange-500/30 hover:to-red-600/30 hover:text-orange-400 hover:shadow-lg hover:shadow-orange-500/20 hover:border-orange-500/50"
+                aria-label="Go back"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+              <CameraButton
+                onClick={() => bannerInputRef.current?.click()}
+                ariaLabel="Upload community banner"
+                disabled={isUploadingBanner || !isLoggedIn}
+                className="absolute right-3 top-3 z-20"
+              />
+            </div>
 
-              <div className="relative bg-slate-900/95 px-6 pb-6 pt-4">
-                <div className="flex min-w-0 items-center gap-4">
-                  <div className="relative -mt-12 h-20 w-20 shrink-0 overflow-hidden rounded-full border-4 border-slate-900 bg-orange-300 shadow-xl sm:h-24 sm:w-24">
-                    {iconUrl ? (
-                      <img
-                        src={iconUrl}
-                        alt="Community avatar"
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center rounded-full bg-orange-300 text-slate-900">
-                        <ShieldCheck className="h-10 w-10" />
-                      </div>
-                    )}
-                    <CameraButton
-                      onClick={() => avatarInputRef.current?.click()}
-                      ariaLabel="Upload community avatar"
-                      disabled={isUploadingAvatar || !isLoggedIn}
-                      className="absolute bottom-1 right-1"
+            <div className="relative bg-slate-900/95 px-6 pb-6 pt-4">
+              <div className="flex min-w-0 items-center gap-4">
+                <div className="relative -mt-12 h-20 w-20 shrink-0 overflow-hidden rounded-full border-4 border-slate-900 bg-orange-300 shadow-xl sm:h-24 sm:w-24">
+                  {iconUrl ? (
+                    <img
+                      src={iconUrl}
+                      alt="Community avatar"
+                      className="h-full w-full object-cover"
                     />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center rounded-full bg-orange-300 text-slate-900">
+                      <ShieldCheck className="h-10 w-10" />
+                    </div>
+                  )}
+                  <CameraButton
+                    onClick={() => avatarInputRef.current?.click()}
+                    ariaLabel="Upload community avatar"
+                    disabled={isUploadingAvatar || !isLoggedIn}
+                    className="absolute bottom-1 right-1"
+                  />
+                </div>
+                <div className="min-w-0 pt-2">
+                  <h1 className="truncate text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+                    {community.displayName.startsWith("r/")
+                      ? community.displayName
+                      : communityName}
+                  </h1>
+                  <p className="mt-1 text-sm text-slate-400">{communityName}</p>
+                  <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-300">
+                    {community.description}
+                  </p>
+                  {(isUploadingAvatar || isUploadingBanner) && (
+                    <p className="mt-2 text-xs text-slate-400">
+                      Uploading image...
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-slate-800/90 pt-4">
+                <div className="grid grid-cols-2 gap-6 text-sm">
+                  <div>
+                    <p className="text-xl font-bold text-white">
+                      {memberCount ?? "-"}
+                    </p>
+                    <p className="text-slate-400">members</p>
                   </div>
-                  <div className="min-w-0 pt-2">
-                    <h1 className="truncate text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-                      {community.displayName.startsWith("r/")
-                        ? community.displayName
-                        : communityName}
-                    </h1>
-                    <p className="mt-1 text-sm text-slate-400">
-                      {communityName}
+                  <div>
+                    <p className="inline-flex items-center gap-2 text-slate-300 mr-3">
+                      <CalendarDays className="h-4 w-4" />
+                      {createdAtLabel || "-"}
                     </p>
-                    <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-300">
-                      {community.description}
+                    <p className="mt-1 inline-flex items-center gap-2 capitalize text-slate-400">
+                      <Globe className="h-4 w-4" />
+                      {community.visibility}
                     </p>
-                    {(isUploadingAvatar || isUploadingBanner) && (
-                      <p className="mt-2 text-xs text-slate-400">
-                        Uploading image...
-                      </p>
-                    )}
                   </div>
                 </div>
 
-                <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-slate-800/90 pt-4">
-                  <div className="grid grid-cols-2 gap-6 text-sm">
-                    <div>
-                      <p className="text-xl font-bold text-white">
-                        {memberCount ?? "-"}
-                      </p>
-                      <p className="text-slate-400">members</p>
+                <div className="flex items-center gap-3">
+                  <CommunityRoleBanner communityName={slug} />
+                  <button
+                    type="button"
+                    onClick={handleJoinToggle}
+                    disabled={isJoinSubmitting}
+                    className={`rounded-full px-5 py-2.5 text-sm font-semibold transition ${
+                      isJoined
+                        ? "border border-slate-500/60 bg-transparent text-slate-100 hover:bg-slate-800/30"
+                        : "bg-linear-to-r from-orange-500 to-red-600 text-white hover:from-orange-400 hover:to-red-500"
+                    } ${isJoinSubmitting ? "cursor-not-allowed opacity-60" : ""}`}
+                  >
+                    {isJoinSubmitting
+                      ? "Updating..."
+                      : isJoined
+                        ? "Joined"
+                        : "Join"}
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-600 bg-slate-800 text-slate-200 transition hover:border-orange-400/60 hover:bg-slate-700"
+                    aria-label="More"
+                  >
+                    <Ellipsis className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="mt-5 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+            <div>
+              <div className="mb-4">
+                <SearchBar communityName={slug} className="max-w-full" />
+              </div>
+
+              {(pageError || actionError) && (
+                <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                  {pageError || actionError}
+                </div>
+              )}
+
+              <div className="space-y-3">
+                {isLoading ? (
+                  <article className="rounded-xl border border-slate-800 bg-slate-900/80 p-6 text-slate-400">
+                    Loading community posts...
+                  </article>
+                ) : communityPosts.length === 0 ? (
+                  <article className="rounded-xl border border-slate-800 bg-slate-900/80 p-6 text-slate-400">
+                    No posts in this community yet.
+                  </article>
+                ) : (
+                  communityPosts.map(post => (
+                    <PostCard
+                      key={
+                        post.id ||
+                        `${post.title}-${post.authorUsername || post.author || "unknown"}`
+                      }
+                      post={post}
+                      onUpvote={handleUpvote}
+                      onDownvote={handleDownvote}
+                      onSave={handleSave}
+                    />
+                  ))
+                )}
+              </div>
+            </div>
+
+            <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+              <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900/75 text-slate-200">
+                <div className="h-16 w-full bg-linear-to-r from-orange-500/70 via-red-500/70 to-orange-400/70" />
+                <div className="p-5">
+                  <h3 className="text-2xl font-bold leading-tight text-white">
+                    About community
+                  </h3>
+                  <p className="mt-3 text-sm leading-relaxed text-slate-300">
+                    {community.description}
+                  </p>
+
+                  <div className="mt-4 space-y-2 text-sm text-slate-400">
+                    <div className="inline-flex items-center gap-2 mr-3">
+                      <CalendarDays className="h-4 w-4" />
+                      Created {createdAtLabel || "-"}
                     </div>
-                    <div>
-                      <p className="inline-flex items-center gap-2 text-slate-300">
-                        <CalendarDays className="h-4 w-4" />
-                        {createdAtLabel || "-"}
-                      </p>
-                      <p className="mt-1 inline-flex items-center gap-2 capitalize text-slate-400">
-                        <Globe className="h-4 w-4" />
-                        {community.visibility}
-                      </p>
+                    <div className="inline-flex items-center gap-2 capitalize">
+                      <Globe className="h-4 w-4" />
+                      {community.visibility}
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <CommunityRoleBanner communityName={slug} />
-                    <button
-                      type="button"
-                      onClick={handleJoinToggle}
-                      disabled={isJoinSubmitting}
-                      className={`rounded-full px-5 py-2.5 text-sm font-semibold transition ${
-                        isJoined
-                          ? "border border-slate-500/60 bg-transparent text-slate-100 hover:bg-slate-800/30"
-                          : "bg-linear-to-r from-orange-500 to-red-600 text-white hover:from-orange-400 hover:to-red-500"
-                      } ${isJoinSubmitting ? "cursor-not-allowed opacity-60" : ""}`}
-                    >
-                      {isJoinSubmitting
-                        ? "Updating..."
-                        : isJoined
-                          ? "Joined"
-                          : "Join"}
-                    </button>
-                    <button
-                      type="button"
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-600 bg-slate-800 text-slate-200 transition hover:border-orange-400/60 hover:bg-slate-700"
-                      aria-label="More"
-                    >
-                      <Ellipsis className="h-5 w-5" />
-                    </button>
+                  <div className="mt-5 border-t border-slate-800 pt-4">
+                    <p className="text-2xl font-extrabold text-white">
+                      {memberCount ?? "-"}
+                    </p>
+                    <p className="text-xs uppercase tracking-wider text-slate-400">
+                      members
+                    </p>
                   </div>
                 </div>
               </div>
-            </section>
 
-            <section className="mt-5 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-              <div>
-                <div className="mb-4">
-                  <SearchBar communityName={slug} className="max-w-full" />
-                </div>
-
-                {(pageError || actionError) && (
-                  <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                    {pageError || actionError}
+              <div className="rounded-xl border border-slate-800 bg-slate-900/75 p-5">
+                <h4 className="text-sm font-bold uppercase tracking-[0.2em] text-slate-400">
+                  Community Rules
+                </h4>
+                {rules.length === 0 ? (
+                  <p className="mt-3 text-sm text-slate-400">
+                    No rules listed yet.
+                  </p>
+                ) : (
+                  <div className="mt-3 space-y-2">
+                    {rules.map((rule, index) => (
+                      <div
+                        key={`${rule}-${index}`}
+                        className="rounded-lg border border-slate-800/80 bg-slate-950/40 px-3 py-2 text-sm text-slate-300"
+                      >
+                        <span className="mr-2 text-orange-300">
+                          {index + 1}.
+                        </span>
+                        {rule}
+                      </div>
+                    ))}
                   </div>
                 )}
-
-                <div className="space-y-3">
-                  {isLoading ? (
-                    <article className="rounded-xl border border-slate-800 bg-slate-900/80 p-6 text-slate-400">
-                      Loading community posts...
-                    </article>
-                  ) : communityPosts.length === 0 ? (
-                    <article className="rounded-xl border border-slate-800 bg-slate-900/80 p-6 text-slate-400">
-                      No posts in this community yet.
-                    </article>
-                  ) : (
-                    communityPosts.map(post => (
-                      <PostCard
-                        key={
-                          post.id ||
-                          `${post.title}-${post.authorUsername || post.author || "unknown"}`
-                        }
-                        post={post}
-                        onUpvote={handleUpvote}
-                        onDownvote={handleDownvote}
-                        onSave={handleSave}
-                      />
-                    ))
-                  )}
-                </div>
               </div>
 
-              <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
-                <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900/75 text-slate-200">
-                  <div className="h-16 w-full bg-linear-to-r from-orange-500/70 via-red-500/70 to-orange-400/70" />
-                  <div className="p-5">
-                    <h3 className="text-2xl font-bold leading-tight text-white">
-                      About community
-                    </h3>
-                    <p className="mt-3 text-sm leading-relaxed text-slate-300">
-                      {community.description}
-                    </p>
-
-                    <div className="mt-4 space-y-2 text-sm text-slate-400">
-                      <div className="inline-flex items-center gap-2">
-                        <CalendarDays className="h-4 w-4" />
-                        Created {createdAtLabel || "-"}
+              <div className="rounded-xl border border-slate-800 bg-slate-900/75 p-5">
+                <h4 className="text-sm font-bold uppercase tracking-[0.2em] text-slate-400">
+                  Moderators
+                </h4>
+                {moderators.length === 0 ? (
+                  <p className="mt-3 text-sm text-slate-400">
+                    No moderators listed yet.
+                  </p>
+                ) : (
+                  <div className="mt-3 space-y-2 text-sm text-slate-200">
+                    {moderators.map(mod => (
+                      <div key={mod} className="inline-flex items-center gap-2">
+                        <Shield className="h-4 w-4 text-orange-300" /> u/{mod}
                       </div>
-                      <div className="inline-flex items-center gap-2 capitalize">
-                        <Globe className="h-4 w-4" />
-                        {community.visibility}
-                      </div>
-                    </div>
-
-                    <div className="mt-5 border-t border-slate-800 pt-4">
-                      <p className="text-2xl font-extrabold text-white">
-                        {memberCount ?? "-"}
-                      </p>
-                      <p className="text-xs uppercase tracking-wider text-slate-400">
-                        members
-                      </p>
-                    </div>
+                    ))}
                   </div>
-                </div>
-
-                <div className="rounded-xl border border-slate-800 bg-slate-900/75 p-5">
-                  <h4 className="text-sm font-bold uppercase tracking-[0.2em] text-slate-400">
-                    Community Rules
-                  </h4>
-                  {rules.length === 0 ? (
-                    <p className="mt-3 text-sm text-slate-400">
-                      No rules listed yet.
-                    </p>
-                  ) : (
-                    <div className="mt-3 space-y-2">
-                      {rules.map((rule, index) => (
-                        <div
-                          key={`${rule}-${index}`}
-                          className="rounded-lg border border-slate-800/80 bg-slate-950/40 px-3 py-2 text-sm text-slate-300"
-                        >
-                          <span className="mr-2 text-orange-300">
-                            {index + 1}.
-                          </span>
-                          {rule}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="rounded-xl border border-slate-800 bg-slate-900/75 p-5">
-                  <h4 className="text-sm font-bold uppercase tracking-[0.2em] text-slate-400">
-                    Moderators
-                  </h4>
-                  {moderators.length === 0 ? (
-                    <p className="mt-3 text-sm text-slate-400">
-                      No moderators listed yet.
-                    </p>
-                  ) : (
-                    <div className="mt-3 space-y-2 text-sm text-slate-200">
-                      {moderators.map(mod => (
-                        <div
-                          key={mod}
-                          className="inline-flex items-center gap-2"
-                        >
-                          <Shield className="h-4 w-4 text-orange-300" /> u/{mod}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </aside>
-            </section>
-          </div>
-    </AppLayout>
+                )}
+              </div>
+            </aside>
+          </section>
+        </div>
+      </AppLayout>
+    </>
   );
 }
