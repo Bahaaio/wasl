@@ -16,7 +16,38 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../api/client.js";
 import { MediaApi } from "../api/media.js";
+
+const COMMENT_IMAGE_ACCEPT = "image/jpeg,image/png,image/gif";
+const MAX_COMMENT_IMAGE_BYTES = 15 * 1024 * 1024;
+
+function isAllowedCommentImage(file) {
+  if (!file) {
+    return false;
+  }
+
+  if (file.size > MAX_COMMENT_IMAGE_BYTES) {
+    return false;
+  }
+
+  return ["image/jpeg", "image/png", "image/gif"].includes(file.type);
+}
+
+async function uploadCommentMedia(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await api.request({
+    url: "/media",
+    method: "post",
+    data: formData,
+    headers: { "Content-Type": undefined },
+    timeout: 30000,
+  });
+
+  return response.data;
+}
 
 function getCommentNetVoteScore(comment) {
   if (!comment) return 0;
@@ -43,6 +74,7 @@ export default function CommentsList({
   const editMediaInputRef = useRef(null);
   const [editingComment, setEditingComment] = useState(null);
   const [editText, setEditText] = useState("");
+  const [editOriginalText, setEditOriginalText] = useState("");
   const [editMediaId, setEditMediaId] = useState(null);
   const [editMediaPreviewUrl, setEditMediaPreviewUrl] = useState("");
   const [editMediaPreviewIsRemote, setEditMediaPreviewIsRemote] =
@@ -65,6 +97,7 @@ export default function CommentsList({
 
     setEditingComment(null);
     setEditText("");
+    setEditOriginalText("");
     setEditMediaId(null);
     setEditMediaPreviewUrl("");
     setEditMediaPreviewIsRemote(false);
@@ -80,6 +113,7 @@ export default function CommentsList({
 
     setEditingComment(comment);
     setEditText(getCommentBody(comment));
+    setEditOriginalText(getCommentBody(comment));
     setEditMediaId(mediaId);
     setEditMediaPreviewUrl(mediaId ? MediaApi.getFullMediaUrl(mediaId) : "");
     setEditMediaPreviewIsRemote(Boolean(mediaId));
@@ -93,8 +127,16 @@ export default function CommentsList({
       return;
     }
 
+    if (!isAllowedCommentImage(file)) {
+      console.error(
+        "Unsupported comment media. Use JPEG, PNG, or GIF images up to 15MB."
+      );
+      event.target.value = "";
+      return;
+    }
+
     try {
-      const response = await MediaApi.uploadMedia(file);
+      const response = await uploadCommentMedia(file);
       const mediaId = response?.mediaId;
       if (!mediaId) return;
 
@@ -117,7 +159,9 @@ export default function CommentsList({
 
     if (!editingComment) return;
 
-    const nextContent = editText.trim();
+    const trimmedContent = editText.trim();
+    const fallbackContent = editOriginalText.trim();
+    const nextContent = trimmedContent || fallbackContent;
     if (!nextContent && !editMediaId) return;
 
     setIsSavingEdit(true);
@@ -258,7 +302,7 @@ export default function CommentsList({
                 <input
                   ref={editMediaInputRef}
                   type="file"
-                  accept="image/*"
+                  accept={COMMENT_IMAGE_ACCEPT}
                   className="hidden"
                   onChange={handleEditCommentMedia}
                 />
@@ -293,6 +337,10 @@ export default function CommentsList({
                     No image attached.
                   </div>
                 )}
+
+                <p className="text-xs text-slate-500">
+                  Supported formats: JPEG, PNG, GIF. Maximum size: 15 MB.
+                </p>
               </div>
             </div>
 
@@ -544,14 +592,22 @@ function CommentThread({
             <input
               id={`reply-image-input-${comment.id}`}
               type="file"
-              accept="image/*"
+              accept={COMMENT_IMAGE_ACCEPT}
               className="hidden"
               onChange={async event => {
                 const file = event.target.files?.[0];
                 if (!file) return;
 
+                if (!isAllowedCommentImage(file)) {
+                  console.error(
+                    "Unsupported comment media. Use JPEG, PNG, or GIF images up to 15MB."
+                  );
+                  event.target.value = "";
+                  return;
+                }
+
                 try {
-                  const response = await MediaApi.uploadMedia(file);
+                  const response = await uploadCommentMedia(file);
                   const mediaId =
                     response?.mediaId ?? response?.id ?? response?.media?.id;
                   if (mediaId) {

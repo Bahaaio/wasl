@@ -4,7 +4,7 @@
  * @typedef {import("../api/types.js").MediaDto} MediaDto
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ChevronLeft,
@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
 import CommentsList from "../components/CommentsList.jsx";
+import api from "../api/client.js";
 import { CommentsApi } from "../api/comments.js";
 import { CommunitiesApi } from "../api/communities.js";
 import { PostsApi } from "../api/posts.js";
@@ -25,6 +26,8 @@ import Votes from "../components/Votes.jsx";
 import { useUser } from "../auth/useUser.jsx";
 
 const communityIconCache = new Map();
+const COMMENT_IMAGE_ACCEPT = "image/jpeg,image/png,image/gif";
+const MAX_COMMENT_IMAGE_BYTES = 15 * 1024 * 1024;
 
 // No client-side persistent vote cache in localStorage; use server and component state only
 
@@ -34,10 +37,37 @@ function normalizeCommunitySlug(value) {
     .replace(/^r\//i, "");
 }
 
+function isAllowedCommentImage(file) {
+  if (!file) {
+    return false;
+  }
+
+  if (file.size > MAX_COMMENT_IMAGE_BYTES) {
+    return false;
+  }
+
+  return ["image/jpeg", "image/png", "image/gif"].includes(file.type);
+}
+
+async function uploadCommentMedia(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await api.request({
+    url: "/media",
+    method: "post",
+    data: formData,
+    headers: { "Content-Type": undefined },
+    timeout: 30000,
+  });
+
+  return response.data;
+}
+
 export default function PostDetailPage() {
   const navigate = useNavigate();
   const { postId } = useParams();
-  const { user: loggedInUser } = useUser();
+  const { isLoggedIn, user: loggedInUser } = useUser();
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,6 +78,7 @@ export default function PostDetailPage() {
   const [attachedPreviewUrl, setAttachedPreviewUrl] = useState("");
   const [communityIconMediaId, setCommunityIconMediaId] = useState(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const commentImageInputRef = useRef(null);
   const [deleteConfirm, setDeleteConfirm] = useState({
     isOpen: false,
     commentId: null,
@@ -447,25 +478,43 @@ export default function PostDetailPage() {
                 <button
                   type="button"
                   className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/50 text-slate-400 transition-colors hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-300"
+                  disabled={!isLoggedIn}
                   onClick={() => {
-                    // trigger hidden file input
-                    const el = document.getElementById("comment-image-input");
-                    if (el) el.click();
+                    if (!isLoggedIn) {
+                      return;
+                    }
+
+                    commentImageInputRef.current?.click();
                   }}
                 >
                   <Image className="h-5 w-5" />
                 </button>
                 <input
                   id="comment-image-input"
+                  ref={commentImageInputRef}
                   type="file"
-                  accept="image/*"
+                  accept={COMMENT_IMAGE_ACCEPT}
                   className="hidden"
                   onChange={async e => {
                     const file = e.target.files?.[0];
                     if (!file) return;
+
+                    if (!isLoggedIn) {
+                      e.target.value = "";
+                      return;
+                    }
+
+                    if (!isAllowedCommentImage(file)) {
+                      console.error(
+                        "Unsupported comment media. Use JPEG, PNG, or GIF images up to 15MB."
+                      );
+                      e.target.value = "";
+                      return;
+                    }
+
                     try {
                       setIsSubmittingComment(true);
-                      const resp = await MediaApi.uploadMedia(file);
+                      const resp = await uploadCommentMedia(file);
                       const mediaId =
                         resp?.mediaId ?? resp?.id ?? resp?.media?.id;
                       if (mediaId) {
@@ -542,6 +591,10 @@ export default function PostDetailPage() {
                   {isSubmittingComment ? "..." : "Comment"}
                 </button>
               </div>
+
+              <p className="mt-3 text-xs text-slate-500">
+                Supported comment photos: JPEG, PNG, GIF. Maximum size: 15 MB.
+              </p>
             </div>
 
             <section className="mt-5 rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-lg shadow-black/20">
