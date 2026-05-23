@@ -11,6 +11,7 @@ import Navbar from "../components/Navbar.jsx";
 import RichTextEditor from "../components/RichTextEditor.jsx";
 import AuthModal from "../components/AuthModal.jsx";
 import { PostsApi } from "../api/posts.js";
+import { MediaApi } from "../api/media.js";
 import { useUser } from "../auth/useUser.jsx";
 import { UsersApi } from "../api/users.js";
 import { getAccessToken } from "../auth/store.js";
@@ -152,20 +153,68 @@ export default function CreatePostPage() {
 
   const handleImageUpload = event => {
     const files = Array.from(event.target.files || []);
-    setCreatePostForm(previous => ({
-      ...previous,
-      images: [
-        ...previous.images,
-        ...files.slice(0, 4 - previous.images.length),
-      ],
-    }));
+
+    setCreatePostForm(previous => {
+      const spaceLeft = 4 - previous.images.length;
+      const toAdd = files.slice(0, spaceLeft).map(file => {
+        const preview = URL.createObjectURL(file);
+        // start upload immediately
+        const promise = MediaApi.uploadMedia(file)
+          .then(res => res?.id)
+          .catch(err => {
+            console.error("Failed to upload media:", err);
+            throw err;
+          });
+
+        // when upload completes, update the image entry
+        promise
+          .then(id => {
+            setCreatePostForm(prev => ({
+              ...prev,
+              images: prev.images.map(img =>
+                img.preview === preview ? { ...img, uploading: false, mediaId: id } : img
+              ),
+            }));
+          })
+          .catch(() => {
+            setCreatePostForm(prev => ({
+              ...prev,
+              images: prev.images.map(img =>
+                img.preview === preview ? { ...img, uploading: false, error: true } : img
+              ),
+            }));
+          });
+
+        return {
+          file,
+          preview,
+          type: file.type,
+          uploading: true,
+          promise,
+          mediaId: null,
+          error: false,
+        };
+      });
+
+      return {
+        ...previous,
+        images: [...previous.images, ...toAdd],
+      };
+    });
+
+    // reset input
+    event.target.value = "";
   };
 
   const handleRemoveImage = index => {
-    setCreatePostForm(previous => ({
-      ...previous,
-      images: previous.images.filter((_, i) => i !== index),
-    }));
+    setCreatePostForm(previous => {
+      const removed = previous.images[index];
+      if (removed?.preview) URL.revokeObjectURL(removed.preview);
+      return {
+        ...previous,
+        images: previous.images.filter((_, i) => i !== index),
+      };
+    });
   };
 
   const handlePollOptionChange = (index, value) => {
@@ -254,59 +303,35 @@ export default function CreatePostPage() {
 
       let mediaIds = [];
 
-      // Upload media files if any
+      // Collect mediaIds from images. Images start uploading on selection; wait for any pending uploads.
       if (createPostForm.images && createPostForm.images.length > 0) {
         try {
-          console.log(
-            `Attempting to upload ${createPostForm.images.length} image(s)`
+          const imgs = createPostForm.images;
+          const results = await Promise.all(
+            imgs.map(async img => {
+              // already attached mediaId
+              if (img.mediaId) return img.mediaId;
+              // promise resolves to media id (we stored a promise when starting upload)
+              if (img.promise) {
+                try {
+                  const id = await img.promise;
+                  return id;
+                } catch {
+                  return null;
+                }
+              }
+              // fallback: try uploading file now
+              try {
+                const resp = await MediaApi.uploadMedia(img.file);
+                return resp?.id ?? resp?.mediaId ?? null;
+              } catch (err) {
+                console.error("Fallback upload failed:", err);
+                return null;
+              }
+            })
           );
 
-          const API_BASE_URL =
-            import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
-          const token = getAccessToken();
-
-          const uploadPromises = createPostForm.images.map(async file => {
-            try {
-              console.log(`Uploading: ${file.name}`);
-
-              // Create form data directly for this upload
-              const formData = new FormData();
-              formData.append("file", file);
-
-              // Use axios instance with proper multipart/form-data handling
-              const response = await axios.post(
-                `${API_BASE_URL}/media`,
-                formData,
-                {
-                  headers: {
-                    // Let browser set proper multipart boundary
-                    "Content-Type": "multipart/form-data",
-                    // Add authorization token
-                    ...(token && { Authorization: `Bearer ${token}` }),
-                  },
-                  withCredentials: true,
-                  timeout: 30000,
-                }
-              );
-
-              console.log(`Upload successful for ${file.name}:`, response.data);
-              return response.data;
-            } catch (error) {
-              console.error(`Upload failed for ${file.name}:`, error);
-              console.error("Error response:", error.response?.data);
-              return null;
-            }
-          });
-
-          const uploadedMedia = await Promise.all(uploadPromises);
-          console.log("All upload results:", uploadedMedia);
-
-          mediaIds = uploadedMedia
-            .filter(result => result !== null && result !== undefined)
-            .map(result => result.mediaId || result.id)
-            .filter(Boolean);
-
-          console.log("Final mediaIds:", mediaIds);
+          mediaIds = results.filter(Boolean);
 
           if (mediaIds.length === 0 && createPostForm.images.length > 0) {
             console.warn("⚠️ No images were successfully uploaded");
@@ -316,7 +341,7 @@ export default function CreatePostPage() {
             );
           }
         } catch (uploadError) {
-          console.error("Error during media upload process:", uploadError);
+          console.error("Error while waiting for image uploads:", uploadError);
         }
       }
 
@@ -339,12 +364,19 @@ export default function CreatePostPage() {
         }
       }
 
-      await PostsApi.createPost({
+      const created = await PostsApi.createPost({
         title: createPostForm.title.trim(),
         content: contentParts.filter(Boolean).join("\n\n"),
         communityName: selectedCommunity.name,
         mediaIds: mediaIds.length > 0 ? mediaIds : undefined,
       });
+
+      // capture snapshot of images and pending upload promises to attach later
+      const imagesSnapshot = (createPostForm.images || []).map(img => ({
+        preview: img.preview,
+        mediaId: img.mediaId,
+        promise: img.promise,
+      }));
 
       setCreatePostForm({
         title: "",
@@ -357,6 +389,27 @@ export default function CreatePostPage() {
       setCommunitySearch("");
       setComposerTab("post");
       navigate("/posts");
+
+      // For any pending uploads, attach them to the created post once they finish.
+      if (imagesSnapshot.length > 0) {
+        for (const snap of imagesSnapshot) {
+          if (!snap.mediaId && snap.promise) {
+            snap.promise
+              .then(id => {
+                if (!id) return;
+                // build mediaIds list in original order using snapshot
+                const finalIds = imagesSnapshot
+                  .map(s => (s.mediaId ? s.mediaId : s.preview === snap.preview ? id : null))
+                  .filter(Boolean);
+                // PATCH post to attach new media
+                return PostsApi.patchPost(created.id, { mediaIds: finalIds });
+              })
+              .catch(err => {
+                console.error("Failed to attach uploaded media to post:", err);
+              });
+          }
+        }
+      }
     } catch (error) {
       setCreatePostError(
         error?.response?.data?.message ||
@@ -601,9 +654,9 @@ export default function CreatePostPage() {
               </label>
               {createPostForm.images.length > 0 && (
                 <div className="grid grid-cols-2 gap-2">
-                  {createPostForm.images.map((file, index) => (
+                  {createPostForm.images.map((img, index) => (
                     <div key={index} className="relative group">
-                      {file.type.startsWith("video/") ? (
+                      {img.type.startsWith("video/") ? (
                         <div className="w-full h-32 bg-slate-800 rounded-lg flex items-center justify-center relative">
                           <div className="absolute inset-0 rounded-lg bg-slate-800 flex items-center justify-center">
                             <svg
@@ -620,11 +673,24 @@ export default function CreatePostPage() {
                         </div>
                       ) : (
                         <img
-                          src={URL.createObjectURL(file)}
+                          src={img.mediaId ? MediaApi.getFullMediaUrl(img.mediaId) : img.preview}
                           alt={`Upload ${index + 1}`}
                           className="w-full h-32 object-cover rounded-lg"
                         />
                       )}
+
+                      {img.uploading && (
+                        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/40 text-sm text-slate-100">
+                          Uploading...
+                        </div>
+                      )}
+
+                      {img.error && (
+                        <div className="absolute top-1 left-1 rounded bg-red-600/80 px-2 py-0.5 text-xs text-white">
+                          Failed
+                        </div>
+                      )}
+
                       <button
                         type="button"
                         onClick={() => handleRemoveImage(index)}
@@ -704,14 +770,6 @@ export default function CreatePostPage() {
 
           {/* Action Buttons */}
           <div className="flex gap-3 justify-end pt-4 border-t border-slate-800">
-            <button
-              type="button"
-              onClick={() => navigate("/posts")}
-              disabled={isCreatingPost}
-              className="px-5 py-2 bg-transparent text-slate-400 hover:text-slate-300 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Save Draft
-            </button>
             <button
               type="submit"
               disabled={isCreatingPost}
