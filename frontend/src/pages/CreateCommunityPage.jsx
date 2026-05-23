@@ -69,6 +69,7 @@ export default function CreateCommunityPage() {
   const [createdCommunity, setCreatedCommunity] = useState(null);
   const [formError, setFormError] = useState("");
   const [categories, setCategories] = useState([]);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -84,6 +85,7 @@ export default function CreateCommunityPage() {
       mounted = false;
     };
   }, []);
+
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -120,6 +122,19 @@ export default function CreateCommunityPage() {
   const handleTypeSelect = value => {
     setForm(previous => ({ ...previous, visibility: value }));
     setFormError("");
+  };
+
+  const handleCategorySelect = category => {
+    setForm(previous => ({ ...previous, category }));
+    setShowCategoryModal(false);
+  };
+
+  const getCategories = () => {
+    if (categories.length > 0) {
+      return categories.map(category => category.name);
+    }
+
+    return COMMUNITY_CATEGORIES;
   };
 
   const handleNext = () => {
@@ -213,6 +228,63 @@ export default function CreateCommunityPage() {
       showSidebar={false}
     >
       {showAuthModal && <AuthModal onClose={handleAuthModalClose} />}
+      {showCategoryModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <button
+            type="button"
+            aria-label="Close category picker"
+            className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
+            onClick={() => setShowCategoryModal(false)}
+          />
+          <div className="relative w-full max-w-4xl rounded-3xl border border-slate-800 bg-slate-900/95 p-6 shadow-2xl shadow-black/60">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold text-white">
+                  What will your community be about?
+                </h2>
+                <p className="mt-1 text-sm text-slate-400">
+                  Choose a topic from the accepted categories.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCategoryModal(false)}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-700 bg-slate-900 text-slate-200 transition hover:border-orange-400/60 hover:bg-slate-800"
+                aria-label="Close"
+              >
+                <span className="text-lg">×</span>
+              </button>
+            </div>
+
+            <div className="mt-5 flex flex-wrap gap-3">
+              {getCategories().map(category => (
+                <button
+                  key={category}
+                  type="button"
+                  onClick={() => handleCategorySelect(category)}
+                  className={`rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
+                    form.category === category
+                      ? "border-orange-500/50 bg-orange-500/15 text-orange-200"
+                      : "border-slate-700 bg-slate-950/40 text-slate-200 hover:border-slate-600"
+                  }`}
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowCategoryModal(false)}
+                className="rounded-full border border-slate-700 px-5 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-slate-800"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
             <div className="flex items-center mb-6">
               <button
@@ -441,18 +513,14 @@ export default function CreateCommunityPage() {
                               <label className="mb-2 block text-sm font-medium text-slate-300">
                                 Category
                               </label>
-                              <select
-                                name="category"
-                                value={form.category}
-                                onChange={handleChange}
-                                className="w-full rounded-2xl border border-slate-700 bg-slate-950/80 px-4 py-4 text-slate-100 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50"
+                              <button
+                                type="button"
+                                onClick={() => setShowCategoryModal(true)}
+                                className="flex w-full items-center justify-between rounded-2xl border border-slate-700 bg-slate-950/80 px-4 py-4 text-left text-slate-100 transition-colors hover:border-slate-600 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50"
                               >
-                                {COMMUNITY_CATEGORIES.map(category => (
-                                  <option key={category} value={category}>
-                                    {category}
-                                  </option>
-                                ))}
-                              </select>
+                                <span>{form.category}</span>
+                                <ChevronRight className="h-4 w-4 text-slate-400" />
+                              </button>
                             </div>
                           </div>
                         </div>
