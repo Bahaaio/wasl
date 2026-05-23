@@ -38,21 +38,21 @@ public class CommunitySeeder implements CommandLineRunner {
 
         Community javaCommunity = Community.builder()
             .category(categoryMap.get("Programming"))
-            .name("Java Developers")
+            .name("Java_Developers")
             .description("A place to discuss Java, Spring Boot, and backend engineering.")
             .subscribersCount(150L)
             .build();
 
         Community privateCoreTeam = Community.builder()
             .category(categoryMap.get("Technology"))
-            .name("Wasl Core Team")
+            .name("Wasl_Core_Team")
             .description("Internal discussions for Wasl maintainers.")
             .subscribersCount(5L)
             .build();
 
         Community fitnessCommunity = Community.builder()
             .category(categoryMap.get("Health"))
-            .name("Desk Fitness")
+            .name("Desk_Fitness")
             .description("Staying healthy while working remotely.")
             .build();
 
