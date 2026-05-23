@@ -11,7 +11,7 @@ import { MediaApi } from "../api/media.js";
 import { CommunitiesApi } from "../api/communities.js";
 import MediaCarousel from "./MediaCarousel.jsx";
 import MediaLightbox from "./MediaLightbox.jsx";
-import VoteControl from "./VoteControl.jsx";
+import Votes from "./Votes.jsx";
 
 const communityIconCache = new Map();
 const commentCountCache = new Map();
@@ -302,7 +302,7 @@ export default function PostCard({
           )}
           <div className="flex items-center justify-between w-full">
             <div className="flex flex-wrap items-center gap-2">
-              <VoteControl
+              <Votes
                 vote={vote}
                 score={score}
                 disabled={isDeleted}

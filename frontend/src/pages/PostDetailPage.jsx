@@ -21,7 +21,7 @@ import { PostsApi } from "../api/posts.js";
 import { MediaApi } from "../api/media.js";
 import MediaCarousel from "../components/MediaCarousel.jsx";
 import MediaLightbox from "../components/MediaLightbox.jsx";
-import VoteControl from "../components/VoteControl.jsx";
+import Votes from "../components/Votes.jsx";
 import { useUser } from "../auth/useUser.jsx";
 
 const communityIconCache = new Map();
@@ -396,7 +396,7 @@ export default function PostDetailPage() {
                 )}
 
                 <div className="mt-4 flex flex-wrap items-center gap-2">
-                  <VoteControl
+                  <Votes
                     vote={postVote}
                     score={
                       post?.score ??
