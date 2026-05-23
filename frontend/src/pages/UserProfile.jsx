@@ -368,7 +368,7 @@ export default function UserProfile() {
 
     try {
       const response = await MediaApi.uploadMedia(file);
-      const mediaId = response?.mediaId;
+      const mediaId = response?.id;
       if (!mediaId) return;
 
       const nextPreview = {
@@ -530,7 +530,7 @@ export default function UserProfile() {
     try {
       await CommentsApi.patchComment(commentId, {
         content,
-        mediaId: mediaId ?? undefined,
+        mediaId: mediaId,
       });
       await loadUserComments();
     } catch (err) {
@@ -574,7 +574,7 @@ export default function UserProfile() {
 
     try {
       const response = await UsersApi.updateCurrentUserAvatar(file);
-      const nextMediaId = response?.mediaId;
+      const nextMediaId = response?.id;
       URL.revokeObjectURL(previewAvatarUrl);
       if (nextMediaId) {
         const nextUser = { ...loggedInUser, avatarMediaId: nextMediaId };
@@ -625,7 +625,7 @@ export default function UserProfile() {
 
     try {
       const response = await UsersApi.updateCurrentUserBanner(file);
-      const nextMediaId = response?.mediaId;
+      const nextMediaId = response?.id;
       URL.revokeObjectURL(previewBannerUrl);
       if (nextMediaId) {
         const nextUser = { ...loggedInUser, bannerMediaId: nextMediaId };

@@ -388,7 +388,7 @@ export default function CreatePostPage() {
               // fallback: try uploading file now
               try {
                 const resp = await MediaApi.uploadMedia(img.file);
-                return resp?.id ?? resp?.mediaId ?? null;
+                return resp?.id ?? null;
               } catch (err) {
                 console.error("Fallback upload failed:", err);
                 return null;

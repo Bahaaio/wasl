@@ -1,18 +1,18 @@
 import api from "./client";
 
-/** @typedef {import("./types").UploadResponse} UploadResponse */
+/** @typedef {import("./types").MediaUploadResponse} MediaUploadResponse */
 
 /**
  * @param {string} url
  * @param {File} file
- * @returns {Promise<UploadResponse>}
+ * @returns {Promise<MediaUploadResponse>}
  */
 export const uploadPost = async (url, file) => upload("post", url, file);
 
 /**
  * @param {string} url
  * @param {File} file
- * @returns {Promise<UploadResponse>}
+ * @returns {Promise<MediaUploadResponse>}
  */
 export const uploadPut = async (url, file) => upload("put", url, file);
 
@@ -20,7 +20,7 @@ export const uploadPut = async (url, file) => upload("put", url, file);
  * @param {"post" | "put"} method
  * @param {string} url
  * @param {File} file
- * @returns {Promise<UploadResponse>}
+ * @returns {Promise<MediaUploadResponse>}
  */
 const upload = async (method, url, file) => {
   const formData = new FormData();

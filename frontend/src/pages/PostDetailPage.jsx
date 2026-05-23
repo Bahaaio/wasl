@@ -190,7 +190,7 @@ export default function PostDetailPage() {
     try {
       await CommentsApi.patchComment(commentId, {
         content,
-        mediaId: mediaId ?? undefined,
+        mediaId: mediaId,
       });
       await loadPost();
     } catch (err) {
@@ -515,8 +515,7 @@ export default function PostDetailPage() {
                     try {
                       setIsSubmittingComment(true);
                       const resp = await uploadCommentMedia(file);
-                      const mediaId =
-                        resp?.mediaId ?? resp?.id ?? resp?.media?.id;
+                      const mediaId = resp?.id;
                       if (mediaId) {
                         setAttachedMediaId(mediaId);
                         const preview = URL.createObjectURL(file);

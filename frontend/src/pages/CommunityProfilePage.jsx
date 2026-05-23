@@ -250,7 +250,7 @@ export default function CommunityProfilePage() {
 
     try {
       const result = await CommunitiesApi.updateCommunityBanner(slug, file);
-      const mediaId = result?.mediaId;
+      const mediaId = result?.id;
 
       if (mediaId) {
         setCommunityData(previous =>
@@ -276,7 +276,7 @@ export default function CommunityProfilePage() {
 
     try {
       const result = await CommunitiesApi.updateCommunityIcon(slug, file);
-      const mediaId = result?.mediaId;
+      const mediaId = result?.id;
 
       if (mediaId) {
         setCommunityData(previous =>

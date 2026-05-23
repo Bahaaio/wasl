@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api/client.js";
 import { MediaApi } from "../api/media.js";
 
 const COMMENT_IMAGE_ACCEPT = "image/jpeg,image/png,image/gif";
@@ -34,19 +33,238 @@ function isAllowedCommentImage(file) {
   return ["image/jpeg", "image/png", "image/gif"].includes(file.type);
 }
 
-async function uploadCommentMedia(file) {
-  const formData = new FormData();
-  formData.append("file", file);
+function EditCommentModal({ editingState, onCancel, onSubmit, onStateChange }) {
+  const inputRef = useRef(null);
+  const { text, originalText, mediaId, previewUrl, previewIsRemote, isSaving } =
+    editingState;
 
-  const response = await api.request({
-    url: "/media",
-    method: "post",
-    data: formData,
-    headers: { "Content-Type": undefined },
-    timeout: 30000,
-  });
+  useEffect(
+    () => () => {
+      if (previewUrl && !previewIsRemote) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    },
+    [previewIsRemote, previewUrl]
+  );
 
-  return response.data;
+  const handleMediaChange = async event => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      event.target.value = "";
+      return;
+    }
+
+    if (!isAllowedCommentImage(file)) {
+      console.error(
+        "Unsupported comment media. Use JPEG, PNG, or GIF images up to 15MB."
+      );
+      event.target.value = "";
+      return;
+    }
+
+    try {
+      const response = await MediaApi.uploadMedia(file);
+      const nextMediaId = response?.id;
+      if (!nextMediaId) return;
+
+      if (previewUrl && !previewIsRemote) {
+        URL.revokeObjectURL(previewUrl);
+      }
+
+      onStateChange(current => ({
+        ...current,
+        mediaId: nextMediaId,
+        previewUrl: URL.createObjectURL(file),
+        previewIsRemote: false,
+      }));
+    } catch (error) {
+      console.error("Failed to upload comment media:", error);
+    } finally {
+      event.target.value = "";
+    }
+  };
+
+  const handleSubmit = async event => {
+    event.preventDefault();
+
+    const trimmedContent = text.trim();
+    const fallbackContent = originalText.trim();
+    const nextContent = trimmedContent || fallbackContent;
+    if (!nextContent && !mediaId) return;
+
+    onStateChange(current => ({ ...current, isSaving: true }));
+
+    try {
+      await onSubmit?.(nextContent, mediaId);
+      onCancel();
+    } catch (error) {
+      console.error("Failed to update comment:", error);
+    } finally {
+      onStateChange(current => ({ ...current, isSaving: false }));
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-md">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="modal-cinematic-orbit absolute inset-[-35%]" />
+        <div className="modal-cinematic-sweep absolute inset-0" />
+        <div className="modal-cinematic-shimmer absolute inset-0" />
+      </div>
+
+      <form
+        onSubmit={handleSubmit}
+        onClick={event => event.stopPropagation()}
+        className="relative flex w-full max-w-2xl max-h-[85vh] flex-col overflow-hidden rounded-2xl border border-slate-700/90 bg-slate-900/95 shadow-2xl ring-1 ring-white/5"
+      >
+        <div className="flex items-start justify-between gap-4 border-b border-slate-800/90 bg-linear-to-r from-slate-900 to-slate-900/70 px-5 py-4 sm:px-6">
+          <div>
+            <h2 className="text-xl font-bold text-white">Edit Comment</h2>
+            <p className="mt-1 text-sm text-slate-400">
+              Update the text or replace the attached image.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded-full border border-slate-700 bg-slate-800/70 p-2 text-slate-300 transition-colors hover:border-slate-500 hover:text-white"
+            aria-label="Close edit modal"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4 sm:px-6">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-slate-200">
+                Content
+              </label>
+              <span className="text-xs text-slate-500">
+                {text.trim().length} chars
+              </span>
+            </div>
+
+            <textarea
+              value={text}
+              onChange={event =>
+                onStateChange(current => ({
+                  ...current,
+                  text: event.target.value,
+                }))
+              }
+              rows={5}
+              className="w-full rounded-xl border border-slate-700/80 bg-slate-950/80 px-3 py-2.5 text-slate-100 outline-none transition-colors focus:border-orange-500/70"
+              placeholder="Update your comment"
+            />
+          </div>
+
+          <div className="space-y-3 rounded-2xl border border-slate-800/90 bg-slate-950/40 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-medium text-slate-200">
+                  Comment photo
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Upload a new image to replace the current one.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => inputRef.current?.click()}
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-800/70 px-3 py-2 text-xs font-medium text-slate-200 transition-colors hover:border-orange-500/40 hover:bg-slate-700"
+                >
+                  <Image className="h-3.5 w-3.5" />
+                  {mediaId ? "Replace photo" : "Add photo"}
+                </button>
+                {mediaId && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (previewUrl && !previewIsRemote) {
+                        URL.revokeObjectURL(previewUrl);
+                      }
+                      onStateChange(current => ({
+                        ...current,
+                        mediaId: null,
+                        previewUrl: "",
+                        previewIsRemote: false,
+                      }));
+                    }}
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-950/60 px-3 py-2 text-xs font-medium text-slate-300 transition-colors hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-200"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Remove
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <input
+              ref={inputRef}
+              type="file"
+              accept={COMMENT_IMAGE_ACCEPT}
+              className="hidden"
+              onChange={handleMediaChange}
+            />
+
+            {previewUrl ? (
+              <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/70">
+                <div className="aspect-video w-full bg-slate-950/60">
+                  <img
+                    src={previewUrl}
+                    alt="Comment media preview"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div className="flex items-center justify-between gap-2 px-3 py-2">
+                  <span className="text-xs text-slate-500">
+                    {previewIsRemote ? "Uploaded image" : "New image"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => inputRef.current?.click()}
+                    className="inline-flex items-center gap-1 rounded-full border border-slate-700 bg-slate-800/70 px-2.5 py-1 text-xs text-slate-200 transition-colors hover:border-orange-500/40 hover:bg-slate-700"
+                  >
+                    <PencilLine className="h-3 w-3" />
+                    Replace
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-950/30 px-4 py-8 text-center text-sm text-slate-500">
+                No image attached.
+              </div>
+            )}
+
+            <p className="text-xs text-slate-500">
+              Supported formats: JPEG, PNG, GIF. Maximum size: 15 MB.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-end gap-2 border-t border-slate-800/90 bg-slate-900/80 px-5 py-4 sm:px-6">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded-full border border-slate-700 bg-slate-800/70 px-4 py-1.5 text-sm text-slate-200 transition-colors hover:border-slate-500"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={isSaving}
+            className="rounded-full bg-linear-to-r from-orange-500 to-red-600 px-4 py-1.5 text-sm font-semibold text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isSaving ? "Saving..." : "Save changes"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
 }
 
 function getCommentNetVoteScore(comment) {
@@ -71,109 +289,39 @@ export default function CommentsList({
   profileUsername = "",
 }) {
   const navigate = useNavigate();
-  const editMediaInputRef = useRef(null);
   const [editingComment, setEditingComment] = useState(null);
-  const [editText, setEditText] = useState("");
-  const [editOriginalText, setEditOriginalText] = useState("");
-  const [editMediaId, setEditMediaId] = useState(null);
-  const [editMediaPreviewUrl, setEditMediaPreviewUrl] = useState("");
-  const [editMediaPreviewIsRemote, setEditMediaPreviewIsRemote] =
-    useState(false);
-  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [editingState, setEditingState] = useState(null);
 
   useEffect(
     () => () => {
-      if (editMediaPreviewUrl && !editMediaPreviewIsRemote) {
-        URL.revokeObjectURL(editMediaPreviewUrl);
+      if (editingState?.previewUrl && !editingState?.previewIsRemote) {
+        URL.revokeObjectURL(editingState.previewUrl);
       }
     },
-    [editMediaPreviewIsRemote, editMediaPreviewUrl]
+    [editingState]
   );
 
   const stopEditingComment = () => {
-    if (editMediaPreviewUrl && !editMediaPreviewIsRemote) {
-      URL.revokeObjectURL(editMediaPreviewUrl);
+    if (editingState?.previewUrl && !editingState?.previewIsRemote) {
+      URL.revokeObjectURL(editingState.previewUrl);
     }
 
     setEditingComment(null);
-    setEditText("");
-    setEditOriginalText("");
-    setEditMediaId(null);
-    setEditMediaPreviewUrl("");
-    setEditMediaPreviewIsRemote(false);
-    setIsSavingEdit(false);
+    setEditingState(null);
   };
 
   const startEditingComment = comment => {
-    if (editMediaPreviewUrl && !editMediaPreviewIsRemote) {
-      URL.revokeObjectURL(editMediaPreviewUrl);
-    }
-
     const mediaId = comment?.media?.id ?? null;
 
     setEditingComment(comment);
-    setEditText(getCommentBody(comment));
-    setEditOriginalText(getCommentBody(comment));
-    setEditMediaId(mediaId);
-    setEditMediaPreviewUrl(mediaId ? MediaApi.getFullMediaUrl(mediaId) : "");
-    setEditMediaPreviewIsRemote(Boolean(mediaId));
-    setIsSavingEdit(false);
-  };
-
-  const handleEditCommentMedia = async event => {
-    const file = event.target.files?.[0];
-    if (!file) {
-      event.target.value = "";
-      return;
-    }
-
-    if (!isAllowedCommentImage(file)) {
-      console.error(
-        "Unsupported comment media. Use JPEG, PNG, or GIF images up to 15MB."
-      );
-      event.target.value = "";
-      return;
-    }
-
-    try {
-      const response = await uploadCommentMedia(file);
-      const mediaId = response?.mediaId;
-      if (!mediaId) return;
-
-      if (editMediaPreviewUrl && !editMediaPreviewIsRemote) {
-        URL.revokeObjectURL(editMediaPreviewUrl);
-      }
-
-      setEditMediaId(mediaId);
-      setEditMediaPreviewUrl(URL.createObjectURL(file));
-      setEditMediaPreviewIsRemote(false);
-    } catch (error) {
-      console.error("Failed to upload comment media:", error);
-    } finally {
-      event.target.value = "";
-    }
-  };
-
-  const handleEditCommentSubmit = async event => {
-    event.preventDefault();
-
-    if (!editingComment) return;
-
-    const trimmedContent = editText.trim();
-    const fallbackContent = editOriginalText.trim();
-    const nextContent = trimmedContent || fallbackContent;
-    if (!nextContent && !editMediaId) return;
-
-    setIsSavingEdit(true);
-
-    try {
-      await onEditComment?.(editingComment.id, nextContent, editMediaId);
-      stopEditingComment();
-    } catch (error) {
-      console.error("Failed to update comment:", error);
-    } finally {
-      setIsSavingEdit(false);
-    }
+    setEditingState({
+      text: getCommentBody(comment),
+      originalText: getCommentBody(comment),
+      mediaId,
+      previewUrl: mediaId ? MediaApi.getFullMediaUrl(mediaId) : "",
+      previewIsRemote: Boolean(mediaId),
+      isSaving: false,
+    });
   };
 
   if (!comments?.length) {
@@ -227,141 +375,15 @@ export default function CommentsList({
         />
       ))}
 
-      {editingComment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-md">
-          <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            <div className="modal-cinematic-orbit absolute inset-[-35%]" />
-            <div className="modal-cinematic-sweep absolute inset-0" />
-            <div className="modal-cinematic-shimmer absolute inset-0" />
-          </div>
-
-          <form
-            onSubmit={handleEditCommentSubmit}
-            onClick={event => event.stopPropagation()}
-            className="relative flex w-full max-w-2xl max-h-[85vh] flex-col overflow-hidden rounded-2xl border border-slate-700/90 bg-slate-900/95 shadow-2xl ring-1 ring-white/5"
-          >
-            <div className="flex items-start justify-between gap-4 border-b border-slate-800/90 bg-linear-to-r from-slate-900 to-slate-900/70 px-5 py-4 sm:px-6">
-              <div>
-                <h2 className="text-xl font-bold text-white">Edit Comment</h2>
-                <p className="mt-1 text-sm text-slate-400">
-                  Update the text or replace the attached image.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={stopEditingComment}
-                className="rounded-full border border-slate-700 bg-slate-800/70 p-2 text-slate-300 transition-colors hover:border-slate-500 hover:text-white"
-                aria-label="Close edit modal"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4 sm:px-6">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-slate-200">
-                    Content
-                  </label>
-                  <span className="text-xs text-slate-500">
-                    {editText.trim().length} chars
-                  </span>
-                </div>
-
-                <textarea
-                  value={editText}
-                  onChange={event => setEditText(event.target.value)}
-                  rows={5}
-                  className="w-full rounded-xl border border-slate-700/80 bg-slate-950/80 px-3 py-2.5 text-slate-100 outline-none transition-colors focus:border-orange-500/70"
-                  placeholder="Update your comment"
-                />
-              </div>
-
-              <div className="space-y-3 rounded-2xl border border-slate-800/90 bg-slate-950/40 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <h3 className="text-sm font-medium text-slate-200">
-                      Comment photo
-                    </h3>
-                    <p className="text-xs text-slate-500">
-                      Upload a new image to replace the current one.
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => editMediaInputRef.current?.click()}
-                    className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-800/70 px-3 py-2 text-xs font-medium text-slate-200 transition-colors hover:border-orange-500/40 hover:bg-slate-700"
-                  >
-                    <Image className="h-3.5 w-3.5" />
-                    {editMediaId ? "Replace photo" : "Add photo"}
-                  </button>
-                </div>
-
-                <input
-                  ref={editMediaInputRef}
-                  type="file"
-                  accept={COMMENT_IMAGE_ACCEPT}
-                  className="hidden"
-                  onChange={handleEditCommentMedia}
-                />
-
-                {editMediaPreviewUrl ? (
-                  <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/70">
-                    <div className="aspect-video w-full bg-slate-950/60">
-                      <img
-                        src={editMediaPreviewUrl}
-                        alt="Comment media preview"
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                    <div className="flex items-center justify-between gap-2 px-3 py-2">
-                      <span className="text-xs text-slate-500">
-                        {editMediaPreviewIsRemote
-                          ? "Uploaded image"
-                          : "New image"}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => editMediaInputRef.current?.click()}
-                        className="inline-flex items-center gap-1 rounded-full border border-slate-700 bg-slate-800/70 px-2.5 py-1 text-xs text-slate-200 transition-colors hover:border-orange-500/40 hover:bg-slate-700"
-                      >
-                        <PencilLine className="h-3 w-3" />
-                        Replace
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-950/30 px-4 py-8 text-center text-sm text-slate-500">
-                    No image attached.
-                  </div>
-                )}
-
-                <p className="text-xs text-slate-500">
-                  Supported formats: JPEG, PNG, GIF. Maximum size: 15 MB.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-end gap-2 border-t border-slate-800/90 bg-slate-900/80 px-5 py-4 sm:px-6">
-              <button
-                type="button"
-                onClick={stopEditingComment}
-                className="rounded-full border border-slate-700 bg-slate-800/70 px-4 py-1.5 text-sm text-slate-200 transition-colors hover:border-slate-500"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSavingEdit}
-                className="rounded-full bg-linear-to-r from-orange-500 to-red-600 px-4 py-1.5 text-sm font-semibold text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {isSavingEdit ? "Saving..." : "Save changes"}
-              </button>
-            </div>
-          </form>
-        </div>
+      {editingComment && editingState && (
+        <EditCommentModal
+          editingState={editingState}
+          onCancel={stopEditingComment}
+          onSubmit={async (content, mediaId) =>
+            onEditComment?.(editingComment.id, content, mediaId)
+          }
+          onStateChange={setEditingState}
+        />
       )}
     </div>
   );
@@ -383,6 +405,7 @@ function CommentThread({
   const [replyText, setReplyText] = useState("");
   const [replyAttachedMediaId, setReplyAttachedMediaId] = useState(null);
   const [replyAttachedPreviewUrl, setReplyAttachedPreviewUrl] = useState("");
+  const [replyPreviewIsRemote, setReplyPreviewIsRemote] = useState(false);
   const vote = comment.vote ?? "NONE";
   const canManageComment =
     currentUsername && getCommentAuthor(comment) === currentUsername;
@@ -419,12 +442,6 @@ function CommentThread({
               </button>
               <span className="text-slate-600">•</span>
               <span>{getCommentTime(comment)}</span>
-              {getCommentCommunity(comment) && (
-                <>
-                  <span className="text-slate-600">•</span>
-                  <span>{getCommentCommunity(comment)}</span>
-                </>
-              )}
             </div>
 
             {comment.deleted ? (
@@ -474,7 +491,7 @@ function CommentThread({
                   </button>
 
                   <span className="inline-flex min-w-10 items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/50 px-3 py-1.5 text-sm font-semibold text-slate-200">
-                    {getCommentScore(comment)}
+                    {getCommentNetVoteScore(comment)}
                   </span>
 
                   <button
@@ -566,11 +583,12 @@ function CommentThread({
             if (!replyText.trim() && !replyAttachedMediaId) return;
             onReply?.(comment.id, replyText, replyAttachedMediaId);
             setReplyText("");
-            if (replyAttachedPreviewUrl) {
+            if (replyAttachedPreviewUrl && !replyPreviewIsRemote) {
               URL.revokeObjectURL(replyAttachedPreviewUrl);
             }
             setReplyAttachedPreviewUrl("");
             setReplyAttachedMediaId(null);
+            setReplyPreviewIsRemote(false);
             setIsReplying(false);
             setIsRepliesVisible(true);
           }}
@@ -607,12 +625,12 @@ function CommentThread({
                 }
 
                 try {
-                  const response = await uploadCommentMedia(file);
-                  const mediaId =
-                    response?.mediaId ?? response?.id ?? response?.media?.id;
+                  const response = await MediaApi.uploadMedia(file);
+                  const mediaId = response?.id;
                   if (mediaId) {
                     setReplyAttachedMediaId(mediaId);
                     setReplyAttachedPreviewUrl(URL.createObjectURL(file));
+                    setReplyPreviewIsRemote(false);
                   }
                 } catch (error) {
                   console.error("Failed to upload reply media:", error);
@@ -647,9 +665,12 @@ function CommentThread({
                     <button
                       type="button"
                       onClick={() => {
-                        URL.revokeObjectURL(replyAttachedPreviewUrl);
+                        if (replyAttachedPreviewUrl && !replyPreviewIsRemote) {
+                          URL.revokeObjectURL(replyAttachedPreviewUrl);
+                        }
                         setReplyAttachedPreviewUrl("");
                         setReplyAttachedMediaId(null);
+                        setReplyPreviewIsRemote(false);
                       }}
                       className="mt-2 text-sm font-medium text-red-400 hover:text-red-300"
                     >
@@ -665,11 +686,12 @@ function CommentThread({
               onClick={() => {
                 setIsReplying(false);
                 setReplyText("");
-                if (replyAttachedPreviewUrl) {
+                if (replyAttachedPreviewUrl && !replyPreviewIsRemote) {
                   URL.revokeObjectURL(replyAttachedPreviewUrl);
                 }
                 setReplyAttachedPreviewUrl("");
                 setReplyAttachedMediaId(null);
+                setReplyPreviewIsRemote(false);
               }}
               className="px-4 py-2 rounded-full text-sm font-medium text-slate-400 transition-all hover:bg-slate-800/50 hover:text-slate-200 shrink-0"
             >
@@ -752,12 +774,4 @@ function getCommentTime(comment) {
   }
 
   return comment.time ?? "";
-}
-
-function getCommentCommunity(comment) {
-  return comment.community ?? "";
-}
-
-function getCommentScore(comment) {
-  return getCommentNetVoteScore(comment);
 }

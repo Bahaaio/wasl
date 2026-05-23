@@ -61,7 +61,7 @@
  * @property {string} content
  * @property {string} authorUsername
  * @property {string?} authorAvatarMediaId
- * @property {number} communityMediaId
+ * @property {string?} communityIconMediaId
  * @property {string} communityName
  * @property {MediaDto[]} media
  * @property {VoteAction} vote
@@ -128,13 +128,15 @@
  */
 
 /**
- * @typedef {Object} MediaUploadResponse
- * @property {string} mediaId
+ * @typedef {Object} MediaResponse
+ * @property {string} id
+ * @property {"IMAGE" | "VIDEO" | "GIF"} type
+ * @property {string} fullUrl
+ * @property {string} thumbnailUrl
  */
 
 /**
- * @typedef {Object} UploadResponse
- * @property {string} mediaId
+ * @typedef {MediaResponse} MediaUploadResponse
  */
 
 /**
