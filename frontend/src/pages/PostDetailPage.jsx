@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
 import CommentsList from "../components/CommentsList.jsx";
-import api from "../api/client.js";
 import { CommentsApi } from "../api/comments.js";
 import { CommunitiesApi } from "../api/communities.js";
 import { PostsApi } from "../api/posts.js";
@@ -50,18 +49,7 @@ function isAllowedCommentImage(file) {
 }
 
 async function uploadCommentMedia(file) {
-  const formData = new FormData();
-  formData.append("file", file);
-
-  const response = await api.request({
-    url: "/media",
-    method: "post",
-    data: formData,
-    headers: { "Content-Type": undefined },
-    timeout: 30000,
-  });
-
-  return response.data;
+  return MediaApi.uploadMedia(file);
 }
 
 export default function PostDetailPage() {
@@ -76,6 +64,7 @@ export default function PostDetailPage() {
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [attachedMediaId, setAttachedMediaId] = useState(null);
   const [attachedPreviewUrl, setAttachedPreviewUrl] = useState("");
+  const [attachedPreviewIsRemote, setAttachedPreviewIsRemote] = useState(false);
   const [communityIconMediaId, setCommunityIconMediaId] = useState(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const commentImageInputRef = useRef(null);
@@ -154,11 +143,12 @@ export default function PostDetailPage() {
         mediaId: attachedMediaId,
       });
       setCommentInput("");
-      if (attachedPreviewUrl) {
+      if (attachedPreviewUrl && !attachedPreviewIsRemote) {
         URL.revokeObjectURL(attachedPreviewUrl);
       }
       setAttachedPreviewUrl("");
       setAttachedMediaId(null);
+      setAttachedPreviewIsRemote(false);
       await loadPost();
     } catch (err) {
       console.error("Failed to add comment:", err);
@@ -234,10 +224,7 @@ export default function PostDetailPage() {
       return undefined;
     }
 
-    const directIcon =
-      post.communityIconMediaId ??
-      post.iconMediaId ??
-      post.community?.iconMediaId;
+    const directIcon = post.communityIconMediaId ?? null;
     if (directIcon) {
       Promise.resolve().then(() => setCommunityIconMediaId(directIcon));
       return undefined;
@@ -429,13 +416,7 @@ export default function PostDetailPage() {
                 <div className="mt-4 flex flex-wrap items-center gap-2">
                   <Votes
                     vote={postVote}
-                    score={
-                      post?.score ??
-                      (typeof post?.upvoteCount === "number" &&
-                      typeof post?.downvoteCount === "number"
-                        ? post.upvoteCount - post.downvoteCount
-                        : 0)
-                    }
+                    score={post?.score ?? 0}
                     disabled={isDeleted}
                     onUpvote={() =>
                       handlePostVote(postVote === "UPVOTE" ? "NONE" : "UPVOTE")
@@ -520,6 +501,7 @@ export default function PostDetailPage() {
                         setAttachedMediaId(mediaId);
                         const preview = URL.createObjectURL(file);
                         setAttachedPreviewUrl(preview);
+                        setAttachedPreviewIsRemote(false);
                       }
                     } catch (err) {
                       console.error("Failed to upload media:", err);
@@ -547,9 +529,12 @@ export default function PostDetailPage() {
                       <button
                         type="button"
                         onClick={() => {
-                          URL.revokeObjectURL(attachedPreviewUrl);
+                          if (attachedPreviewUrl && !attachedPreviewIsRemote) {
+                            URL.revokeObjectURL(attachedPreviewUrl);
+                          }
                           setAttachedPreviewUrl("");
                           setAttachedMediaId(null);
+                          setAttachedPreviewIsRemote(false);
                         }}
                         className="mt-2 text-sm font-medium text-red-400 hover:text-red-300"
                       >

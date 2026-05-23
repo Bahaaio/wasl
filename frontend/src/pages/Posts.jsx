@@ -63,13 +63,7 @@ export default function PostsPage() {
           sort: ["createdAt,desc"],
         });
 
-        // sort by createdAt desc from server response
-        const sorted = (response?.content ?? []).slice().sort((a, b) => {
-          const at = new Date(a.createdAt).getTime();
-          const bt = new Date(b.createdAt).getTime();
-          return bt - at;
-        });
-        setPosts(sorted);
+        setPosts(response?.content ?? []);
       } catch (err) {
         console.error("Failed to fetch posts:", err);
         setError("Failed to load posts.");
@@ -92,12 +86,7 @@ export default function PostsPage() {
       size: 20,
       sort: ["createdAt,desc"],
     });
-    const sorted = (response?.content ?? []).slice().sort((a, b) => {
-      const at = new Date(a.createdAt).getTime();
-      const bt = new Date(b.createdAt).getTime();
-      return bt - at;
-    });
-    setPosts(sorted);
+    setPosts(response?.content ?? []);
   };
 
   const handleVote = async (postId, action) => {

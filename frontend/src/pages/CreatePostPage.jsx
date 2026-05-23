@@ -26,6 +26,10 @@ function toDisplayCommunityName(value) {
   return value.trim();
 }
 
+function createTempId() {
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
 export default function CreatePostPage() {
   const navigate = useNavigate();
   const { isLoggedIn } = useUser();
@@ -214,57 +218,61 @@ export default function CreatePostPage() {
 
   const handleImageUpload = event => {
     const files = Array.from(event.target.files || []);
-
-    setCreatePostForm(previous => {
-      const spaceLeft = 4 - previous.images.length;
-      const toAdd = files.slice(0, spaceLeft).map(file => {
-        const preview = URL.createObjectURL(file);
-        // start upload immediately
-        const promise = MediaApi.uploadMedia(file)
-          .then(res => res?.id)
-          .catch(err => {
-            console.error("Failed to upload media:", err);
-            throw err;
-          });
-
-        // when upload completes, update the image entry
-        promise
-          .then(id => {
-            setCreatePostForm(prev => ({
-              ...prev,
-              images: prev.images.map(img =>
-                img.preview === preview
-                  ? { ...img, uploading: false, mediaId: id }
-                  : img
-              ),
-            }));
-          })
-          .catch(() => {
-            setCreatePostForm(prev => ({
-              ...prev,
-              images: prev.images.map(img =>
-                img.preview === preview
-                  ? { ...img, uploading: false, error: true }
-                  : img
-              ),
-            }));
-          });
-
-        return {
-          file,
-          preview,
-          type: file.type,
-          uploading: true,
-          promise,
-          mediaId: null,
-          error: false,
-        };
-      });
-
+    const spaceLeft = 10 - createPostForm.images.length;
+    const entries = files.slice(0, Math.max(0, spaceLeft)).map(file => {
+      const tempId = createTempId();
+      const preview = URL.createObjectURL(file);
       return {
-        ...previous,
-        images: [...previous.images, ...toAdd],
+        id: tempId,
+        file,
+        preview,
+        type: file.type,
+        uploading: true,
+        mediaId: null,
+        error: false,
       };
+    });
+
+    if (entries.length === 0) {
+      event.target.value = "";
+      return;
+    }
+
+    setCreatePostForm(previous => ({
+      ...previous,
+      images: [...previous.images, ...entries],
+    }));
+
+    entries.forEach(entry => {
+      MediaApi.uploadMedia(entry.file)
+        .then(response => {
+          if (!response?.id) {
+            throw new Error("Upload response missing id");
+          }
+          setCreatePostForm(prev => ({
+            ...prev,
+            images: prev.images.map(img =>
+              img.id === entry.id
+                ? {
+                    ...img,
+                    uploading: false,
+                    mediaId: response.id,
+                    preview: img.preview,
+                  }
+                : img
+            ),
+          }));
+        })
+        .catch(() => {
+          setCreatePostForm(prev => ({
+            ...prev,
+            images: prev.images.map(img =>
+              img.id === entry.id
+                ? { ...img, uploading: false, error: true }
+                : img
+            ),
+          }));
+        });
     });
 
     // reset input
@@ -274,7 +282,9 @@ export default function CreatePostPage() {
   const handleRemoveImage = index => {
     setCreatePostForm(previous => {
       const removed = previous.images[index];
-      if (removed?.preview) URL.revokeObjectURL(removed.preview);
+      if (removed?.preview) {
+        URL.revokeObjectURL(removed.preview);
+      }
       return {
         ...previous,
         images: previous.images.filter((_, i) => i !== index),
@@ -331,16 +341,23 @@ export default function CreatePostPage() {
       return;
     }
 
-    if (!createPostForm.content.trim()) {
-      setCreatePostError("Text is required");
-      return;
-    }
-
     if (
       createPostForm.content.trim().length > 0 &&
       createPostForm.content.trim().length < 10
     ) {
       setCreatePostError("Content must be at least 10 characters");
+      return;
+    }
+
+    const hasUploading = createPostForm.images.some(img => img.uploading);
+    if (hasUploading) {
+      setCreatePostError("Wait for all uploads to finish before posting.");
+      return;
+    }
+
+    const hasFailed = createPostForm.images.some(img => img.error);
+    if (hasFailed) {
+      setCreatePostError("Remove failed uploads before posting.");
       return;
     }
 
@@ -370,48 +387,12 @@ export default function CreatePostPage() {
 
       // Collect mediaIds from images. Images start uploading on selection; wait for any pending uploads.
       if (createPostForm.images && createPostForm.images.length > 0) {
-        try {
-          const imgs = createPostForm.images;
-          const results = await Promise.all(
-            imgs.map(async img => {
-              // already attached mediaId
-              if (img.mediaId) return img.mediaId;
-              // promise resolves to media id (we stored a promise when starting upload)
-              if (img.promise) {
-                try {
-                  const id = await img.promise;
-                  return id;
-                } catch {
-                  return null;
-                }
-              }
-              // fallback: try uploading file now
-              try {
-                const resp = await MediaApi.uploadMedia(img.file);
-                return resp?.id ?? null;
-              } catch (err) {
-                console.error("Fallback upload failed:", err);
-                return null;
-              }
-            })
-          );
-
-          mediaIds = results.filter(Boolean);
-
-          if (mediaIds.length === 0 && createPostForm.images.length > 0) {
-            console.warn("⚠️ No images were successfully uploaded");
-          } else if (mediaIds.length < createPostForm.images.length) {
-            console.warn(
-              `⚠️ Only ${mediaIds.length}/${createPostForm.images.length} images were uploaded`
-            );
-          }
-        } catch (uploadError) {
-          console.error("Error while waiting for image uploads:", uploadError);
-        }
+        mediaIds = createPostForm.images
+          .map(img => img.mediaId)
+          .filter(Boolean);
       }
 
-      const baseContent =
-        createPostForm.content.trim() || createPostForm.title.trim();
+      const baseContent = createPostForm.content.trim();
       const contentParts = [baseContent];
 
       if (showLink && createPostForm.link.trim()) {
@@ -436,51 +417,24 @@ export default function CreatePostPage() {
         mediaIds: mediaIds.length > 0 ? mediaIds : undefined,
       });
 
-      // capture snapshot of images and pending upload promises to attach later
-      const imagesSnapshot = (createPostForm.images || []).map(img => ({
-        preview: img.preview,
-        mediaId: img.mediaId,
-        promise: img.promise,
-      }));
-
-      setCreatePostForm({
-        title: "",
-        content: "",
-        community: joinedCommunities[0]?.name || "",
-        images: [],
-        link: "",
-        pollOptions: ["", ""],
+      setCreatePostForm(previous => {
+        previous.images.forEach(img => {
+          if (img.preview) {
+            URL.revokeObjectURL(img.preview);
+          }
+        });
+        return {
+          title: "",
+          content: "",
+          community: joinedCommunities[0]?.name || "",
+          images: [],
+          link: "",
+          pollOptions: ["", ""],
+        };
       });
       setCommunitySearch("");
       setComposerTab("post");
       navigate("/posts");
-
-      // For any pending uploads, attach them to the created post once they finish.
-      if (imagesSnapshot.length > 0) {
-        for (const snap of imagesSnapshot) {
-          if (!snap.mediaId && snap.promise) {
-            snap.promise
-              .then(id => {
-                if (!id) return;
-                // build mediaIds list in original order using snapshot
-                const finalIds = imagesSnapshot
-                  .map(s =>
-                    s.mediaId
-                      ? s.mediaId
-                      : s.preview === snap.preview
-                        ? id
-                        : null
-                  )
-                  .filter(Boolean);
-                // PATCH post to attach new media
-                return PostsApi.patchPost(created.id, { mediaIds: finalIds });
-              })
-              .catch(err => {
-                console.error("Failed to attach uploaded media to post:", err);
-              });
-          }
-        }
-      }
     } catch (error) {
       setCreatePostError(
         error?.response?.data?.message ||
@@ -711,7 +665,9 @@ export default function CreatePostPage() {
                   multiple
                   accept="image/*,video/*"
                   onChange={handleImageUpload}
-                  disabled={isCreatingPost || createPostForm.images.length >= 4}
+                  disabled={
+                    isCreatingPost || createPostForm.images.length >= 10
+                  }
                   className="hidden"
                 />
                 <div className="flex flex-col items-center gap-2">
@@ -721,7 +677,7 @@ export default function CreatePostPage() {
                   </p>
                   <p className="text-xs text-slate-500">or drag and drop</p>
                   <p className="text-xs text-slate-600">
-                    {createPostForm.images.length}/4 files
+                    {createPostForm.images.length}/10 files
                   </p>
                 </div>
               </label>
@@ -746,11 +702,7 @@ export default function CreatePostPage() {
                         </div>
                       ) : (
                         <img
-                          src={
-                            img.mediaId
-                              ? MediaApi.getFullMediaUrl(img.mediaId)
-                              : img.preview
-                          }
+                          src={img.preview}
                           alt={`Upload ${index + 1}`}
                           className="w-full h-32 object-cover rounded-lg"
                         />

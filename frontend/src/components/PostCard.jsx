@@ -6,7 +6,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MessageCircle, PencilLine, Share2, Trash2 } from "lucide-react";
-import { PostsApi } from "../api/posts.js";
 import { MediaApi } from "../api/media.js";
 import { CommunitiesApi } from "../api/communities.js";
 import MediaCarousel from "./MediaCarousel.jsx";
@@ -14,7 +13,6 @@ import MediaLightbox from "./MediaLightbox.jsx";
 import Votes from "./Votes.jsx";
 
 const communityIconCache = new Map();
-const commentCountCache = new Map();
 
 function normalizeCommunitySlug(value) {
   return String(value || "")
@@ -32,31 +30,18 @@ export default function PostCard({
 }) {
   const navigate = useNavigate();
 
-  const author = post.authorUsername ?? post.author ?? "unknown";
-  const community = post.communityName ?? post.community ?? "";
-  const initialIconMediaId =
-    post.communityIconMediaId ??
-    post.iconMediaId ??
-    post.community?.iconMediaId ??
-    null;
+  const author = post.authorUsername ?? "unknown";
+  const community = post.communityName ?? "";
+  const initialIconMediaId = post.communityIconMediaId ?? null;
   const [communityIconMediaId, setCommunityIconMediaId] = useState(
     initialIconMediaId ?? null
   );
-  const score =
-    post?.score ??
-    (typeof post?.upvoteCount === "number" &&
-    typeof post?.downvoteCount === "number"
-      ? post.upvoteCount - post.downvoteCount
-      : 0);
-  const [commentCount, setCommentCount] = useState(
-    post.commentCount ?? post.comments ?? 0
-  );
+  const score = post?.score ?? 0;
+  const commentCount = post.commentCount ?? 0;
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const vote =
-    post.vote ??
-    (post.upvoted ? "UPVOTE" : post.downvoted ? "DOWNVOTE" : "NONE");
-  const time = post.createdAt ? formatRelativeTime(post.createdAt) : post.time;
-  const isDeleted = post.softDeleted === true || post.deleted === true;
+  const vote = post.vote ?? "NONE";
+  const time = post.createdAt ? formatRelativeTime(post.createdAt) : "";
+  const isDeleted = post.deleted === true;
   const title = post.title;
   const body = isDeleted
     ? "Sorry, this post was deleted by the person who originally posted it."
@@ -138,50 +123,6 @@ export default function PostCard({
       isMounted = false;
     };
   }, [community, initialIconMediaId]);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const id = post?.id;
-    if (!id) return undefined;
-
-    const cached = commentCountCache.get(String(id));
-    if (typeof cached === "number") {
-      Promise.resolve().then(() => mounted && setCommentCount(cached));
-      return undefined;
-    }
-
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const resp = await PostsApi.listPostComments(id, { page: 0, size: 1 });
-        if (cancelled || !mounted) return;
-        const maybePage = resp?.page ?? resp?.comments?.page ?? {};
-        const totalTop =
-          maybePage?.totalTopLevelComments ??
-          maybePage?.topLevelComments ??
-          maybePage?.totalElements ??
-          undefined;
-        const next =
-          typeof totalTop === "number"
-            ? totalTop
-            : Array.isArray(resp?.comments)
-              ? resp.comments.length
-              : (post.commentCount ?? post.comments ?? 0);
-
-        commentCountCache.set(String(id), next);
-        setCommentCount(next);
-      } catch {
-        // ignore network errors, keep existing count
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-      mounted = false;
-    };
-  }, [post]);
 
   return (
     <article
