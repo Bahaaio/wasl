@@ -18,8 +18,7 @@ import {
   Shield,
   ShieldCheck,
 } from "lucide-react";
-import Navbar from "../components/Navbar.jsx";
-import SideBar from "../components/SideBar.jsx";
+import AppLayout from "../components/AppLayout.jsx";
 import PostCard from "../components/PostCard.jsx";
 import CameraButton from "../components/CameraButton.jsx";
 import SearchBar from "../components/SearchBar.jsx";
@@ -327,11 +326,11 @@ export default function CommunityProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-orange-500/30">
-      <Navbar />
-      <div className="lg:flex lg:items-start">
-        <SideBar />
-
+    <AppLayout
+      contentMaxWidth="max-w-none"
+      className="selection:bg-orange-500/30"
+      mainClassName="pb-12"
+    >
         <input
           ref={bannerInputRef}
           type="file"
@@ -347,8 +346,7 @@ export default function CommunityProfilePage() {
           onChange={handleAvatarUpload}
         />
 
-        <main className="min-h-[calc(100vh-4rem)] px-4 pb-12 pt-20 sm:px-6 lg:min-w-0 lg:flex-1 lg:px-8">
-          <div className="mx-auto max-w-350">
+          <div className="mx-auto w-full max-w-6xl">
             <section className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/70 shadow-2xl shadow-black/30">
               <div className="relative h-36 sm:h-44">
                 <img
@@ -677,8 +675,6 @@ export default function CommunityProfilePage() {
               </aside>
             </section>
           </div>
-        </main>
-      </div>
-    </div>
+    </AppLayout>
   );
 }

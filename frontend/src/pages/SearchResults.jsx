@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import Navbar from "../components/Navbar.jsx";
-import SideBar from "../components/SideBar.jsx";
+import AppLayout from "../components/AppLayout.jsx";
 import PostCard from "../components/PostCard.jsx";
 import { SearchApi } from "../api/search.js";
 import { MediaApi } from "../api/media.js";
@@ -55,13 +54,8 @@ export default function SearchResults() {
   }, [query]);
 
   return (
-    <div className="min-h-dvh bg-slate-950 text-slate-100">
-      <Navbar />
-      <div className="lg:flex lg:items-start">
-        <SideBar />
-        <main className="min-h-[calc(100dvh-4rem)] px-4 pb-8 pt-24 sm:px-6 lg:min-w-0 lg:flex-1 lg:px-8">
-          <div className="mx-auto w-full max-w-6xl">
-            <div className="mb-6">
+    <AppLayout>
+      <div className="mb-6">
               <h1 className="text-2xl font-semibold text-slate-100">
                 Search results for "{query}"
               </h1>
@@ -196,10 +190,7 @@ export default function SearchResults() {
                 </div>
               )}
             </section>
-          </div>
-        </main>
-      </div>
-    </div>
+    </AppLayout>
   );
 }
 

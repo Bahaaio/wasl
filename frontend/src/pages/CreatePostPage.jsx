@@ -7,8 +7,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, ImagePlus, Link2, BarChart3, ArrowLeft } from "lucide-react";
 // axios not needed here; API helpers are used instead
-import Navbar from "../components/Navbar.jsx";
-import SideBar from "../components/SideBar.jsx";
+import AppLayout from "../components/AppLayout.jsx";
 import RichTextEditor from "../components/RichTextEditor.jsx";
 import AuthModal from "../components/AuthModal.jsx";
 import { PostsApi } from "../api/posts.js";
@@ -450,12 +449,9 @@ export default function CreatePostPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
+    <>
       <AuthModal isOpen={showAuthModal} onClose={handleAuthModalClose} />
-      <Navbar />
-      <div className="lg:flex lg:items-start">
-        <SideBar />
-        <div className="mx-auto max-w-2xl px-4 pb-12 pt-24 sm:px-6 lg:min-w-0 lg:flex-1">
+      <AppLayout contentMaxWidth="max-w-2xl">
           {/* Header with Create post and Drafts */}
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -816,8 +812,7 @@ export default function CreatePostPage() {
               </button>
             </div>
           </form>
-        </div>
-      </div>
-    </div>
+      </AppLayout>
+    </>
   );
 }

@@ -52,7 +52,7 @@ async function loadAllSubscribedCommunities() {
 
 function Section({ title, open, onToggle, children }) {
   return (
-    <section className="rounded-2xl border border-slate-800 bg-slate-900/80 overflow-hidden">
+    <section className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/80">
       <button
         type="button"
         onClick={onToggle}
@@ -114,16 +114,97 @@ function CommunityItem({ community, onClick }) {
   );
 }
 
+function SideBarContent({
+  location,
+  isLoggedIn,
+  openSections,
+  toggleSection,
+  joinedCommunities,
+  isLoadingCommunities,
+  communityCountText,
+  onNavigate,
+}) {
+  return (
+    <div className="space-y-4 px-3 py-4">
+      <Section
+        title="Browse"
+        open={openSections.browse}
+        onToggle={() => toggleSection("browse")}
+      >
+        <div className="space-y-2">
+          <NavItem
+            to="/posts"
+            icon={<Home className="h-4 w-4" />}
+            label="Posts"
+            active={location.pathname === "/posts"}
+            onClick={onNavigate}
+          />
+        </div>
+      </Section>
+
+      <Section
+        title="Create"
+        open={openSections.create}
+        onToggle={() => toggleSection("create")}
+      >
+        <div className="space-y-2">
+          <NavItem
+            to="/create-post"
+            icon={<Plus className="h-4 w-4" />}
+            label="Create Post"
+            active={location.pathname === "/create-post"}
+            onClick={onNavigate}
+          />
+          <NavItem
+            to="/create-community"
+            icon={<Plus className="h-4 w-4" />}
+            label="Create Community"
+            active={location.pathname === "/create-community"}
+            onClick={onNavigate}
+          />
+        </div>
+      </Section>
+
+      <Section
+        title={`Communities ${isLoggedIn ? `(${joinedCommunities.length})` : ""}`}
+        open={openSections.communities}
+        onToggle={() => toggleSection("communities")}
+      >
+        <div className="space-y-3">
+          <p className="px-1 text-xs leading-relaxed text-slate-500">
+            {communityCountText}
+          </p>
+          {isLoadingCommunities ? (
+            <div className="px-1 py-2 text-sm text-slate-400">
+              Loading communities...
+            </div>
+          ) : isLoggedIn && joinedCommunities.length > 0 ? (
+            <div className="space-y-1">
+              {joinedCommunities.map(community => (
+                <CommunityItem
+                  key={community.id || community.name}
+                  community={community}
+                  onClick={onNavigate}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-3 text-sm text-slate-400">
+              {isLoggedIn
+                ? "You have not joined any communities yet."
+                : "Log in to see communities you belong to."}
+            </div>
+          )}
+        </div>
+      </Section>
+    </div>
+  );
+}
+
 export default function SideBar() {
   const location = useLocation();
   const { isLoggedIn } = useUser();
-  const [isDrawerOpen, setIsDrawerOpen] = useState(() => {
-    if (typeof window === "undefined") {
-      return false;
-    }
-
-    return window.innerWidth >= 1024;
-  });
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [openSections, setOpenSections] = useState({
     browse: true,
     create: true,
@@ -134,14 +215,27 @@ export default function SideBar() {
 
   useEffect(() => {
     const handleResize = () => {
-      setIsDrawerOpen(window.innerWidth >= 1024);
+      if (window.innerWidth >= 1024) {
+        setIsDrawerOpen(false);
+      }
     };
 
-    handleResize();
     window.addEventListener("resize", handleResize);
-
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  useEffect(() => {
+    if (!isDrawerOpen) {
+      return undefined;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isDrawerOpen]);
 
   useEffect(() => {
     let mounted = true;
@@ -200,6 +294,17 @@ export default function SideBar() {
       : "No joined communities yet";
   }, [joinedCommunities.length, isLoggedIn]);
 
+  const contentProps = {
+    location,
+    isLoggedIn,
+    openSections,
+    toggleSection,
+    joinedCommunities,
+    isLoadingCommunities,
+    communityCountText,
+    onNavigate: handleNavigate,
+  };
+
   return (
     <>
       <button
@@ -223,11 +328,12 @@ export default function SideBar() {
       />
 
       <aside
-        className={`fixed inset-x-0 top-16 z-30 h-[calc(100dvh-4rem)] w-full -translate-x-full border-r border-slate-800 bg-slate-950/95 shadow-2xl shadow-black/30 transition-transform duration-300 ease-out lg:static lg:h-auto lg:w-80 lg:translate-x-0 lg:shadow-none ${
-          isDrawerOpen ? "translate-x-0" : ""
+        className={`sidebar-scroll fixed left-0 top-16 z-40 flex h-[calc(100dvh-4rem)] w-72 max-w-[85vw] flex-col overflow-y-auto border-r border-slate-800/80 bg-[#0B1120] pb-4 shadow-2xl shadow-black/40 transition-transform duration-300 ease-out lg:hidden ${
+          isDrawerOpen ? "translate-x-0" : "-translate-x-full"
         }`}
+        aria-label="Mobile navigation"
       >
-        <div className="flex items-center justify-between border-b border-slate-800 px-4 py-4 lg:hidden">
+        <div className="flex items-center justify-between border-b border-slate-800 px-4 py-4">
           <span className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
             Menu
           </span>
@@ -240,82 +346,14 @@ export default function SideBar() {
             <X className="h-4 w-4" />
           </button>
         </div>
+        <SideBarContent {...contentProps} />
+      </aside>
 
-        <div className="h-full overflow-y-auto px-4 py-4">
-          <div className="space-y-4">
-            <Section
-              title="Browse"
-              open={openSections.browse}
-              onToggle={() => toggleSection("browse")}
-            >
-              <div className="space-y-2">
-                <NavItem
-                  to="/posts"
-                  icon={<Home className="h-4 w-4" />}
-                  label="Posts"
-                  active={location.pathname === "/posts"}
-                  onClick={handleNavigate}
-                />
-              </div>
-            </Section>
-
-            <Section
-              title="Create"
-              open={openSections.create}
-              onToggle={() => toggleSection("create")}
-            >
-              <div className="space-y-2">
-                <NavItem
-                  to="/create-post"
-                  icon={<Plus className="h-4 w-4" />}
-                  label="Create Post"
-                  active={location.pathname === "/create-post"}
-                  onClick={handleNavigate}
-                />
-                <NavItem
-                  to="/create-community"
-                  icon={<Plus className="h-4 w-4" />}
-                  label="Create Community"
-                  active={location.pathname === "/create-community"}
-                  onClick={handleNavigate}
-                />
-              </div>
-            </Section>
-
-            <Section
-              title={`Communities ${isLoggedIn ? `(${joinedCommunities.length})` : ""}`}
-              open={openSections.communities}
-              onToggle={() => toggleSection("communities")}
-            >
-              <div className="space-y-3">
-                <p className="px-1 text-xs leading-relaxed text-slate-500">
-                  {communityCountText}
-                </p>
-                {isLoadingCommunities ? (
-                  <div className="px-1 py-2 text-sm text-slate-400">
-                    Loading communities...
-                  </div>
-                ) : isLoggedIn && joinedCommunities.length > 0 ? (
-                  <div className="space-y-1">
-                    {joinedCommunities.map(community => (
-                      <CommunityItem
-                        key={community.id || community.name}
-                        community={community}
-                        onClick={handleNavigate}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-3 text-sm text-slate-400">
-                    {isLoggedIn
-                      ? "You have not joined any communities yet."
-                      : "Log in to see communities you belong to."}
-                  </div>
-                )}
-              </div>
-            </Section>
-          </div>
-        </div>
+      <aside
+        className="sidebar-scroll sticky top-16 hidden h-[calc(100vh-4rem)] w-64 shrink-0 flex-col overflow-y-auto pb-4 pt-4 lg:flex"
+        aria-label="Sidebar navigation"
+      >
+        <SideBarContent {...contentProps} />
       </aside>
     </>
   );

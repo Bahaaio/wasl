@@ -8,8 +8,7 @@ import {
   Globe,
   Lock,
 } from "lucide-react";
-import Navbar from "../components/Navbar.jsx";
-import SideBar from "../components/SideBar.jsx";
+import AppLayout from "../components/AppLayout.jsx";
 import AuthModal from "../components/AuthModal.jsx";
 import { useUser } from "../auth/useUser.jsx";
 import { CommunitiesApi } from "../api/communities.js";
@@ -209,14 +208,13 @@ export default function CreateCommunityPage() {
     : "Create community";
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-50 selection:bg-orange-500/30">
-      <Navbar transparentMode={false} />
-      <div className="lg:flex lg:items-start">
-        <SideBar />
-        {showAuthModal && <AuthModal onClose={handleAuthModalClose} />}
+    <AppLayout
+      contentMaxWidth="max-w-6xl"
+      className="text-slate-50 selection:bg-orange-500/30"
+      mainClassName="relative pb-16"
+    >
+      {showAuthModal && <AuthModal onClose={handleAuthModalClose} />}
 
-        <main className="relative pt-24 pb-16 lg:min-w-0 lg:flex-1">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <div className="flex items-center mb-6">
               <button
                 type="button"
@@ -593,9 +591,6 @@ export default function CreateCommunityPage() {
                 </div>
               </div>
             </section>
-          </div>
-        </main>
-      </div>
-    </div>
+    </AppLayout>
   );
 }

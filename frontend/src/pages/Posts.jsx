@@ -1,8 +1,7 @@
 /** @typedef {import("../api/types.js").PostDto} PostDto */
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../components/Navbar.jsx";
-import SideBar from "../components/SideBar.jsx";
+import AppLayout from "../components/AppLayout.jsx";
 import PostCard from "../components/PostCard.jsx";
 import { PostsApi } from "../api/posts.js";
 import { UsersApi } from "../api/users.js";
@@ -110,13 +109,8 @@ export default function PostsPage() {
   };
 
   return (
-    <div className="min-h-dvh bg-slate-950 text-slate-100">
-      <Navbar />
-      <div className="lg:flex lg:items-start">
-        <SideBar />
-        <main className="min-h-[calc(100dvh-4rem)] px-4 pb-0 pt-24 sm:px-6 lg:min-w-0 lg:flex-1 lg:px-8">
-          <div className="max-w-3xl space-y-4">
-            {!user?.username ? (
+    <AppLayout contentClassName="space-y-4">
+      {!user?.username ? (
               <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 text-slate-300">
                 <h1 className="text-2xl font-bold text-white">Your posts</h1>
                 <p className="mt-2 text-sm text-slate-400">
@@ -153,9 +147,6 @@ export default function PostsPage() {
                 />
               ))
             )}
-          </div>
-        </main>
-      </div>
-    </div>
+    </AppLayout>
   );
 }
