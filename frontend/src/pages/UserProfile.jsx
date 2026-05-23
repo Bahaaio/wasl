@@ -13,13 +13,6 @@ import { PostsApi } from "../api/posts.js";
 
 // No persistent client-side vote cache; rely on server and component state.
 
-function sortPostsByCreatedAtDesc(posts) {
-  return (posts || []).slice().sort((a, b) => {
-    const at = new Date(a.createdAt).getTime();
-    const bt = new Date(b.createdAt).getTime();
-    return bt - at;
-  });
-}
 import { useUser } from "../auth/useUser.jsx";
 
 const PROFILE_TABS = ["Posts", "Comments"];
@@ -97,8 +90,7 @@ export default function UserProfile() {
         size: 50,
         sort: ["createdAt,desc"],
       });
-      const loaded = sortPostsByCreatedAtDesc(response?.content ?? []);
-      setPosts(loaded);
+      setPosts(response?.content ?? []);
     } catch (err) {
       console.error("Failed to load profile posts:", err);
       setPosts([]);
@@ -245,44 +237,7 @@ export default function UserProfile() {
   const handleVote = async (postId, action) => {
     try {
       await PostsApi.votePost(postId, action);
-      setPosts(currentPosts =>
-        currentPosts.map(post => {
-          if (post.id !== postId) {
-            return post;
-          }
-
-          const previousVote =
-            post.vote ??
-            (post.upvoted ? "UPVOTE" : post.downvoted ? "DOWNVOTE" : "NONE");
-          const scoreDelta =
-            previousVote === action
-              ? 0
-              : previousVote === "NONE"
-                ? action === "UPVOTE"
-                  ? 1
-                  : -1
-                : action === "NONE"
-                  ? previousVote === "UPVOTE"
-                    ? -1
-                    : 1
-                  : action === "UPVOTE"
-                    ? 2
-                    : -2;
-
-          const nextScore =
-            typeof post.score === "number" && Number.isFinite(post.score)
-              ? post.score + scoreDelta
-              : post.score;
-
-          return {
-            ...post,
-            vote: action,
-            upvoted: action === "UPVOTE",
-            downvoted: action === "DOWNVOTE",
-            score: nextScore,
-          };
-        })
-      );
+      await loadUserPosts();
     } catch (err) {
       console.error("Failed to vote on post:", err);
     }
@@ -323,7 +278,6 @@ export default function UserProfile() {
       (post.media ?? []).map(media => ({
         id: media.id,
         url: MediaApi.getFullMediaUrl(media.id),
-        isRemote: true,
       }))
     );
     editModalOpenFrameRef.current = window.requestAnimationFrame(() => {
@@ -335,7 +289,7 @@ export default function UserProfile() {
   const clearEditMediaPreviews = useCallback(() => {
     setEditMediaPreviews(current => {
       current.forEach(preview => {
-        if (!preview.isRemote) {
+        if (preview.url?.startsWith("blob:")) {
           URL.revokeObjectURL(preview.url);
         }
       });
@@ -374,7 +328,6 @@ export default function UserProfile() {
       const nextPreview = {
         id: mediaId,
         url: URL.createObjectURL(file),
-        isRemote: false,
       };
 
       if (editMediaReplaceTargetRef.current) {
@@ -391,7 +344,7 @@ export default function UserProfile() {
           const removed = current.find(
             preview => preview.id === replaceTargetId
           );
-          if (removed && !removed.isRemote) {
+          if (removed?.url?.startsWith("blob:")) {
             URL.revokeObjectURL(removed.url);
           }
           return next;
@@ -412,7 +365,7 @@ export default function UserProfile() {
     setEditMediaPreviews(current => {
       const next = current.filter(preview => preview.id !== mediaId);
       const removed = current.find(preview => preview.id === mediaId);
-      if (removed && !removed.isRemote) {
+      if (removed?.url?.startsWith("blob:")) {
         URL.revokeObjectURL(removed.url);
       }
       return next;
@@ -478,7 +431,6 @@ export default function UserProfile() {
           post.id === postId
             ? {
                 ...post,
-                softDeleted: true,
                 deleted: true,
               }
             : post
@@ -574,7 +526,7 @@ export default function UserProfile() {
 
     try {
       const response = await UsersApi.updateCurrentUserAvatar(file);
-      const nextMediaId = response?.id;
+      const nextMediaId = response?.mediaId;
       URL.revokeObjectURL(previewAvatarUrl);
       if (nextMediaId) {
         const nextUser = { ...loggedInUser, avatarMediaId: nextMediaId };
@@ -625,7 +577,7 @@ export default function UserProfile() {
 
     try {
       const response = await UsersApi.updateCurrentUserBanner(file);
-      const nextMediaId = response?.id;
+      const nextMediaId = response?.mediaId;
       URL.revokeObjectURL(previewBannerUrl);
       if (nextMediaId) {
         const nextUser = { ...loggedInUser, bannerMediaId: nextMediaId };
@@ -1057,9 +1009,7 @@ export default function UserProfile() {
                           onUpvote={handleUpvote}
                           onDownvote={handleDownvote}
                           onSave={handleSave}
-                          isEditable={
-                            isOwnProfile && !post.softDeleted && !post.deleted
-                          }
+                          isEditable={isOwnProfile && !post.deleted}
                           onEdit={startEditingPost}
                           onDelete={handleDeletePost}
                           isDeleting={deletingPostId === post.id}
