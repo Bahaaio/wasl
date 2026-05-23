@@ -11,9 +11,11 @@ import Navbar from "../components/Navbar.jsx";
 import RichTextEditor from "../components/RichTextEditor.jsx";
 import AuthModal from "../components/AuthModal.jsx";
 import { PostsApi } from "../api/posts.js";
+import { CommunitiesApi } from "../api/communities.js";
 import { MediaApi } from "../api/media.js";
 import { useUser } from "../auth/useUser.jsx";
 import { UsersApi } from "../api/users.js";
+import { SearchApi } from "../api/search.js";
 // getAccessToken is provided to API interceptor; not needed directly here
 
 function stripCommunityPrefix(value) {
@@ -37,10 +39,12 @@ export default function CreatePostPage() {
   const [showImages, setShowImages] = useState(false);
   const [showLink, setShowLink] = useState(false);
   const [showPoll, setShowPoll] = useState(false);
-  const [communities, setCommunities] = useState([]);
+  const [joinedCommunities, setJoinedCommunities] = useState([]);
+  const [searchedCommunities, setSearchedCommunities] = useState([]);
   const [communitySearch, setCommunitySearch] = useState("");
   const [isCommunityMenuOpen, setIsCommunityMenuOpen] = useState(false);
   const [isLoadingCommunities, setIsLoadingCommunities] = useState(false);
+  const [isSearchingCommunities, setIsSearchingCommunities] = useState(false);
   const [createPostForm, setCreatePostForm] = useState({
     title: "",
     content: "",
@@ -90,7 +94,7 @@ export default function CreatePostPage() {
         }
 
         if (!isMounted) return;
-        setCommunities(nextCommunities);
+        setJoinedCommunities(nextCommunities);
 
         if (nextCommunities.length > 0) {
           const firstCommunity = nextCommunities[0];
@@ -103,7 +107,7 @@ export default function CreatePostPage() {
       } catch (error) {
         if (!isMounted) return;
         console.error("Failed to load communities:", error);
-        setCommunities([]);
+        setJoinedCommunities([]);
       } finally {
         if (isMounted) {
           setIsLoadingCommunities(false);
@@ -132,18 +136,75 @@ export default function CreatePostPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filteredCommunities = useMemo(() => {
-    const query = communitySearch.trim().toLowerCase().replace(/^r\//, "");
+  useEffect(() => {
+    const query = communitySearch.trim();
 
     if (!query) {
-      return communities;
+      return undefined;
     }
 
-    return communities.filter(community => {
+    let isActive = true;
+    const timeoutId = window.setTimeout(async () => {
+      setIsSearchingCommunities(true);
+
+      try {
+        const firstPage = await SearchApi.searchCommunities(query, {
+          page: 0,
+          size: 100,
+        });
+
+        let nextCommunities = firstPage?.content ?? [];
+        const totalPages = firstPage?.page?.totalPages ?? 1;
+
+        if (totalPages > 1) {
+          const pageRequests = [];
+
+          for (let pageNumber = 1; pageNumber < totalPages; pageNumber += 1) {
+            pageRequests.push(
+              SearchApi.searchCommunities(query, {
+                page: pageNumber,
+                size: 100,
+              })
+            );
+          }
+
+          const otherPages = await Promise.all(pageRequests);
+          const additional = otherPages.flatMap(page => page?.content ?? []);
+          nextCommunities = [...nextCommunities, ...additional];
+        }
+
+        if (!isActive) return;
+        setSearchedCommunities(nextCommunities);
+      } catch (error) {
+        if (!isActive) return;
+        console.error("Failed to search communities:", error);
+        setSearchedCommunities([]);
+      } finally {
+        if (isActive) {
+          setIsSearchingCommunities(false);
+        }
+      }
+    }, 250);
+
+    return () => {
+      isActive = false;
+      window.clearTimeout(timeoutId);
+    };
+  }, [communitySearch]);
+
+  const filteredCommunities = useMemo(() => {
+    const query = communitySearch.trim().toLowerCase().replace(/^r\//, "");
+    const sourceCommunities = query ? searchedCommunities : joinedCommunities;
+
+    if (!query) {
+      return sourceCommunities;
+    }
+
+    return sourceCommunities.filter(community => {
       const communityName = stripCommunityPrefix(community.name).toLowerCase();
       return communityName.includes(query);
     });
-  }, [communities, communitySearch]);
+  }, [communitySearch, joinedCommunities, searchedCommunities]);
 
   const handleCreatePostChange = event => {
     const { name, value } = event.target;
@@ -287,19 +348,19 @@ export default function CreatePostPage() {
     setCreatePostError(null);
 
     try {
-      const selectedCommunity =
-        communities.find(
-          community =>
-            community.name.toLowerCase() ===
-            createPostForm.community.trim().toLowerCase()
-        ) ||
-        communities.find(
-          community =>
-            stripCommunityPrefix(community.name).toLowerCase() ===
-            communitySearch.trim().toLowerCase().replace(/^r\//, "")
-        );
+      const enteredCommunity = stripCommunityPrefix(createPostForm.community);
 
-      if (!selectedCommunity) {
+      if (!enteredCommunity) {
+        setCreatePostError("Choose a matching community from the list.");
+        setIsCreatingPost(false);
+        return;
+      }
+
+      const selectedCommunityName = enteredCommunity;
+
+      try {
+        await CommunitiesApi.getCommunityByName(selectedCommunityName);
+      } catch {
         setCreatePostError("Choose a matching community from the list.");
         setIsCreatingPost(false);
         return;
@@ -371,7 +432,7 @@ export default function CreatePostPage() {
       const created = await PostsApi.createPost({
         title: createPostForm.title.trim(),
         content: contentParts.filter(Boolean).join("\n\n"),
-        communityName: selectedCommunity.name,
+        communityName: selectedCommunityName,
         mediaIds: mediaIds.length > 0 ? mediaIds : undefined,
       });
 
@@ -385,7 +446,7 @@ export default function CreatePostPage() {
       setCreatePostForm({
         title: "",
         content: "",
-        community: communities[0]?.name || "",
+        community: joinedCommunities[0]?.name || "",
         images: [],
         link: "",
         pollOptions: ["", ""],
@@ -485,7 +546,7 @@ export default function CreatePostPage() {
                   setIsCommunityMenuOpen(true);
                   setCommunitySearch("");
                 }}
-                placeholder="Search your communities"
+                placeholder="Search any community"
                 disabled={isCreatingPost || isLoadingCommunities}
                 className="w-full bg-transparent text-sm text-slate-100 placeholder-slate-500 outline-none disabled:cursor-not-allowed"
               />
@@ -507,9 +568,11 @@ export default function CreatePostPage() {
             {isCommunityMenuOpen && (
               <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-2xl border border-slate-700 bg-slate-900/95 shadow-2xl shadow-black/30 backdrop-blur">
                 <div className="max-h-64 overflow-auto">
-                  {isLoadingCommunities ? (
+                  {isLoadingCommunities || isSearchingCommunities ? (
                     <div className="px-4 py-3 text-sm text-slate-400">
-                      Loading communities...
+                      {isLoadingCommunities
+                        ? "Loading communities..."
+                        : "Searching communities..."}
                     </div>
                   ) : filteredCommunities.length > 0 ? (
                     filteredCommunities.map(community => {
@@ -543,7 +606,7 @@ export default function CreatePostPage() {
                     })
                   ) : (
                     <div className="px-4 py-3 text-sm text-slate-400">
-                      No joined communities found.
+                      No communities found.
                     </div>
                   )}
                 </div>
