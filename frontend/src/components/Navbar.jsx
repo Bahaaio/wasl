@@ -5,13 +5,10 @@ import {
   Menu,
   Edit3,
   Plus,
-  Moon,
-  Settings,
   LogOut,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import AuthModal from "./AuthModal.jsx";
-import SettingsComponent from "./Settings.jsx";
 import SearchBar from "./SearchBar.jsx";
 import { useUser } from "../auth/useUser.jsx";
 import { authApi } from "../api/auth.js";
@@ -23,7 +20,6 @@ export default function Navbar({ transparentMode = false }) {
   const [authInitialTab, setAuthInitialTab] = useState("login");
   const [isScrolled, setIsScrolled] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { user, setUser, isLoggedIn } = useUser();
   const avatarUrl = user?.avatarMediaId
     ? UsersApi.getUserAvatarThumbnailUrl(user.avatarMediaId)
@@ -158,27 +154,8 @@ export default function Navbar({ transparentMode = false }) {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setIsProfileOpen(false)}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-slate-200 hover:bg-slate-800 transition-colors text-left"
-                    >
-                      <Moon className="w-4 h-4" />
-                      <span>Display Mode</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsProfileOpen(false);
-                        setIsSettingsOpen(true);
-                      }}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-slate-200 hover:bg-slate-800 transition-colors text-left border-t border-slate-800"
-                    >
-                      <Settings className="w-4 h-4" />
-                      <span>Settings</span>
-                    </button>
-                    <button
-                      type="button"
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 transition-colors text-left border-t border-slate-800"
+                      className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 transition-colors text-left"
                     >
                       <LogOut className="w-4 h-4" />
                       <span>Log Out</span>
@@ -236,10 +213,6 @@ export default function Navbar({ transparentMode = false }) {
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
         initialTab={authInitialTab}
-      />
-      <SettingsComponent
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
       />
     </>
   );
