@@ -1,42 +1,64 @@
 # wasl
 
-wasl is a community-driven platform with posts, comments, media, and voting. The backend is Spring Boot, and the frontend is React (JavaScript) with Tailwind CSS.
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+
+Wasl is a modern community platform for focused conversations, rich media, and personalized feeds.
+
+## stack
+
+- Backend: Spring Boot, Spring Security, JWT, PostgreSQL
+- Frontend: React (JavaScript), Tailwind CSS
+- Storage: Local filesystem or S3-compatible object storage
 
 ## features
 
-- auth with jwt + refresh tokens
-- communities, memberships, and roles
-- posts, comments, and voting
-- media upload/processing (images, gifs, videos)
-- search and feed endpoints
-- storage abstraction (local filesystem by default, s3-compatible storage via a custom StorageService implementation)
+Communities, memberships, and roles: Create communities, manage membership, and gate actions by role.
 
-## run with docker compose
+Posts, comments, and voting: Threaded discussions with voting and score tracking.
 
-requirements: docker + docker compose
+Feed and search: A home feed that supports latest, top, and hot sorting plus search across content. See [search](backend/src/main/java/com/github/bahaaio/wasl/search/).
+
+Media pipeline: Uploads are validated, type-detected, processed, and stored with a thumbnail and full variant. See [MediaService](backend/src/main/java/com/github/bahaaio/wasl/media/service/MediaService.java).
+
+Media pipeline details:
+
+- File type is detected from content (not just the file extension).
+- Size limits are enforced per media type.
+- Images/GIFs/videos are processed and normalized.
+- Thumbnails are generated and stored alongside full media.
+- Uploads are stored immediately as TEMP and later attached to an owner.
+- Orphaned TEMP media is cleaned by a scheduled job. See [OrphanMediaCleanupJob](backend/src/main/java/com/github/bahaaio/wasl/media/job/OrphanMediaCleanupJob.java).
+
+## quick start
+
+Requirements: Docker + Docker Compose
 
 ```bash
-docker compose up --build
+docker compose up
 ```
 
-services:
+Then open:
 
-- backend: <http://localhost:8080>
-- frontend: <http://localhost:3000>
-- db: postgres on localhost:5432
+- Backend: <http://localhost:8080>
+- Frontend: <http://localhost:3000>
 
 ## run locally
 
-requirements: java 21, maven, node 18+
+Requirements: Java 21, Maven, Node 18+
 
-backend:
+Backend:
 
 ```bash
 cd backend
 mvn spring-boot:run
 ```
 
-frontend:
+Frontend:
 
 ```bash
 cd frontend
@@ -46,17 +68,51 @@ npm run dev
 
 ## configuration
 
-backend config is in `backend/src/main/resources/application.yaml`.
+Backend configuration is documented in [backend/README.md](backend/README.md). See that guide for detailed settings, S3 deployment, and media pipeline behavior.
 
-key settings:
+Example environment variables live in [backend/.env.example](backend/.env.example).
 
-- `spring.datasource.*` for database
-- `security.jwt.*` for jwt settings
-- `storage.location` for local file storage
-- `media.allowed-types` and max sizes for uploads
+## architecture
+
+The backend follows a vertical-slice style where each module owns its controllers, services, DTOs, and repositories. See:
+
+- Communities: [community](backend/src/main/java/com/github/bahaaio/wasl/community/)
+- Posts: [post](backend/src/main/java/com/github/bahaaio/wasl/post/)
+- Comments: [comment](backend/src/main/java/com/github/bahaaio/wasl/comment/)
+- Votes: [vote](backend/src/main/java/com/github/bahaaio/wasl/vote/)
+- Media: [media](backend/src/main/java/com/github/bahaaio/wasl/media/)
+
+## error responses
+
+Errors are returned in a structured JSON format via exception handlers.
+
+Example (validation error):
+
+```json
+{
+  "code": "VALIDATION_ERROR",
+  "message": "Validation failed",
+  "details": [
+    {
+      "field": "title",
+      "message": "must not be blank"
+    }
+  ]
+}
+```
+
+Example (not found):
+
+```json
+{
+  "code": "POST_NOT_FOUND",
+  "message": "Post with id: 123 not found",
+  "details": null
+}
+```
 
 ## api docs
 
-swagger ui is available at:
+Swagger UI:
 
 - <http://localhost:8080/swagger-ui/index.html>
