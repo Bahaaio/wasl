@@ -331,7 +331,9 @@ export default function CreateCommunityPage() {
                       {label}
                     </div>
                     <div className="font-semibold">
-                      {currentStep === 1 ? "Community identity" : "Visibility and controls"}
+                      {currentStep === 1
+                        ? "Community identity"
+                        : "Visibility and controls"}
                     </div>
                   </button>
                 );
