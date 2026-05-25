@@ -1,4 +1,5 @@
 import { MessageSquare } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function Footer() {
   const footerSections = [
@@ -51,9 +52,18 @@ export default function Footer() {
               <ul className="space-y-2.5 text-slate-400">
                 {section.links.map(link => (
                   <li key={link}>
-                    <button className="text-left text-base hover:text-orange-300 transition-colors">
-                      {link}
-                    </button>
+                    {link === "About" ? (
+                      <Link
+                        to="/about"
+                        className="text-left text-base hover:text-orange-300 transition-colors"
+                      >
+                        {link}
+                      </Link>
+                    ) : (
+                      <button className="text-left text-base hover:text-orange-300 transition-colors">
+                        {link}
+                      </button>
+                    )}
                   </li>
                 ))}
               </ul>
