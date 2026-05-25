@@ -1,4 +1,8 @@
-# wasl
+<div align="center">
+
+# Wasl
+
+<p><em>A modern community platform for focused conversations, rich media, and personalized feeds.</em></p>
 
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
@@ -7,34 +11,41 @@
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
-Wasl is a modern community platform for focused conversations, rich media, and personalized feeds.
+</div>
 
-## stack
+## ✨ Features
 
-- Backend: Spring Boot, Spring Security, JWT, PostgreSQL
-- Frontend: React (JavaScript), Tailwind CSS
+### Community Features
+
+- Create communities, manage membership, and gate actions by role
+
+### Content Features
+
+- Threaded posts, comments, and voting with score tracking
+- Feed sorting: latest, top, and hot
+- Search across posts, comments, users, and communities
+  - See [search](backend/src/main/java/com/github/bahaaio/wasl/search/)
+
+### Media Features
+
+- Uploads are validated, type-detected, processed, and stored with a thumbnail and full variant
+- File type is detected from content (not just the extension)
+- Size limits enforced per media type
+- Images/GIFs/videos are processed and normalized
+- Thumbnails generated and stored alongside full media
+- Uploads are stored immediately as TEMP and later attached to an owner
+- Orphaned TEMP media is cleaned by a scheduled job
+  - See [MediaService](backend/src/main/java/com/github/bahaaio/wasl/media/service/MediaService.java)
+  - See [OrphanMediaCleanupJob](backend/src/main/java/com/github/bahaaio/wasl/media/job/OrphanMediaCleanupJob.java)
+
+## 🧩 Tech Stack
+
+- Backend: [Spring Boot](https://spring.io/projects/spring-boot), [Spring Security](https://spring.io/projects/spring-security), [JWT](https://jwt.io/), [PostgreSQL](https://www.postgresql.org/)
+- Frontend: [React](https://react.dev/) (JavaScript), [Tailwind CSS](https://tailwindcss.com/)
 - Storage: Local filesystem or S3-compatible object storage
+- Infra: [Docker](https://www.docker.com/)
 
-## features
-
-Communities, memberships, and roles: Create communities, manage membership, and gate actions by role.
-
-Posts, comments, and voting: Threaded discussions with voting and score tracking.
-
-Feed and search: A home feed that supports latest, top, and hot sorting plus search across content. See [search](backend/src/main/java/com/github/bahaaio/wasl/search/).
-
-Media pipeline: Uploads are validated, type-detected, processed, and stored with a thumbnail and full variant. See [MediaService](backend/src/main/java/com/github/bahaaio/wasl/media/service/MediaService.java).
-
-Media pipeline details:
-
-- File type is detected from content (not just the file extension).
-- Size limits are enforced per media type.
-- Images/GIFs/videos are processed and normalized.
-- Thumbnails are generated and stored alongside full media.
-- Uploads are stored immediately as TEMP and later attached to an owner.
-- Orphaned TEMP media is cleaned by a scheduled job. See [OrphanMediaCleanupJob](backend/src/main/java/com/github/bahaaio/wasl/media/job/OrphanMediaCleanupJob.java).
-
-## quick start
+## 🚀 Quick Start
 
 Requirements: Docker + Docker Compose
 
@@ -47,7 +58,7 @@ Then open:
 - Backend: <http://localhost:8080>
 - Frontend: <http://localhost:3000>
 
-## run locally
+## 🧪 Run Locally
 
 Requirements: Java 21, Maven, Node 18+
 
@@ -66,13 +77,13 @@ npm install
 npm run dev
 ```
 
-## configuration
+## ⚙️ Configuration
 
 Backend configuration is documented in [backend/README.md](backend/README.md). See that guide for detailed settings, S3 deployment, and media pipeline behavior.
 
 Example environment variables live in [backend/.env.example](backend/.env.example).
 
-## architecture
+## 🏗️ Architecture
 
 The backend follows a vertical-slice style where each module owns its controllers, services, DTOs, and repositories. See:
 
@@ -82,7 +93,7 @@ The backend follows a vertical-slice style where each module owns its controller
 - Votes: [vote](backend/src/main/java/com/github/bahaaio/wasl/vote/)
 - Media: [media](backend/src/main/java/com/github/bahaaio/wasl/media/)
 
-## error responses
+## 🧯 Error Responses
 
 Errors are returned in a structured JSON format via exception handlers.
 
@@ -111,8 +122,12 @@ Example (not found):
 }
 ```
 
-## api docs
+## 📚 API Docs
 
 Swagger UI:
 
 - <http://localhost:8080/swagger-ui/index.html>
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
