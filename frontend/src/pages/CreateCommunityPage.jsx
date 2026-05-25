@@ -143,7 +143,7 @@ export default function CreateCommunityPage() {
       return;
     }
 
-    setStep(previous => Math.min(previous + 1, 3));
+    setStep(previous => Math.min(previous + 1, 2));
   };
 
   const handleBack = () => {
@@ -313,35 +313,29 @@ export default function CreateCommunityPage() {
               </p>
             </div>
 
-            <div className="mb-8 grid gap-3 sm:grid-cols-3">
-              {["Step 1: Identity", "Step 2: Settings", "Step 3: Review"].map(
-                (label, index) => {
-                  const currentStep = index + 1;
-                  return (
-                    <button
-                      key={label}
-                      type="button"
-                      onClick={() => setStep(currentStep)}
-                      className={`rounded-2xl border px-4 py-3 text-left transition-colors ${
-                        step === currentStep
-                          ? "border-orange-500/40 bg-orange-500/10 text-white"
-                          : "border-slate-800 bg-slate-950/50 text-slate-400 hover:border-slate-700 hover:text-slate-200"
-                      }`}
-                    >
-                      <div className="text-[10px] uppercase tracking-[0.2em] mb-1">
-                        {label}
-                      </div>
-                      <div className="font-semibold">
-                        {currentStep === 1
-                          ? "Community identity"
-                          : currentStep === 2
-                            ? "Visibility and controls"
-                            : "Preview and launch"}
-                      </div>
-                    </button>
-                  );
-                }
-              )}
+            <div className="mb-8 grid gap-3 sm:grid-cols-2">
+              {["Step 1: Identity", "Step 2: Settings"].map((label, index) => {
+                const currentStep = index + 1;
+                return (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => setStep(currentStep)}
+                    className={`rounded-2xl border px-4 py-3 text-left transition-colors ${
+                      step === currentStep
+                        ? "border-orange-500/40 bg-orange-500/10 text-white"
+                        : "border-slate-800 bg-slate-950/50 text-slate-400 hover:border-slate-700 hover:text-slate-200"
+                    }`}
+                  >
+                    <div className="text-[10px] uppercase tracking-[0.2em] mb-1">
+                      {label}
+                    </div>
+                    <div className="font-semibold">
+                      {currentStep === 1 ? "Community identity" : "Visibility and controls"}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
 
             {createdCommunity ? (
@@ -518,67 +512,7 @@ export default function CreateCommunityPage() {
                   </div>
                 )}
 
-                {step === 3 && (
-                  <div className="space-y-6">
-                    <div className="rounded-3xl border border-slate-800 bg-slate-950/70 p-6">
-                      <div className="flex items-start gap-4">
-                        <div
-                          className={`h-16 w-16 rounded-2xl bg-linear-to-br ${form.theme} flex items-center justify-center text-2xl font-bold text-white shadow-lg`}
-                        >
-                          {communitySlug.slice(0, 1).toUpperCase() || "R"}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
-                            Preview
-                          </p>
-                          <h2 className="mt-1 text-2xl font-bold text-white truncate">
-                            r/{communitySlug || "yourcommunity"}
-                          </h2>
-                          <p className="mt-2 text-slate-400">
-                            r/{communitySlug || "yourcommunity"}
-                          </p>
-                          <p className="mt-3 text-sm text-slate-300 leading-relaxed">
-                            {form.description ||
-                              "Your community description will appear here."}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="mt-6 flex flex-wrap gap-3 text-sm">
-                        <span className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1.5 text-slate-200">
-                          {form.category}
-                        </span>
-                        <span className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1.5 text-slate-200 capitalize">
-                          {form.visibility}
-                        </span>
-                        {form.nsfw && (
-                          <span className="rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-red-300">
-                            18+ / NSFW
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="grid gap-3">
-                      {DEFAULT_RULES.map((rule, index) => (
-                        <div
-                          key={rule}
-                          className="flex items-start gap-3 rounded-2xl border border-slate-800 bg-slate-950/60 px-4 py-4"
-                        >
-                          <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-orange-500/15 text-xs font-bold text-orange-300">
-                            {index + 1}
-                          </div>
-                          <div>
-                            <div className="font-semibold text-white">
-                              Default rule
-                            </div>
-                            <p className="text-sm text-slate-400">{rule}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                {/* Step 3 (Preview) removed - submission happens after Step 2 */}
 
                 {formError && (
                   <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
@@ -588,11 +522,7 @@ export default function CreateCommunityPage() {
 
                 <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-800 pt-6">
                   <div className="text-sm text-slate-500">
-                    {step === 1
-                      ? "Step 1 of 3"
-                      : step === 2
-                        ? "Step 2 of 3"
-                        : "Step 3 of 3"}
+                    {step === 1 ? "Step 1 of 2" : "Step 2 of 2"}
                   </div>
 
                   <div className="flex gap-3">
@@ -606,7 +536,7 @@ export default function CreateCommunityPage() {
                       </button>
                     )}
 
-                    {step < 3 ? (
+                    {step < 2 ? (
                       <button
                         type="button"
                         onClick={handleNext}
